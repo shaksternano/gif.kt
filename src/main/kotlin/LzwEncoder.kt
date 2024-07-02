@@ -71,7 +71,4 @@ private fun initLzwCodeTable(
 }
 
 fun requiredBits(values: Int): Int =
-    log2(values - 1)
-
-private fun log2(value: Int): Int =
-    Int.SIZE_BITS - value.countLeadingZeroBits()
+    Int.SIZE_BITS - (values - 1).countLeadingZeroBits()

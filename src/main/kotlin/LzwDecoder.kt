@@ -20,7 +20,9 @@ fun lzwDecode(codeStream: List<Int>, maxColors: Int): List<Byte> {
             currentSubCodeStream.add(code)
         }
     }
-    splitCodeStream.add(currentSubCodeStream)
+    if (currentSubCodeStream.isNotEmpty()) {
+        splitCodeStream.add(currentSubCodeStream)
+    }
 
     val codeTable = mutableListOf<List<Byte>>()
     splitCodeStream.forEach { subCodeStream ->

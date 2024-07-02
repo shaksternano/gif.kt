@@ -48,24 +48,24 @@ class TestNeuQuant {
         val expectedPixels = loadBgrPixels("media/sonic-quantized.png").asList()
         assertEquals(expectedPixels, quantizedPixels)
     }
-
-    private fun loadBgrPixels(path: String): ByteArray {
-        val image = loadImage(path).convertType(BufferedImage.TYPE_3BYTE_BGR)
-        return (image.raster.dataBuffer as DataBufferByte).data
-    }
-
-    private fun loadImage(path: String): BufferedImage =
-        ImageIO.read(getResource(path))
-
-    private fun getResource(path: String): InputStream =
-        TestNeuQuant::class.java.classLoader.getResourceAsStream(path)
-            ?: throw IllegalArgumentException("Resource not found: $path")
-
-    private fun BufferedImage.convertType(type: Int): BufferedImage =
-        if (this.type == type) this
-        else {
-            val newType = BufferedImage(width, height, type)
-            val convertOp = ColorConvertOp(null)
-            convertOp.filter(this, newType)
-        }
 }
+
+fun loadBgrPixels(path: String): ByteArray {
+    val image = loadImage(path).convertType(BufferedImage.TYPE_3BYTE_BGR)
+    return (image.raster.dataBuffer as DataBufferByte).data
+}
+
+private fun loadImage(path: String): BufferedImage =
+    ImageIO.read(getResource(path))
+
+private fun getResource(path: String): InputStream =
+    TestNeuQuant::class.java.classLoader.getResourceAsStream(path)
+        ?: throw IllegalArgumentException("Resource not found: $path")
+
+private fun BufferedImage.convertType(type: Int): BufferedImage =
+    if (this.type == type) this
+    else {
+        val newType = BufferedImage(width, height, type)
+        val convertOp = ColorConvertOp(null)
+        convertOp.filter(this, newType)
+    }

@@ -10,6 +10,8 @@ repositories {
 }
 
 dependencies {
+    api("org.jetbrains.kotlinx:kotlinx-io-core:0.4.0")
+
     testImplementation(kotlin("test"))
 }
 

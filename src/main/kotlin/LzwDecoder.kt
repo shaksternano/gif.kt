@@ -1,64 +1,75 @@
 package io.github.shaksternano.gifcodec
 
-fun lzwDecode(codeStream: List<Int>, maxColors: Int): List<Byte> {
-    if (codeStream.size < 2) {
-        return emptyList()
-    }
+import kotlinx.io.Source
+import kotlinx.io.readUByte
+import kotlin.properties.Delegates
 
-    val indexStream = mutableListOf<Byte>()
-    val clearCode = codeStream.first()
-    val endOfInformationCode = clearCode + 1
-    val splitCodeStream = mutableListOf<List<Int>>()
-    var currentSubCodeStream = mutableListOf<Int>()
-    codeStream.forEach { code ->
-        if (code == clearCode) {
-            if (currentSubCodeStream.isNotEmpty()) {
-                splitCodeStream.add(currentSubCodeStream)
-                currentSubCodeStream = mutableListOf()
-            }
-        } else if (code != endOfInformationCode) {
-            currentSubCodeStream.add(code)
-        }
-    }
-    if (currentSubCodeStream.isNotEmpty()) {
-        splitCodeStream.add(currentSubCodeStream)
-    }
+fun Source.readLzwIndexStream(maxColors: Int): List<Byte> {
+    val lzwMinCodeSize = readUByte().toInt()
+    val endOfInformationCode = maxColors + 1
+
+    // Sub-block byte count
+    var blockSize = readUByte().toInt()
+    var currentCodeSize = lzwMinCodeSize + 1
+    var currentBits = 0
+    var currentBitPosition = 0
+
+    var reset = true
+    var previousCode by Delegates.notNull<Int>()
 
     val codeTable = mutableListOf<List<Byte>>()
-    splitCodeStream.forEach { subCodeStream ->
-        initCodeTable(codeTable, maxColors)
-        val firstCode = subCodeStream.first()
-        indexStream.addAll(codeTable[firstCode])
+    val indexStream = mutableListOf<Byte>()
+    while (blockSize > 0) {
+        repeat(blockSize) {
+            val byte = readUByte().toInt()
+            currentBits = currentBits or (byte shl currentBitPosition)
+            currentBitPosition += Byte.SIZE_BITS
+            while (currentBitPosition >= currentCodeSize) {
+                // Extract the required number of bits
+                val mask = (1 shl currentCodeSize) - 1
+                val code = currentBits and mask
 
-        var previousCode = firstCode
-        subCodeStream.forEachIndexed { i, code ->
-            // We've already visited the first code
-            if (i == 0) {
-                return@forEachIndexed
-            }
+                currentBits = currentBits ushr currentCodeSize
+                currentBitPosition -= currentCodeSize
 
-            val indices = codeTable.getOrNull(code)
-            if (indices == null) {
-                val previousCodeValue = codeTable[previousCode]
-                val firstIndex = previousCodeValue.first()
-                val newSequence = previousCodeValue + firstIndex
-                indexStream.addAll(newSequence)
-                codeTable.add(newSequence)
-            } else {
-                indexStream.addAll(indices)
-                val previousCodeValue = codeTable[previousCode]
-                val firstIndex = indices.first()
-                val newSequence = previousCodeValue + firstIndex
-                codeTable.add(newSequence)
+                // Clear code
+                if (code == maxColors) {
+                    initCodeTable(codeTable, maxColors)
+                    reset = true
+                } else if (code == endOfInformationCode) {
+                    return@repeat
+                } else if (reset) {
+                    reset = false
+                    val indices = codeTable[code]
+                    indexStream.addAll(indices)
+                    previousCode = code
+                } else {
+                    val indices = codeTable.getOrNull(code)
+                    val previousIndices = codeTable[previousCode]
+                    if (indices == null) {
+                        val firstIndex = previousIndices.first()
+                        val nextSequence = previousIndices + firstIndex
+                        indexStream.addAll(nextSequence)
+                        codeTable.add(nextSequence)
+                    } else {
+                        indexStream.addAll(indices)
+                        val firstIndex = indices.first()
+                        val nextSequence = previousIndices + firstIndex
+                        codeTable.add(nextSequence)
+                    }
+                    previousCode = code
+                    if (codeTable.size == 2.pow(currentCodeSize)) {
+                        currentCodeSize++
+                    }
+                }
             }
-            previousCode = code
         }
+        blockSize = readUByte().toInt()
     }
-
     return indexStream
 }
 
-fun initCodeTable(codeTable: MutableList<List<Byte>>, maxColors: Int) {
+private fun initCodeTable(codeTable: MutableList<List<Byte>>, maxColors: Int) {
     codeTable.clear()
     repeat(maxColors) { i ->
         codeTable.add(listOf(i.toByte()))

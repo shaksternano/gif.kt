@@ -25,6 +25,7 @@ fun Sink.writeLzwIndexStream(indexStream: List<Byte>, maxColors: Int) {
 
     val bitBuffer = BitBuffer()
     bitBuffer.writeBits(maxColors, codeSize) // Clear code
+    tryWriteFullLzwSubBlock(bitBuffer)
 
     val indexBuffer = mutableListOf<Byte>()
     indexBuffer.add(indexStream.first())
@@ -34,27 +35,25 @@ fun Sink.writeLzwIndexStream(indexStream: List<Byte>, maxColors: Int) {
         if (codeTable.containsKey(nextSequence)) {
             indexBuffer.add(index)
         } else {
+            val nextCode = codeTable.size + LZW_SPECIAL_CODES_COUNT
+            codeTable[nextSequence] = nextCode
+
             val outputCode = codeTable.getValue(indexBuffer)
             bitBuffer.writeBits(outputCode, codeSize)
-            val buffer = bitBuffer.buffer
-            while (buffer.size >= GIF_MAX_BLOCK_SIZE) {
-                writeByte(GIF_MAX_BLOCK_SIZE)
-                write(buffer, GIF_MAX_BLOCK_SIZE.toLong())
-            }
+            tryWriteFullLzwSubBlock(bitBuffer)
 
             indexBuffer.clear()
             indexBuffer.add(index)
 
-            val nextCode = codeTable.size + LZW_SPECIAL_CODES_COUNT
-            if (nextCode > LZW_CODE_TABLE_MAX_CODE) {
-                codeSize = initialCodeSize
+            val nextNextCode = codeTable.size + LZW_SPECIAL_CODES_COUNT
+            if (nextNextCode > LZW_CODE_TABLE_MAX_CODE) {
+                // Rebuild the code table if the maximum code is reached
                 bitBuffer.writeBits(maxColors, codeSize) // Clear code
+                tryWriteFullLzwSubBlock(bitBuffer)
                 initLzwCodeTable(codeTable, maxColors)
-            } else {
-                codeTable[nextSequence] = nextCode
-                if (nextCode == 2.pow(codeSize)) {
-                    codeSize++
-                }
+                codeSize = initialCodeSize
+            } else if (nextCode == 2.pow(codeSize)) {
+                codeSize++
             }
         }
     }
@@ -65,16 +64,21 @@ fun Sink.writeLzwIndexStream(indexStream: List<Byte>, maxColors: Int) {
     bitBuffer.writeBits(endOfInformationCode, codeSize)
     bitBuffer.flush()
 
+    tryWriteFullLzwSubBlock(bitBuffer)
     val buffer = bitBuffer.buffer
-    while (buffer.size >= GIF_MAX_BLOCK_SIZE) {
-        writeByte(GIF_MAX_BLOCK_SIZE)
-        write(buffer, GIF_MAX_BLOCK_SIZE.toLong())
-    }
     if (buffer.size > 0) {
         writeByte(buffer.size.toByte())
         transferFrom(buffer)
     }
     writeByte(0x00) // Block terminator
+}
+
+private fun Sink.tryWriteFullLzwSubBlock(bitBuffer: BitBuffer) {
+    val buffer = bitBuffer.buffer
+    if (buffer.size >= GIF_MAX_BLOCK_SIZE) {
+        writeByte(GIF_MAX_BLOCK_SIZE)
+        write(buffer, GIF_MAX_BLOCK_SIZE.toLong())
+    }
 }
 
 private fun initLzwCodeTable(

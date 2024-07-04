@@ -66,7 +66,7 @@ fun Sink.writeLzwIndexStream(indexStream: List<Byte>, maxColors: Int) {
     bitBuffer.flush()
 
     val buffer = bitBuffer.buffer
-    while (buffer.size > GIF_MAX_BLOCK_SIZE) {
+    while (buffer.size >= GIF_MAX_BLOCK_SIZE) {
         writeByte(GIF_MAX_BLOCK_SIZE)
         write(buffer, GIF_MAX_BLOCK_SIZE.toLong())
     }

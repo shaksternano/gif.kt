@@ -46,4 +46,29 @@ class TestLzwEncoder {
         )
         assertEquals(expectedImageData, imageData)
     }
+
+    @Test
+    fun testLargeLzwEncode() {
+        val pixels = loadBgrPixels("media/restaurant.jpg")
+        val neuQuant = NeuQuant(
+            image = pixels,
+            samplingFactor = 10,
+        )
+        val colorTable = neuQuant.process()
+        val maxColors = colorTable.size / 3
+        val imageColorIndices = pixels.asList()
+            .chunked(3)
+            .map { (blue, green, red) ->
+                neuQuant.map(
+                    blue.toInt() and 0xFF,
+                    green.toInt() and 0xFF,
+                    red.toInt() and 0xFF,
+                ).toByte()
+            }
+            .toByteArray()
+        val buffer = Buffer()
+        buffer.writeGifImageData(imageColorIndices, maxColors)
+        val indexStream = buffer.readLzwIndexStream(maxColors)
+        assertEquals(imageColorIndices.asList(), indexStream)
+    }
 }

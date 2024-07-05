@@ -10,7 +10,8 @@ fun Source.readLzwIndexStream(maxColors: Int): List<Byte> {
 
     // Sub-block byte count
     var blockSize = readUByte().toInt()
-    var currentCodeSize = lzwMinCodeSize + 1
+    val initialCodeSize = lzwMinCodeSize + 1
+    var currentCodeSize = initialCodeSize
     var currentBits = 0
     var currentBitPosition = 0
 
@@ -34,6 +35,7 @@ fun Source.readLzwIndexStream(maxColors: Int): List<Byte> {
 
                 // Clear code
                 if (code == maxColors) {
+                    currentCodeSize = initialCodeSize
                     initCodeTable(codeTable, maxColors)
                     reset = true
                 } else if (code == endOfInformationCode) {

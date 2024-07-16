@@ -1,0 +1,164 @@
+package io.github.shaksternano.gifcodec
+
+import kotlinx.io.Sink
+import kotlinx.io.writeString
+import kotlin.math.ceil
+import kotlin.math.log2
+import kotlin.math.pow
+import kotlin.time.Duration
+
+/*
+ * Reference:
+ * https://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp
+ */
+class GifEncoder(
+    private val sink: Sink,
+    private val loopCount: Int,
+) : AutoCloseable {
+
+    private var initialized: Boolean = false
+
+    fun writeFrame(
+        image: ByteArray,
+        width: Int,
+        height: Int,
+        delay: Duration,
+        disposalMethod: DisposalMethod,
+    ) {
+        init(width, height)
+        val neuQuant = NeuQuant(image)
+        val colorTable = neuQuant.process()
+        val imageColorIndices = ByteArray(image.size / 3)
+        image.asList()
+            .map {
+                it.toInt() and 0xFF
+            }
+            .chunked(3)
+            .forEachIndexed { i, (blue, green, red) ->
+                val index = neuQuant.map(blue, green, red)
+                imageColorIndices[i] = index.toByte()
+            }
+        val maxColors = colorTable.size / 3
+        sink.writeGifGraphicsControlExtension(disposalMethod, delay, -1)
+        sink.writeGifImageDescriptor(width, height, maxColors)
+        sink.writeGifColorTable(colorTable)
+        sink.writeGifImageData(imageColorIndices, maxColors)
+    }
+
+    private fun init(width: Int, height: Int) {
+        if (initialized) return
+        sink.writeGifHeader()
+        sink.writeGifLogicalScreenDescriptor(width, height)
+        sink.writeGifApplicationExtension(loopCount)
+        initialized = true
+    }
+
+    override fun close() {
+        sink.writeGifTrailer()
+        sink.close()
+    }
+}
+
+internal fun Sink.writeGifHeader() {
+    writeString("GIF89a")
+}
+
+internal fun Sink.writeGifLogicalScreenDescriptor(width: Int, height: Int) {
+    writeLittleEndianShort(width)
+    writeLittleEndianShort(height)
+    writeByte(0x00) // Global color table packed field
+    writeByte(0x00) // Background color index
+    writeByte(0x00) // Pixel aspect ratio
+}
+
+internal fun Sink.writeGifColorTable(colorTable: ByteArray) {
+    write(colorTable)
+}
+
+internal fun Sink.writeGifApplicationExtension(loopCount: Int) {
+    // No looping
+    if (loopCount < 0) {
+        return
+    }
+
+    writeByte(0x21)            // Extension code
+    writeByte(0xFF)            // Application extension label
+    writeByte(0x0B)            // Length of Application block, 11 bytes
+    writeString("NETSCAPE2.0") // Application identifier
+    writeByte(0x03)            // Length of data sub-block, 3 bytes
+    writeByte(0x01)            // Constant
+    writeLittleEndianShort(loopCount)
+    writeByte(0x00)            // Data Sub-Block Terminator
+}
+
+internal fun Sink.writeGifGraphicsControlExtension(
+    disposalMethod: DisposalMethod,
+    delay: Duration,
+    transparentColorIndex: Int,
+) {
+    writeByte(0x21) // Extension code
+    writeByte(0xF9) // Graphics Control Label
+    writeByte(0x04) // Block size
+    val transparentColorFlag = if (transparentColorIndex < 0) 0 else 1
+    /*
+     * Bits:
+     * 1-3 : Reserved for future use (unused, set to 0)
+     * 4-6 : Disposal method
+     * 7   : User input flag         (unused, set to 0)
+     * 8   : Transparent color flag
+     */
+    val packed = disposalMethod.id shl 2 or transparentColorFlag
+    writeByte(packed)
+    writeLittleEndianShort(delay.inWholeMilliseconds / 10)
+    writeByte(transparentColorIndex.coerceAtLeast(0))
+    writeByte(0x00) // Block terminator
+}
+
+internal fun Sink.writeGifImageDescriptor(width: Int, height: Int, localColorTableSize: Int) {
+    writeByte(0x2C) // Image Separator
+    writeInt(0)     // Image left and top positions, two bytes each
+    writeLittleEndianShort(width)
+    writeLittleEndianShort(height)
+    /*
+     * Bits:
+     * 1   : Local color table flag
+     * 2   : Interlace flag          (unused, set to 0)
+     * 3   : Sort flag               (unused, set to 0)
+     * 4-5 : Reserved for future use (unused, set to 0)
+     * 6-8 : Local color table size
+     */
+    val packed = 0b10000000 or getColorTableRepresentedSize(localColorTableSize)
+    writeByte(packed)
+}
+
+internal fun Sink.writeGifImageData(imageColorIndices: ByteArray, maxColors: Int) {
+    writeLzwIndexStream(imageColorIndices.asList(), maxColors)
+}
+
+internal fun Sink.writeGifTrailer() {
+    writeByte(0x3B)
+}
+
+private fun getColorTableRepresentedSize(maxColors: Int): Int =
+    ceil(log2(maxColors.toDouble())).toInt() - 1
+
+private fun Sink.writeLittleEndianShort(int: Int) {
+    val lowHigh = int.toLittleEndianShort()
+    writeShort(lowHigh)
+}
+
+private fun Sink.writeLittleEndianShort(long: Long) =
+    writeLittleEndianShort(long.toInt())
+
+private fun Int.toLittleEndianShort(): Short {
+    /*
+     * No need to bit mask as the high byte is
+     * truncated when converting to a Short
+     */
+    val low = this shl 8
+    val high = this shr 8 and 0xFF
+    return (low or high).toShort()
+}
+
+fun Int.pow(exponent: Int): Int =
+    toDouble().pow(exponent).toInt()

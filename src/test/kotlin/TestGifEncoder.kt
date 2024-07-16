@@ -1,0 +1,138 @@
+package io.github.shaksternano.gifcodec
+
+import kotlinx.io.Buffer
+import kotlinx.io.readByteArray
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.time.Duration
+
+/*
+ * GIF file data from:
+ * https://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp
+ */
+class TestGifEncoder {
+
+    @Test
+    fun testWriteHeader() {
+        val buffer = Buffer()
+        buffer.writeGifHeader()
+        val bytes = buffer.readByteList()
+        val expected = HexByteList(
+            0x47, 0x49, 0x46, 0x38,
+            0x39, 0x61,
+        )
+        assertEquals(expected, bytes)
+    }
+
+    @Test
+    fun testWriteLogicalScreenDescriptor() {
+        val buffer = Buffer()
+        buffer.writeGifLogicalScreenDescriptor(10, 10)
+        val bytes = buffer.readByteList()
+        val expected = HexByteList(
+            0x0A, 0x00, 0x0A, 0x00,
+            0x00, 0x00, 0x00,
+        )
+        assertEquals(expected, bytes)
+    }
+
+    @Test
+    fun testWriteApplicationExtension() {
+        val buffer = Buffer()
+        buffer.writeGifApplicationExtension(0)
+        val bytes = buffer.readByteList()
+        val expected = HexByteList(
+            0x21, 0xFF, 0x0B, 0x4E,
+            0x45, 0x54, 0x53, 0x43,
+            0x41, 0x50, 0x45, 0x32,
+            0x2E, 0x30, 0x03, 0x01,
+            0x00, 0x00, 0x00,
+        )
+        assertEquals(expected, bytes)
+    }
+
+    @Test
+    fun testWriteGraphicsControl() {
+        val buffer = Buffer()
+        buffer.writeGifGraphicsControlExtension(
+            DisposalMethod.UNSPECIFIED,
+            Duration.ZERO,
+            transparentColorIndex = -1,
+        )
+        val bytes = buffer.readByteList()
+        val expected = HexByteList(
+            0x21, 0xF9, 0x04, 0x00,
+            0x00, 0x00, 0x00, 0x00,
+        )
+        assertEquals(expected, bytes)
+    }
+
+    @Test
+    fun testWriteImageDescriptor() {
+        val buffer = Buffer()
+        buffer.writeGifImageDescriptor(
+            width = 10,
+            height = 10,
+            localColorTableSize = 4,
+        )
+        val bytes = buffer.readByteList()
+        val expected = HexByteList(
+            0x2C, 0x00, 0x00, 0x00,
+            0x00, 0x0A, 0x00, 0x0A,
+            0x00, 0x81,
+        )
+        assertEquals(expected, bytes)
+    }
+
+    @Test
+    fun testWriteImageData() {
+        val buffer = Buffer()
+        /*
+         * Image data from:
+         * https://www.matthewflickinger.com/lab/whatsinagif/lzw_image_data.asp
+         */
+        val imageColorIndices = byteArrayOf(
+            1, 1, 1, 1, 1,   2, 2, 2, 2, 2,
+            1, 1, 1, 1, 1,   2, 2, 2, 2, 2,
+            1, 1, 1, 1, 1,   2, 2, 2, 2, 2,
+            1, 1, 1, 0, 0,   0, 0, 2, 2, 2,
+            1, 1, 1, 0, 0,   0, 0, 2, 2, 2,
+
+            2, 2, 2, 0, 0,   0, 0, 1, 1, 1,
+            2, 2, 2, 0, 0,   0, 0, 1, 1, 1,
+            2, 2, 2, 2, 2,   1, 1, 1, 1, 1,
+            2, 2, 2, 2, 2,   1, 1, 1, 1, 1,
+            2, 2, 2, 2, 2,   1, 1, 1, 1, 1,
+        )
+        buffer.writeGifImageData(
+            imageColorIndices,
+            maxColors = 4,
+        )
+        val bytes = buffer.readByteList()
+        val expected = HexByteList(
+            0x02, 0x16, 0x8C, 0x2D,
+            0x99, 0x87, 0x2A, 0x1C,
+            0xDC, 0x33, 0xA0, 0x02,
+            0x75, 0xEC, 0x95, 0xFA,
+            0xA8, 0xDE, 0x60, 0x8C,
+            0x04, 0x91, 0x4C, 0x01,
+            0x00,
+        )
+        assertEquals(expected, bytes)
+    }
+
+    @Test
+    fun testWriteTrailer() {
+        val buffer = Buffer()
+        buffer.writeGifTrailer()
+        val bytes = buffer.readByteList()
+        val expected = HexByteList(
+            0x3B,
+        )
+        assertEquals(expected, bytes)
+
+    }
+}
+
+private fun Buffer.readByteList(): HexByteList =
+    readByteArray().map { it.toInt() and 0xFF }.asHexByteList()

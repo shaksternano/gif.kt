@@ -7,13 +7,15 @@ import kotlin.math.log2
 import kotlin.math.pow
 import kotlin.time.Duration
 
+private const val GIF_MAX_COLORS: Int = 256
+
 /*
  * Reference:
  * https://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp
  */
 class GifEncoder(
     private val sink: Sink,
-    private val loopCount: Int,
+    private val loopCount: Int = 0,
 ) : AutoCloseable {
 
     private var initialized: Boolean = false
@@ -26,7 +28,9 @@ class GifEncoder(
         disposalMethod: DisposalMethod,
     ) {
         init(width, height)
-        val bgr = ByteArray(image.size * 3)
+
+        // Build color table
+        val bgr = mutableListOf<Byte>()
         var hasTransparent = false
         image.forEachIndexed { i, pixel ->
             val alpha = pixel shr 24 and 0xFF
@@ -35,29 +39,55 @@ class GifEncoder(
             val blue = pixel and 0xFF
             if (alpha == 0) {
                 hasTransparent = true
+            } else {
+                bgr.add(blue.toByte())
+                bgr.add(green.toByte())
+                bgr.add(red.toByte())
             }
-            bgr[i * 3] = blue.toByte()
-            bgr[i * 3 + 1] = green.toByte()
-            bgr[i * 3 + 2] = red.toByte()
         }
-        val maxColors = if (hasTransparent) 255 else 256
+        val maxColors =
+            if (hasTransparent) GIF_MAX_COLORS - 1
+            else GIF_MAX_COLORS
         val neuQuant = NeuQuant(
-            image = bgr,
+            image = bgr.toByteArray(),
             maxColors = maxColors,
         )
-        val colorTable = neuQuant.process()
+        val quantizationResult = neuQuant.process()
+        val colorTable: ByteArray
+        val transparentColorIndex: Int
+        if (hasTransparent) {
+            colorTable = ByteArray(quantizationResult.size + 3)
+            quantizationResult.copyInto(
+                colorTable,
+                // First three bytes are reserved for transparent color
+                destinationOffset = 3,
+            )
+            transparentColorIndex = 0
+        } else {
+            colorTable = quantizationResult
+            transparentColorIndex = -1
+        }
+
+        // Get color indices
         val imageColorIndices = ByteArray(image.size)
         image.forEachIndexed { i, pixel ->
+            val alpha = pixel shr 24 and 0xFF
             val red = pixel shr 16 and 0xFF
             val green = pixel shr 8 and 0xFF
             val blue = pixel and 0xFF
-            val index = neuQuant.map(blue, green, red)
+            val index = if (alpha == 0) {
+                0
+            } else {
+                // First index is reserved for transparent color
+                neuQuant.map(blue, green, red) + 1
+            }
             imageColorIndices[i] = index.toByte()
         }
-        sink.writeGifGraphicsControlExtension(disposalMethod, delay, -1)
-        sink.writeGifImageDescriptor(width, height, maxColors)
+
+        sink.writeGifGraphicsControlExtension(disposalMethod, delay, transparentColorIndex)
+        sink.writeGifImageDescriptor(width, height, GIF_MAX_COLORS)
         sink.writeGifColorTable(colorTable)
-        sink.writeGifImageData(imageColorIndices, maxColors)
+        sink.writeGifImageData(imageColorIndices, GIF_MAX_COLORS)
     }
 
     private fun init(width: Int, height: Int) {
@@ -122,7 +152,7 @@ internal fun Sink.writeGifGraphicsControlExtension(
      * 7   : User input flag         (unused, set to 0)
      * 8   : Transparent color flag
      */
-    val packed = disposalMethod.id shl 2 or transparentColorFlag
+    val packed = (disposalMethod.id shl 2 or transparentColorFlag) and 0b00011101
     writeByte(packed)
     writeLittleEndianShort(delay.inWholeMilliseconds / 10)
     writeByte(transparentColorIndex.coerceAtLeast(0))
@@ -142,7 +172,7 @@ internal fun Sink.writeGifImageDescriptor(width: Int, height: Int, localColorTab
      * 4-5 : Reserved for future use (unused, set to 0)
      * 6-8 : Local color table size
      */
-    val packed = 0b10000000 or getColorTableRepresentedSize(localColorTableSize)
+    val packed = (0b10000000 or getColorTableRepresentedSize(localColorTableSize)) and 0b10000111
     writeByte(packed)
 }
 

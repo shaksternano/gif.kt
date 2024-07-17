@@ -4,26 +4,28 @@ import kotlinx.io.Sink
 
 private const val LZW_SPECIAL_CODES_COUNT: Int = 2
 private const val LZW_CODE_TABLE_MAX_CODE: Int = 4095
+private const val LZW_MINIMUM_COLORS: Int = 4
 
 /*
  * Reference:
  * https://www.matthewflickinger.com/lab/whatsinagif/lzw_image_data.asp
  */
-fun Sink.writeLzwIndexStream(indexStream: List<Byte>, maxColors: Int) {
+fun Sink.writeLzwIndexStream(indexStream: List<Byte>, colorTableSize: Int) {
     if (indexStream.isEmpty()) {
         throw IllegalArgumentException("Index stream is empty")
     }
 
-    val lzwMinCodeSize = requiredBits(maxColors)
+    val colorCount = colorTableSize.coerceAtLeast(LZW_MINIMUM_COLORS)
+    val lzwMinCodeSize = requiredBits(colorCount)
     writeByte(lzwMinCodeSize)
 
     val codeTable = mutableMapOf<List<Byte>, Int>()
-    initLzwCodeTable(codeTable, maxColors)
+    initLzwCodeTable(codeTable, colorCount)
     val initialCodeSize = lzwMinCodeSize + 1
     var codeSize = initialCodeSize
 
     val bitBuffer = BitBuffer()
-    bitBuffer.writeBits(maxColors, codeSize) // Clear code
+    bitBuffer.writeBits(colorCount, codeSize) // Clear code
     tryWriteFullLzwSubBlock(bitBuffer)
 
     val indexBuffer = mutableListOf<Byte>()
@@ -47,9 +49,9 @@ fun Sink.writeLzwIndexStream(indexStream: List<Byte>, maxColors: Int) {
             val nextNextCode = codeTable.size + LZW_SPECIAL_CODES_COUNT
             if (nextNextCode > LZW_CODE_TABLE_MAX_CODE) {
                 // Rebuild the code table if the maximum code is reached
-                bitBuffer.writeBits(maxColors, codeSize) // Clear code
+                bitBuffer.writeBits(colorCount, codeSize) // Clear code
                 tryWriteFullLzwSubBlock(bitBuffer)
-                initLzwCodeTable(codeTable, maxColors)
+                initLzwCodeTable(codeTable, colorCount)
                 codeSize = initialCodeSize
             } else if (nextCode == 2.pow(codeSize)) {
                 codeSize++
@@ -59,7 +61,7 @@ fun Sink.writeLzwIndexStream(indexStream: List<Byte>, maxColors: Int) {
 
     val code = codeTable.getValue(indexBuffer)
     bitBuffer.writeBits(code, codeSize)
-    val endOfInformationCode = maxColors + 1
+    val endOfInformationCode = colorCount + 1
     bitBuffer.writeBits(endOfInformationCode, codeSize)
     bitBuffer.flush()
 
@@ -82,10 +84,10 @@ private fun Sink.tryWriteFullLzwSubBlock(bitBuffer: BitBuffer) {
 
 private fun initLzwCodeTable(
     codeTable: MutableMap<List<Byte>, Int>,
-    maxColors: Int,
+    colorTableSize: Int,
 ) {
     codeTable.clear()
-    repeat(maxColors) { i ->
+    repeat(colorTableSize) { i ->
         codeTable[listOf(i.toByte())] = i
     }
 }

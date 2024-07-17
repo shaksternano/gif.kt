@@ -9,6 +9,7 @@ import kotlin.time.Duration
 
 private const val GIF_MAX_COLORS: Int = 256
 internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
+private const val GIF_MINIMUM_COLOR_TABLE_SIZE: Int = 2
 
 /*
  * Reference:
@@ -18,9 +19,20 @@ class GifEncoder(
     private val sink: Sink,
     private val loopCount: Int = 0,
     private val alphaCompositeBackground: Int = -1,
+    private val maxColors: Int = GIF_MAX_COLORS,
     private val comment: String = "",
 ) : AutoCloseable {
 
+    init {
+        if (maxColors > GIF_MAX_COLORS) {
+            throw IllegalArgumentException("maxColors must be at most $GIF_MAX_COLORS")
+        } else if (maxColors < 1) {
+            throw IllegalArgumentException("maxColors must be at least 1")
+        }
+    }
+
+    private val colorTableSize: Int = maxColors.smallestGreaterThanOrEqualPowerOf2()
+        .coerceAtLeast(GIF_MINIMUM_COLOR_TABLE_SIZE)
     private var initialized: Boolean = false
 
     fun writeFrame(
@@ -35,7 +47,7 @@ class GifEncoder(
         // Build color table
         val bgr = mutableListOf<Byte>()
         var hasTransparent = false
-        image.forEachIndexed { i, pixel ->
+        image.forEach { pixel ->
             val (red, green, blue, alpha) = getPixelComponents(pixel, alphaCompositeBackground)
             if (alpha == 0) {
                 hasTransparent = true
@@ -45,18 +57,18 @@ class GifEncoder(
                 bgr.add(red.toByte())
             }
         }
-        val maxColors =
-            if (hasTransparent) GIF_MAX_COLORS - 1
-            else GIF_MAX_COLORS
+        val neuQuantMaxColors =
+            if (hasTransparent) maxColors - 1
+            else maxColors
         val neuQuant = NeuQuant(
             image = bgr.toByteArray(),
-            maxColors = maxColors,
+            maxColors = neuQuantMaxColors.coerceAtLeast(1),
         )
         val quantizationResult = neuQuant.process()
         val colorTable: ByteArray
         val transparentColorIndex: Int
         if (hasTransparent) {
-            colorTable = ByteArray(quantizationResult.size + 3)
+            colorTable = ByteArray(colorTableSize * 3)
             quantizationResult.copyInto(
                 colorTable,
                 // First three bytes are reserved for transparent color
@@ -64,7 +76,12 @@ class GifEncoder(
             )
             transparentColorIndex = 0
         } else {
-            colorTable = quantizationResult
+            if (maxColors == colorTableSize) {
+                colorTable = quantizationResult
+            } else {
+                colorTable = ByteArray(colorTableSize * 3)
+                quantizationResult.copyInto(colorTable)
+            }
             transparentColorIndex = -1
         }
 
@@ -73,19 +90,23 @@ class GifEncoder(
         // First index is reserved for transparent color
         val indexOffset = if (hasTransparent) 1 else 0
         image.forEachIndexed { i, pixel ->
-            val (red, green, blue, alpha) = getPixelComponents(pixel, alphaCompositeBackground)
-            val index = if (alpha == 0) {
+            val index = if (maxColors == 1) {
                 0
             } else {
-                neuQuant.map(blue, green, red) + indexOffset
+                val (red, green, blue, alpha) = getPixelComponents(pixel, alphaCompositeBackground)
+                if (alpha == 0) {
+                    0
+                } else {
+                    neuQuant.map(blue, green, red) + indexOffset
+                }
             }
             imageColorIndices[i] = index.toByte()
         }
 
         sink.writeGifGraphicsControlExtension(disposalMethod, delay, transparentColorIndex)
-        sink.writeGifImageDescriptor(width, height, GIF_MAX_COLORS)
+        sink.writeGifImageDescriptor(width, height, colorTableSize)
         sink.writeGifColorTable(colorTable)
-        sink.writeGifImageData(imageColorIndices, GIF_MAX_COLORS)
+        sink.writeGifImageData(imageColorIndices, colorTableSize)
     }
 
     private fun init(width: Int, height: Int) {
@@ -219,8 +240,8 @@ internal fun Sink.writeGifImageDescriptor(width: Int, height: Int, localColorTab
     writeByte(packed)
 }
 
-internal fun Sink.writeGifImageData(imageColorIndices: ByteArray, maxColors: Int) {
-    writeLzwIndexStream(imageColorIndices.asList(), maxColors)
+internal fun Sink.writeGifImageData(imageColorIndices: ByteArray, colorTableSize: Int) {
+    writeLzwIndexStream(imageColorIndices.asList(), colorTableSize)
 }
 
 internal fun Sink.writeGifTrailer() {
@@ -255,6 +276,16 @@ private fun Int.toLittleEndianShort(): Short {
     val low = this shl 8
     val high = this shr 8 and 0xFF
     return (low or high).toShort()
+}
+
+private fun Int.smallestGreaterThanOrEqualPowerOf2(): Int {
+    var result = this - 1
+    result = result or (result ushr 1)
+    result = result or (result ushr 2)
+    result = result or (result ushr 4)
+    result = result or (result ushr 8)
+    result = result or (result ushr 16)
+    return result + 1
 }
 
 fun Int.pow(exponent: Int): Int =

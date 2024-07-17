@@ -135,7 +135,7 @@ class TestGifEncoder {
         )
         buffer.writeGifImageData(
             imageColorIndices,
-            maxColors = 4,
+            colorTableSize = 4,
         )
         val bytes = buffer.readByteList()
         val expected = HexByteList(

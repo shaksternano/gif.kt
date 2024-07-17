@@ -17,6 +17,7 @@ internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
 class GifEncoder(
     private val sink: Sink,
     private val loopCount: Int = 0,
+    private val alphaCompositeBackground: Int? = null,
     private val comment: String = "",
 ) : AutoCloseable {
 
@@ -35,10 +36,7 @@ class GifEncoder(
         val bgr = mutableListOf<Byte>()
         var hasTransparent = false
         image.forEachIndexed { i, pixel ->
-            val alpha = pixel shr 24 and 0xFF
-            val red = pixel shr 16 and 0xFF
-            val green = pixel shr 8 and 0xFF
-            val blue = pixel and 0xFF
+            val (red, green, blue, alpha) = getPixelComponents(pixel, alphaCompositeBackground)
             if (alpha == 0) {
                 hasTransparent = true
             } else {
@@ -75,10 +73,7 @@ class GifEncoder(
         // First index is reserved for transparent color
         val indexOffset = if (hasTransparent) 1 else 0
         image.forEachIndexed { i, pixel ->
-            val alpha = pixel shr 24 and 0xFF
-            val red = pixel shr 16 and 0xFF
-            val green = pixel shr 8 and 0xFF
-            val blue = pixel and 0xFF
+            val (red, green, blue, alpha) = getPixelComponents(pixel, alphaCompositeBackground)
             val index = if (alpha == 0) {
                 0
             } else {
@@ -107,6 +102,39 @@ class GifEncoder(
         sink.close()
     }
 }
+
+private fun getPixelComponents(pixel: Int, alphaFill: Int?): Pixel {
+    val alpha = pixel shr 24 and 0xFF
+    val red = pixel shr 16 and 0xFF
+    val green = pixel shr 8 and 0xFF
+    val blue = pixel and 0xFF
+
+    if (alpha == 0 || alpha == 0xFF || alphaFill == null) {
+        return Pixel(red, green, blue, alpha)
+    }
+
+    val backgroundRed = alphaFill shr 16 and 0xFF
+    val backgroundGreen = alphaFill shr 8 and 0xFF
+    val backgroundBlue = alphaFill and 0xFF
+
+    val newRed = compositeAlpha(alpha, red, backgroundRed)
+    val newGreen = compositeAlpha(alpha, green, backgroundGreen)
+    val newBlue = compositeAlpha(alpha, blue, backgroundBlue)
+
+    return Pixel(newRed, newGreen, newBlue)
+}
+
+private fun compositeAlpha(alpha: Int, color: Int, backgroundColor: Int): Int {
+    val opacity = alpha / 255.0
+    return (color * opacity + backgroundColor * (1 - opacity)).toInt()
+}
+
+private data class Pixel(
+    val red: Int,
+    val green: Int,
+    val blue: Int,
+    val alpha: Int = 0xFF,
+)
 
 internal fun Sink.writeGifHeader() {
     writeString("GIF89a")

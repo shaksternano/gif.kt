@@ -2,7 +2,6 @@ package io.github.shaksternano.gifcodec
 
 import kotlinx.io.Sink
 
-private const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
 private const val LZW_SPECIAL_CODES_COUNT: Int = 2
 private const val LZW_CODE_TABLE_MAX_CODE: Int = 4095
 

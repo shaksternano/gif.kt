@@ -8,6 +8,7 @@ import kotlin.math.pow
 import kotlin.time.Duration
 
 private const val GIF_MAX_COLORS: Int = 256
+internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
 
 /*
  * Reference:
@@ -16,6 +17,7 @@ private const val GIF_MAX_COLORS: Int = 256
 class GifEncoder(
     private val sink: Sink,
     private val loopCount: Int = 0,
+    private val comment: String = "",
 ) : AutoCloseable {
 
     private var initialized: Boolean = false
@@ -95,6 +97,7 @@ class GifEncoder(
         sink.writeGifHeader()
         sink.writeGifLogicalScreenDescriptor(width, height)
         sink.writeGifApplicationExtension(loopCount)
+        sink.writeGifCommentExtension(comment)
         initialized = true
     }
 
@@ -126,14 +129,25 @@ internal fun Sink.writeGifApplicationExtension(loopCount: Int) {
         return
     }
 
-    writeByte(0x21)            // Extension code
+    writeByte(0x21)            // Extension introducer
     writeByte(0xFF)            // Application extension label
     writeByte(0x0B)            // Length of Application block, 11 bytes
     writeString("NETSCAPE2.0") // Application identifier
     writeByte(0x03)            // Length of data sub-block, 3 bytes
     writeByte(0x01)            // Constant
     writeLittleEndianShort(loopCount)
-    writeByte(0x00)            // Data Sub-Block Terminator
+    writeByte(0x00)            // Block Terminator
+}
+
+internal fun Sink.writeGifCommentExtension(comment: String) {
+    if (comment.isEmpty()) {
+        return
+    }
+
+    writeByte(0x21) // Extension introducer
+    writeByte(0xFE) // Comment extension label
+    writeGifSubBlocks(comment.encodeToByteArray())
+    writeByte(0x00) // Block Terminator
 }
 
 internal fun Sink.writeGifGraphicsControlExtension(
@@ -182,6 +196,15 @@ internal fun Sink.writeGifImageData(imageColorIndices: ByteArray, maxColors: Int
 
 internal fun Sink.writeGifTrailer() {
     writeByte(0x3B)
+}
+
+private fun Sink.writeGifSubBlocks(bytes: ByteArray) {
+    bytes.asList()
+        .chunked(GIF_MAX_BLOCK_SIZE)
+        .forEach {
+            writeByte(it.size)      // Number of bytes of data in sub-block
+            write(it.toByteArray()) // Sub-block data
+        }
 }
 
 private fun getColorTableRepresentedSize(maxColors: Int): Int =

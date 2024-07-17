@@ -32,7 +32,7 @@ class NeuQuant(
     /**
      * Sampling factor 1..30.
      */
-    private var samplingFactor: Int = 10,
+    samplingFactor: Int = 10,
 ) {
 
     // Constants
@@ -127,6 +127,15 @@ class NeuQuant(
      */
     private val lengthCount: Int = image.size
 
+    /**
+     * Sampling factor 1..30.
+     */
+    private val samplingFactor: Int = if (lengthCount < MIN_IMAGE_BYTES) {
+        1
+    } else {
+        samplingFactor
+    }
+
     private val maxNetPos: Int = maxColors - 1
 
     /**
@@ -139,7 +148,7 @@ class NeuQuant(
     /**
      * Biased by 10 bits.
      */
-    private var alphaDec: Int = 0
+    private val alphaDec: Int = 30 + (this.samplingFactor - 1) / 3
 
     // Types and Global Variables
 
@@ -151,7 +160,7 @@ class NeuQuant(
      * The network itself.
      */
     private val network: List<IntArray> = List(maxColors) { i ->
-        // Initialise network in range (0, 0, 0) to (255, 255, 255) and set parameters
+        // Initialize network in range (0, 0, 0) to (255, 255, 255) and set parameters
         val p = IntArray(4)
         val initial = (i shl (NETWORK_BIAS_SHIFT + 8)) / maxColors
         p[0] = initial
@@ -251,11 +260,6 @@ class NeuQuant(
      * Main learning loop.
      */
     private fun learn() {
-        if (lengthCount < MIN_IMAGE_BYTES) {
-            samplingFactor = 1
-        }
-        alphaDec = 30 + (samplingFactor - 1) / 3
-
         var alpha = INIT_ALPHA
         var radius = initRadius
         var rad = radius shr RADIUS_BIAS_SHIFT

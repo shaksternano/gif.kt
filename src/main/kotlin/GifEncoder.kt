@@ -17,7 +17,7 @@ internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
 class GifEncoder(
     private val sink: Sink,
     private val loopCount: Int = 0,
-    private val alphaCompositeBackground: Int? = null,
+    private val alphaCompositeBackground: Int = -1,
     private val comment: String = "",
 ) : AutoCloseable {
 
@@ -103,13 +103,13 @@ class GifEncoder(
     }
 }
 
-private fun getPixelComponents(pixel: Int, alphaFill: Int?): Pixel {
+private fun getPixelComponents(pixel: Int, alphaFill: Int): Pixel {
     val alpha = pixel shr 24 and 0xFF
     val red = pixel shr 16 and 0xFF
     val green = pixel shr 8 and 0xFF
     val blue = pixel and 0xFF
 
-    if (alpha == 0 || alpha == 0xFF || alphaFill == null) {
+    if (alpha == 0 || alpha == 0xFF || alphaFill < 0) {
         return Pixel(red, green, blue, alpha)
     }
 

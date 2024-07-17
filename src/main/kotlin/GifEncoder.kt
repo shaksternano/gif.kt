@@ -72,6 +72,8 @@ class GifEncoder(
 
         // Get color indices
         val imageColorIndices = ByteArray(image.size)
+        // First index is reserved for transparent color
+        val indexOffset = if (hasTransparent) 1 else 0
         image.forEachIndexed { i, pixel ->
             val alpha = pixel shr 24 and 0xFF
             val red = pixel shr 16 and 0xFF
@@ -80,8 +82,7 @@ class GifEncoder(
             val index = if (alpha == 0) {
                 0
             } else {
-                // First index is reserved for transparent color
-                neuQuant.map(blue, green, red) + 1
+                neuQuant.map(blue, green, red) + indexOffset
             }
             imageColorIndices[i] = index.toByte()
         }

@@ -167,7 +167,7 @@ class NeuQuant(
         p[1] = initial
         p[2] = initial
         bias[i] = 0
-        // 1 / NETWORK_SIZE
+        // 1 / maxColors
         frequency[i] = INT_BIAS / maxColors
         p
     }
@@ -207,7 +207,7 @@ class NeuQuant(
             var smallPos = i
             // Index on green
             var smallVal = p[1]
-            /* Find smallest in i..NETWORK_SIZE - 1 */
+            /* Find smallest in i..maxColors - 1 */
             var j = i + 1
             while (j < maxColors) {
                 val q = network[j]
@@ -465,7 +465,7 @@ class NeuQuant(
          * Finds closest neuron (min dist) and updates frequency.
          * Finds the best neuron (min dist-bias) and returns position.
          * For frequently chosen neurons, frequency[i] is high and bias[i] is negative
-         * bias[i] = gamma * ((1 / NETWORK_SIZE) - frequency[i])
+         * bias[i] = gamma * ((1 / maxColors) - frequency[i])
          */
         network.forEachIndexed { i, n ->
             var dist = n[0] - blue

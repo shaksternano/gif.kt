@@ -26,6 +26,10 @@ class NeuQuant(
      */
     private val image: ByteArray,
     /**
+     * Number of colors used.
+     */
+    private val maxColors: Int = 256,
+    /**
      * Sampling factor 1..30.
      */
     private var samplingFactor: Int = 10,
@@ -33,10 +37,6 @@ class NeuQuant(
 
     // Constants
     companion object {
-        /**
-         * Number of colors used.
-         */
-        private const val NETWORK_SIZE: Int = 256
 
         /*
          * Four primes near 500 - assume no image has a length so large
@@ -66,8 +66,6 @@ class NeuQuant(
          */
 
         // Network Definitions
-        private const val MAX_NET_POS: Int = NETWORK_SIZE - 1
-
         /**
          * Bias for color values.
          */
@@ -100,16 +98,10 @@ class NeuQuant(
 
         // Definitions for decreasing radius factor.
         /**
-         * For 256 cols, radius starts.
-         */
-        private const val INIT_RAD: Int = NETWORK_SIZE shr 3
-
-        /**
          * At 32 biased by 6 bits.
          */
         private const val RADIUS_BIAS_SHIFT: Int = 6
         private const val RADIUS_BIAS: Int = 1 shl RADIUS_BIAS_SHIFT
-        private const val INIT_RADIUS: Int = INIT_RAD * RADIUS_BIAS
 
         /**
          * Factor of 1/30 each cycle.
@@ -135,6 +127,15 @@ class NeuQuant(
      */
     private val lengthCount: Int = image.size
 
+    private val maxNetPos: Int = maxColors - 1
+
+    /**
+     * For 256 cols, radius starts.
+     */
+    private val initRad: Int = maxColors shr 3
+
+    private val initRadius: Int = initRad * RADIUS_BIAS
+
     /**
      * Biased by 10 bits.
      */
@@ -143,22 +144,22 @@ class NeuQuant(
     // Types and Global Variables
 
     // Bias and frequency arrays for learning.
-    private val bias: IntArray = IntArray(NETWORK_SIZE)
-    private val frequency: IntArray = IntArray(NETWORK_SIZE)
+    private val bias: IntArray = IntArray(maxColors)
+    private val frequency: IntArray = IntArray(maxColors)
 
     /**
      * The network itself.
      */
-    private val network: List<IntArray> = List(NETWORK_SIZE) { i ->
+    private val network: List<IntArray> = List(maxColors) { i ->
         // Initialise network in range (0, 0, 0) to (255, 255, 255) and set parameters
         val p = IntArray(4)
-        val initial = (i shl (NETWORK_BIAS_SHIFT + 8)) / NETWORK_SIZE
+        val initial = (i shl (NETWORK_BIAS_SHIFT + 8)) / maxColors
         p[0] = initial
         p[1] = initial
         p[2] = initial
         bias[i] = 0
         // 1 / NETWORK_SIZE
-        frequency[i] = INT_BIAS / NETWORK_SIZE
+        frequency[i] = INT_BIAS / maxColors
         p
     }
 
@@ -170,19 +171,19 @@ class NeuQuant(
     /**
      * Rad power for precomputation.
      */
-    private val radPower: IntArray = IntArray(INIT_RAD)
+    private val radPower: IntArray = IntArray(initRad)
 
     private fun colorMap(): ByteArray {
-        val map = ByteArray(3 * NETWORK_SIZE)
-        val index = IntArray(NETWORK_SIZE)
+        val map = ByteArray(3 * maxColors)
+        val index = IntArray(maxColors)
         network.forEachIndexed { i, n ->
             index[n[3]] = i
         }
         var k = 0
         index.forEach { i ->
-            map[k++] = network[i][0].toByte() // Blue
-            map[k++] = network[i][1].toByte() // Green
             map[k++] = network[i][2].toByte() // Red
+            map[k++] = network[i][1].toByte() // Green
+            map[k++] = network[i][0].toByte() // Blue
         }
         return map
     }
@@ -199,7 +200,7 @@ class NeuQuant(
             var smallVal = p[1]
             /* Find smallest in i..NETWORK_SIZE - 1 */
             var j = i + 1
-            while (j < NETWORK_SIZE) {
+            while (j < maxColors) {
                 val q = network[j]
                 // Index on green
                 if (q[1] < smallVal) {
@@ -237,11 +238,11 @@ class NeuQuant(
                 startPos = i
             }
         }
-        networkIndex[previousCol] = (startPos + MAX_NET_POS) shr 1
+        networkIndex[previousCol] = (startPos + maxNetPos) shr 1
         var j = previousCol + 1
         // Really 256
         while (j < 256) {
-            networkIndex[j] = MAX_NET_POS
+            networkIndex[j] = maxNetPos
             j++
         }
     }
@@ -256,7 +257,7 @@ class NeuQuant(
         alphaDec = 30 + (samplingFactor - 1) / 3
 
         var alpha = INIT_ALPHA
-        var radius = INIT_RADIUS
+        var radius = initRadius
         var rad = radius shr RADIUS_BIAS_SHIFT
         repeat(rad) { i ->
             radPower[i] = alpha * (((rad * rad - i * i) * RAD_BIAS) / (rad * rad))
@@ -317,14 +318,14 @@ class NeuQuant(
         var i = networkIndex[green]
         // Start at networkIndex[green] and work outwards
         var j = i - 1
-        while ((i < NETWORK_SIZE) || (j >= 0)) {
-            if (i < NETWORK_SIZE) {
+        while ((i < maxColors) || (j >= 0)) {
+            if (i < maxColors) {
                 val p = network[i]
                 // inx key
                 var dist = p[1] - green
                 if (dist >= bestD) {
                     // Stop iterating
-                    i = NETWORK_SIZE
+                    i = maxColors
                 } else {
                     i++
                     if (dist < 0) {
@@ -412,8 +413,8 @@ class NeuQuant(
             low = -1
         }
         var high = i + rad
-        if (high > NETWORK_SIZE) {
-            high = NETWORK_SIZE
+        if (high > maxColors) {
+            high = maxColors
         }
 
         var j = i + 1

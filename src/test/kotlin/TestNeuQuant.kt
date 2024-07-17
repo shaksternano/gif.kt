@@ -12,15 +12,40 @@ import kotlin.test.assertTrue
 class TestNeuQuant {
 
     @Test
-    fun testMaxColors() {
+    fun test512Colors() {
+        testMaxColors(512)
+    }
+
+    @Test
+    fun test256Colors() {
+        testMaxColors(256)
+    }
+
+    @Test
+    fun test255Colors() {
+        testMaxColors(255)
+    }
+
+    @Test
+    fun test200Colors() {
+        testMaxColors(200)
+    }
+
+    @Test
+    fun test128Colors() {
+        testMaxColors(128)
+    }
+
+    private fun testMaxColors(maxColors: Int) {
         val pixels = loadBgrPixels("media/sonic.png")
         val neuQuant = NeuQuant(
             image = pixels,
+            maxColors = maxColors,
             samplingFactor = 10,
         )
         val colorTable = neuQuant.process()
         assertTrue(colorTable.size % 3 == 0)
-        assertTrue(colorTable.size <= 256 * 3)
+        assertEquals(colorTable.size, maxColors * 3)
         assertTrue(colorTable.all { it.toUByte() in 0u..255u })
     }
 
@@ -40,9 +65,9 @@ class TestNeuQuant {
                     green.toInt() and 0xFF,
                     red.toInt() and 0xFF,
                 )
-                val quantizedBlue = colorTable[index * 3]
+                val quantizedRed = colorTable[index * 3]
                 val quantizedGreen = colorTable[index * 3 + 1]
-                val quantizedRed = colorTable[index * 3 + 2]
+                val quantizedBlue = colorTable[index * 3 + 2]
                 listOf(quantizedBlue, quantizedGreen, quantizedRed)
             }
         val expectedPixels = loadBgrPixels("media/sonic-quantized.png").asList()

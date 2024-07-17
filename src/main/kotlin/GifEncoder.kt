@@ -19,26 +19,41 @@ class GifEncoder(
     private var initialized: Boolean = false
 
     fun writeFrame(
-        image: ByteArray,
+        image: IntArray,
         width: Int,
         height: Int,
         delay: Duration,
         disposalMethod: DisposalMethod,
     ) {
         init(width, height)
-        val neuQuant = NeuQuant(image)
+        val bgr = ByteArray(image.size * 3)
+        var hasTransparent = false
+        image.forEachIndexed { i, pixel ->
+            val alpha = pixel shr 24 and 0xFF
+            val red = pixel shr 16 and 0xFF
+            val green = pixel shr 8 and 0xFF
+            val blue = pixel and 0xFF
+            if (alpha == 0) {
+                hasTransparent = true
+            }
+            bgr[i * 3] = blue.toByte()
+            bgr[i * 3 + 1] = green.toByte()
+            bgr[i * 3 + 2] = red.toByte()
+        }
+        val maxColors = if (hasTransparent) 255 else 256
+        val neuQuant = NeuQuant(
+            image = bgr,
+            maxColors = maxColors,
+        )
         val colorTable = neuQuant.process()
-        val imageColorIndices = ByteArray(image.size / 3)
-        image.asList()
-            .map {
-                it.toInt() and 0xFF
-            }
-            .chunked(3)
-            .forEachIndexed { i, (blue, green, red) ->
-                val index = neuQuant.map(blue, green, red)
-                imageColorIndices[i] = index.toByte()
-            }
-        val maxColors = colorTable.size / 3
+        val imageColorIndices = ByteArray(image.size)
+        image.forEachIndexed { i, pixel ->
+            val red = pixel shr 16 and 0xFF
+            val green = pixel shr 8 and 0xFF
+            val blue = pixel and 0xFF
+            val index = neuQuant.map(blue, green, red)
+            imageColorIndices[i] = index.toByte()
+        }
         sink.writeGifGraphicsControlExtension(disposalMethod, delay, -1)
         sink.writeGifImageDescriptor(width, height, maxColors)
         sink.writeGifColorTable(colorTable)

@@ -7,8 +7,8 @@ import kotlin.math.log2
 import kotlin.time.Duration
 
 private const val GIF_MAX_COLORS: Int = 256
-internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
 private const val GIF_MINIMUM_COLOR_TABLE_SIZE: Int = 2
+internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
 
 /*
  * Reference:
@@ -18,7 +18,7 @@ class GifEncoder(
     private val sink: Sink,
     private val loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
-    private val quantizer: ColorQuantizer = NeuQuantizer(),
+    private val quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
     private val alphaCompositeBackground: Int = -1,
     private val comment: String = "",
 ) : AutoCloseable {

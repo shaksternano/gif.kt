@@ -49,7 +49,7 @@ class TestLzwEncoder {
 
     @Test
     fun testLargeLzwEncode() {
-        val pixels = loadBgrPixels("media/restaurant.jpg")
+        val pixels = loadRgbPixels("media/restaurant.jpg")
         val neuQuant = NeuQuant(
             image = pixels,
             samplingFactor = 10,
@@ -58,11 +58,11 @@ class TestLzwEncoder {
         val maxColors = colorTable.size / 3
         val imageColorIndices = pixels.asList()
             .chunked(3)
-            .map { (blue, green, red) ->
+            .map { (red, green, blue) ->
                 neuQuant.map(
-                    blue.toInt() and 0xFF,
-                    green.toInt() and 0xFF,
                     red.toInt() and 0xFF,
+                    green.toInt() and 0xFF,
+                    blue.toInt() and 0xFF,
                 ).toByte()
             }
             .toByteArray()

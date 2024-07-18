@@ -22,7 +22,7 @@ package io.github.shaksternano.gifcodec
 
 class NeuQuant(
     /**
-     * The image BGR data.
+     * The image RGB data.
      */
     private val image: ByteArray,
     /**
@@ -37,7 +37,7 @@ class NeuQuant(
 
     // Constants
     companion object {
-        const val MAX_SAMPLING_FACTOR: Int = 30
+        private const val MAX_SAMPLING_FACTOR: Int = 30
 
         /*
          * Four primes near 500 - assume no image has a length so large
@@ -63,7 +63,7 @@ class NeuQuant(
          * unbiasNet();
          * [write output image header, using writeColorMap(f)]
          * inxBuild();
-         * write output image using inxSearch(blue, green, red)
+         * write output image using inxSearch(red, green, blue)
          */
 
         // Network Definitions
@@ -88,7 +88,6 @@ class NeuQuant(
          * GAMMA = 1024
          */
         private const val GAMMA_SHIFT: Int = 10
-        private const val GAMMA: Int = 1 shl GAMMA_SHIFT
         private const val BETA_SHIFT: Int = 10
 
         /**
@@ -280,14 +279,14 @@ class NeuQuant(
         val samplePixels = lengthCount / (3 * samplingFactor)
         var delta = samplePixels / CYCLES
         repeat(samplePixels) { i ->
-            val blue = (image[pix].toInt() and 0xFF) shl NETWORK_BIAS_SHIFT
+            val red = (image[pix].toInt() and 0xFF) shl NETWORK_BIAS_SHIFT
             val green = (image[pix + 1].toInt() and 0xFF) shl NETWORK_BIAS_SHIFT
-            val red = (image[pix + 2].toInt() and 0xFF) shl NETWORK_BIAS_SHIFT
-            val j = contest(blue, green, red)
+            val blue = (image[pix + 2].toInt() and 0xFF) shl NETWORK_BIAS_SHIFT
+            val j = contest(red, green, blue)
 
-            alterSingle(alpha, j, blue, green, red)
+            alterSingle(alpha, j, red, green, blue)
             if (rad != 0) {
-                alterNeighbours(rad, j, blue, green, red)
+                alterNeighbours(rad, j, red, green, blue)
             }
 
             pix += step
@@ -313,9 +312,9 @@ class NeuQuant(
     }
 
     /**
-     * Search for BGR values 0..255 (after network is unbiased) and return color index.
+     * Search for RGB values 0..255 (after network is unbiased) and return color index.
      */
-    fun map(blue: Int, green: Int, red: Int): Int {
+    fun map(red: Int, green: Int, blue: Int): Int {
         // Biggest possible dist is 256 * 3
         var bestD = 1000
         var best = -1
@@ -412,7 +411,7 @@ class NeuQuant(
     /**
      * Move adjacent neurons by precomputed alpha * (1 - ((i - j)^2 / r^2)) in radPower[|i - j|].
      */
-    private fun alterNeighbours(rad: Int, i: Int, blue: Int, green: Int, red: Int) {
+    private fun alterNeighbours(rad: Int, i: Int, red: Int, green: Int, blue: Int) {
         var low = i - rad
         if (low < -1) {
             low = -1
@@ -443,9 +442,9 @@ class NeuQuant(
     }
 
     /**
-     * Move neuron i towards biased (blue, green, red) by factor alpha.
+     * Move neuron i towards biased (red, green, blue) by factor alpha.
      */
-    private fun alterSingle(alpha: Int, i: Int, blue: Int, green: Int, red: Int) {
+    private fun alterSingle(alpha: Int, i: Int, red: Int, green: Int, blue: Int) {
         // Alter hit neuron
         val n = network[i]
         n[0] -= (alpha * (n[0] - blue)) / INIT_ALPHA
@@ -454,9 +453,9 @@ class NeuQuant(
     }
 
     /**
-     * Search for biased BGR values.
+     * Search for biased RGB values.
      */
-    private fun contest(blue: Int, green: Int, red: Int): Int {
+    private fun contest(red: Int, green: Int, blue: Int): Int {
         var bestD = (1 shl 31).inv()
         var bestBiasD = bestD
         var bestPos = -1
@@ -499,5 +498,25 @@ class NeuQuant(
         frequency[bestPos] += BETA
         bias[bestPos] -= BETA_GAMMA
         return bestBiasPos
+    }
+
+    class Quantizer(
+        quality: Int = 10,
+    ) : ColorQuantizer {
+
+        private val quality: Int = quality.coerceIn(1, MAX_SAMPLING_FACTOR)
+
+        override fun quantize(rgb: ByteArray, maxColors: Int): ColorTable =
+            NeuQuantColorTable(NeuQuant(rgb, maxColors, quality))
+    }
+
+    private class NeuQuantColorTable(
+        private val neuQuant: NeuQuant,
+    ) : ColorTable {
+
+        override val colors: ByteArray = neuQuant.process()
+
+        override fun getColorIndex(red: Int, green: Int, blue: Int): Int =
+            neuQuant.map(red, green, blue)
     }
 }

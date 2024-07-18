@@ -2,7 +2,6 @@ package io.github.shaksternano.gifcodec
 
 import java.awt.image.BufferedImage
 import java.awt.image.ColorConvertOp
-import java.awt.image.DataBufferByte
 import java.io.InputStream
 import javax.imageio.ImageIO
 import kotlin.test.Test
@@ -37,7 +36,7 @@ class TestNeuQuant {
     }
 
     private fun testMaxColors(maxColors: Int) {
-        val pixels = loadBgrPixels("media/sonic.png")
+        val pixels = loadRgbPixels("media/sonic.png")
         val neuQuant = NeuQuant(
             image = pixels,
             maxColors = maxColors,
@@ -51,7 +50,7 @@ class TestNeuQuant {
 
     @Test
     fun testQuantization() {
-        val pixels = loadBgrPixels("media/sonic.png")
+        val pixels = loadRgbPixels("media/sonic.png")
         val neuQuant = NeuQuant(
             image = pixels,
             samplingFactor = 10,
@@ -59,25 +58,35 @@ class TestNeuQuant {
         val colorTable = neuQuant.process()
         val quantizedPixels = pixels.asList()
             .chunked(3)
-            .flatMap { (blue, green, red) ->
+            .flatMap { (red, green, blue) ->
                 val index = neuQuant.map(
-                    blue.toInt() and 0xFF,
-                    green.toInt() and 0xFF,
                     red.toInt() and 0xFF,
+                    green.toInt() and 0xFF,
+                    blue.toInt() and 0xFF,
                 )
                 val quantizedRed = colorTable[index * 3]
                 val quantizedGreen = colorTable[index * 3 + 1]
                 val quantizedBlue = colorTable[index * 3 + 2]
-                listOf(quantizedBlue, quantizedGreen, quantizedRed)
+                listOf(quantizedRed, quantizedGreen, quantizedBlue)
             }
-        val expectedPixels = loadBgrPixels("media/sonic-quantized.png").asList()
+        val expectedPixels = loadRgbPixels("media/sonic-quantized.png").asList()
         assertEquals(expectedPixels, quantizedPixels)
     }
 }
 
-fun loadBgrPixels(path: String): ByteArray {
-    val image = loadImage(path).convertType(BufferedImage.TYPE_3BYTE_BGR)
-    return (image.raster.dataBuffer as DataBufferByte).data
+fun loadRgbPixels(path: String): ByteArray {
+    val image = loadImage(path)
+    val rgb = ByteArray(image.width * image.height * 3)
+    for (y in 0 until image.height) {
+        for (x in 0 until image.width) {
+            val pixel = image.getRGB(x, y)
+            val index = (y * image.width + x) * 3
+            rgb[index] = pixel.toByte()
+            rgb[index + 1] = (pixel shr 8).toByte()
+            rgb[index + 2] = (pixel shr 16).toByte()
+        }
+    }
+    return rgb
 }
 
 private fun loadImage(path: String): BufferedImage =

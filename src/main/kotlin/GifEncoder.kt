@@ -18,17 +18,25 @@ private const val GIF_MINIMUM_COLOR_TABLE_SIZE: Int = 2
 class GifEncoder(
     private val sink: Sink,
     private val loopCount: Int = 0,
-    private val alphaCompositeBackground: Int = -1,
     maxColors: Int = GIF_MAX_COLORS,
-    quantizationQuality: Int = 10,
+    private val quantizer: ColorQuantizer = NeuQuant.Quantizer(),
+    private val alphaCompositeBackground: Int = -1,
     private val comment: String = "",
 ) : AutoCloseable {
 
     private val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
-    private val quantizationQuality: Int = quantizationQuality.coerceIn(1, NeuQuant.MAX_SAMPLING_FACTOR)
-    private val colorTableSize: Int = this.maxColors.smallestGreaterThanOrEqualPowerOf2()
+    private val colorTableSize: Int = this.maxColors.roundUpPowerOf2()
         .coerceAtLeast(GIF_MINIMUM_COLOR_TABLE_SIZE)
     private var initialized: Boolean = false
+
+    private fun init(width: Int, height: Int) {
+        if (initialized) return
+        sink.writeGifHeader()
+        sink.writeGifLogicalScreenDescriptor(width, height)
+        sink.writeGifApplicationExtension(loopCount)
+        sink.writeGifCommentExtension(comment)
+        initialized = true
+    }
 
     fun writeFrame(
         image: IntArray,
@@ -40,32 +48,31 @@ class GifEncoder(
         init(width, height)
 
         // Build color table
-        val bgr = mutableListOf<Byte>()
+        val rgb = mutableListOf<Byte>()
         var hasTransparent = false
         image.forEach { pixel ->
             val (red, green, blue, alpha) = getPixelComponents(pixel, alphaCompositeBackground)
             if (alpha == 0) {
                 hasTransparent = true
             } else {
-                bgr.add(blue.toByte())
-                bgr.add(green.toByte())
-                bgr.add(red.toByte())
+                rgb.add(red.toByte())
+                rgb.add(green.toByte())
+                rgb.add(blue.toByte())
             }
         }
-        val neuQuantMaxColors =
+        val quantizerMaxColors =
             if (hasTransparent) maxColors - 1
             else maxColors
-        val neuQuant = NeuQuant(
-            image = bgr.toByteArray(),
-            maxColors = neuQuantMaxColors.coerceAtLeast(1),
-            samplingFactor = quantizationQuality,
+        val quantizationResult = quantizer.quantize(
+            rgb.toByteArray(),
+            quantizerMaxColors,
         )
-        val quantizationResult = neuQuant.process()
+        val quantizedColors = quantizationResult.colors
         val colorTable: ByteArray
         val transparentColorIndex: Int
         if (hasTransparent) {
             colorTable = ByteArray(colorTableSize * 3)
-            quantizationResult.copyInto(
+            quantizedColors.copyInto(
                 colorTable,
                 // First three bytes are reserved for transparent color
                 destinationOffset = 3,
@@ -73,10 +80,10 @@ class GifEncoder(
             transparentColorIndex = 0
         } else {
             if (maxColors == colorTableSize) {
-                colorTable = quantizationResult
+                colorTable = quantizedColors
             } else {
                 colorTable = ByteArray(colorTableSize * 3)
-                quantizationResult.copyInto(colorTable)
+                quantizedColors.copyInto(colorTable)
             }
             transparentColorIndex = -1
         }
@@ -93,7 +100,7 @@ class GifEncoder(
                 if (alpha == 0) {
                     0
                 } else {
-                    neuQuant.map(blue, green, red) + indexOffset
+                    quantizationResult.getColorIndex(red, green, blue) + indexOffset
                 }
             }
             imageColorIndices[i] = index.toByte()
@@ -103,15 +110,6 @@ class GifEncoder(
         sink.writeGifImageDescriptor(width, height, colorTableSize)
         sink.writeGifColorTable(colorTable)
         sink.writeGifImageData(imageColorIndices, colorTableSize)
-    }
-
-    private fun init(width: Int, height: Int) {
-        if (initialized) return
-        sink.writeGifHeader()
-        sink.writeGifLogicalScreenDescriptor(width, height)
-        sink.writeGifApplicationExtension(loopCount)
-        sink.writeGifCommentExtension(comment)
-        initialized = true
     }
 
     override fun close() {
@@ -274,7 +272,7 @@ private fun Int.toLittleEndianShort(): Short {
     return (low or high).toShort()
 }
 
-private fun Int.smallestGreaterThanOrEqualPowerOf2(): Int {
+private fun Int.roundUpPowerOf2(): Int {
     var result = this - 1
     result = result or (result ushr 1)
     result = result or (result ushr 2)

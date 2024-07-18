@@ -37,6 +37,7 @@ class NeuQuant(
 
     // Constants
     companion object {
+        const val MAX_SAMPLING_FACTOR: Int = 30
 
         /*
          * Four primes near 500 - assume no image has a length so large

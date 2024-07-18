@@ -19,18 +19,13 @@ class GifEncoder(
     private val sink: Sink,
     private val loopCount: Int = 0,
     private val alphaCompositeBackground: Int = -1,
-    private val maxColors: Int = GIF_MAX_COLORS,
+    maxColors: Int = GIF_MAX_COLORS,
+    quantizationQuality: Int = 10,
     private val comment: String = "",
 ) : AutoCloseable {
 
-    init {
-        if (maxColors > GIF_MAX_COLORS) {
-            throw IllegalArgumentException("maxColors must be at most $GIF_MAX_COLORS")
-        } else if (maxColors < 1) {
-            throw IllegalArgumentException("maxColors must be at least 1")
-        }
-    }
-
+    private val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
+    private val quantizationQuality: Int = quantizationQuality.coerceIn(1, NeuQuant.MAX_SAMPLING_FACTOR)
     private val colorTableSize: Int = maxColors.smallestGreaterThanOrEqualPowerOf2()
         .coerceAtLeast(GIF_MINIMUM_COLOR_TABLE_SIZE)
     private var initialized: Boolean = false
@@ -63,6 +58,7 @@ class GifEncoder(
         val neuQuant = NeuQuant(
             image = bgr.toByteArray(),
             maxColors = neuQuantMaxColors.coerceAtLeast(1),
+            samplingFactor = quantizationQuality,
         )
         val quantizationResult = neuQuant.process()
         val colorTable: ByteArray

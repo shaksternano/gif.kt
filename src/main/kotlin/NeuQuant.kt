@@ -20,7 +20,7 @@ package io.github.shaksternano.gifcodec
  * that this copyright notice remain intact.
  */
 
-class NeuQuant(
+internal class NeuQuant(
     /**
      * The image RGB data.
      */
@@ -37,8 +37,6 @@ class NeuQuant(
 
     // Constants
     companion object {
-        private const val MAX_SAMPLING_FACTOR: Int = 30
-
         /*
          * Four primes near 500 - assume no image has a length so large
          * that it is divisible by all four primes.
@@ -498,25 +496,5 @@ class NeuQuant(
         frequency[bestPos] += BETA
         bias[bestPos] -= BETA_GAMMA
         return bestBiasPos
-    }
-
-    class Quantizer(
-        quality: Int = 10,
-    ) : ColorQuantizer {
-
-        private val quality: Int = quality.coerceIn(1, MAX_SAMPLING_FACTOR)
-
-        override fun quantize(rgb: ByteArray, maxColors: Int): ColorTable =
-            NeuQuantColorTable(NeuQuant(rgb, maxColors, quality))
-    }
-
-    private class NeuQuantColorTable(
-        private val neuQuant: NeuQuant,
-    ) : ColorTable {
-
-        override val colors: ByteArray = neuQuant.process()
-
-        override fun getColorIndex(red: Int, green: Int, blue: Int): Int =
-            neuQuant.map(red, green, blue)
     }
 }

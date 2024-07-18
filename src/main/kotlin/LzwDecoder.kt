@@ -4,7 +4,7 @@ import kotlinx.io.Source
 import kotlinx.io.readUByte
 import kotlin.properties.Delegates
 
-fun Source.readLzwIndexStream(maxColors: Int): List<Byte> {
+internal fun Source.readLzwIndexStream(maxColors: Int): List<Byte> {
     val lzwMinCodeSize = readUByte().toInt()
     val endOfInformationCode = maxColors + 1
 

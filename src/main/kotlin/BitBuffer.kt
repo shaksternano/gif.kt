@@ -2,7 +2,7 @@ package io.github.shaksternano.gifcodec
 
 import kotlinx.io.Buffer
 
-class BitBuffer {
+internal class BitBuffer {
 
     val buffer: Buffer = Buffer()
     private var currentBits: Int = 0

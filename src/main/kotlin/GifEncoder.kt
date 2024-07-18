@@ -4,7 +4,6 @@ import kotlinx.io.Sink
 import kotlinx.io.writeString
 import kotlin.math.ceil
 import kotlin.math.log2
-import kotlin.math.pow
 import kotlin.time.Duration
 
 private const val GIF_MAX_COLORS: Int = 256
@@ -19,14 +18,12 @@ class GifEncoder(
     private val sink: Sink,
     private val loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
-    private val quantizer: ColorQuantizer = NeuQuant.Quantizer(),
+    private val quantizer: ColorQuantizer = NeuQuantizer(),
     private val alphaCompositeBackground: Int = -1,
     private val comment: String = "",
 ) : AutoCloseable {
 
     private val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
-    private val colorTableSize: Int = this.maxColors.roundUpPowerOf2()
-        .coerceAtLeast(GIF_MINIMUM_COLOR_TABLE_SIZE)
     private var initialized: Boolean = false
 
     private fun init(width: Int, height: Int) {
@@ -49,6 +46,7 @@ class GifEncoder(
 
         // Build color table
         val rgb = mutableListOf<Byte>()
+        val distinctColors = mutableSetOf<Int>()
         var hasTransparent = false
         image.forEach { pixel ->
             val (red, green, blue, alpha) = getPixelComponents(pixel, alphaCompositeBackground)
@@ -58,11 +56,21 @@ class GifEncoder(
                 rgb.add(red.toByte())
                 rgb.add(green.toByte())
                 rgb.add(blue.toByte())
+                distinctColors.add(red shl 16 or (green shl 8) or blue)
             }
         }
+        val distinctColorCount = distinctColors.size
+        val colorCount = distinctColorCount.coerceAtMost(maxColors)
+        val colorTableSize = colorCount.roundUpPowerOf2()
+            .coerceAtLeast(GIF_MINIMUM_COLOR_TABLE_SIZE)
+        val quantizer = if (distinctColorCount > maxColors) {
+            quantizer
+        } else {
+            DirectColorQuantizer
+        }
         val quantizerMaxColors =
-            if (hasTransparent) maxColors - 1
-            else maxColors
+            if (hasTransparent) colorCount - 1
+            else colorCount
         val quantizationResult = quantizer.quantize(
             rgb.toByteArray(),
             quantizerMaxColors,
@@ -79,7 +87,7 @@ class GifEncoder(
             )
             transparentColorIndex = 0
         } else {
-            if (maxColors == colorTableSize) {
+            if (colorCount == colorTableSize) {
                 colorTable = quantizedColors
             } else {
                 colorTable = ByteArray(colorTableSize * 3)
@@ -93,7 +101,7 @@ class GifEncoder(
         // First index is reserved for transparent color
         val indexOffset = if (hasTransparent) 1 else 0
         image.forEachIndexed { i, pixel ->
-            val index = if (maxColors == 1) {
+            val index = if (colorCount == 1) {
                 0
             } else {
                 val (red, green, blue, alpha) = getPixelComponents(pixel, alphaCompositeBackground)
@@ -253,34 +261,3 @@ private fun Sink.writeGifSubBlocks(bytes: ByteArray) {
 
 private fun getColorTableRepresentedSize(maxColors: Int): Int =
     ceil(log2(maxColors.toDouble())).toInt() - 1
-
-private fun Sink.writeLittleEndianShort(int: Int) {
-    val lowHigh = int.toLittleEndianShort()
-    writeShort(lowHigh)
-}
-
-private fun Sink.writeLittleEndianShort(long: Long) =
-    writeLittleEndianShort(long.toInt())
-
-private fun Int.toLittleEndianShort(): Short {
-    /*
-     * No need to bit mask as the high byte is
-     * truncated when converting to a Short
-     */
-    val low = this shl 8
-    val high = this shr 8 and 0xFF
-    return (low or high).toShort()
-}
-
-private fun Int.roundUpPowerOf2(): Int {
-    var result = this - 1
-    result = result or (result ushr 1)
-    result = result or (result ushr 2)
-    result = result or (result ushr 4)
-    result = result or (result ushr 8)
-    result = result or (result ushr 16)
-    return result + 1
-}
-
-fun Int.pow(exponent: Int): Int =
-    toDouble().pow(exponent).toInt()

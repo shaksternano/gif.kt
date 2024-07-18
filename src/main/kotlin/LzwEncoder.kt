@@ -10,7 +10,7 @@ private const val LZW_MINIMUM_COLORS: Int = 4
  * Reference:
  * https://www.matthewflickinger.com/lab/whatsinagif/lzw_image_data.asp
  */
-fun Sink.writeLzwIndexStream(indexStream: List<Byte>, colorTableSize: Int) {
+internal fun Sink.writeLzwIndexStream(indexStream: List<Byte>, colorTableSize: Int) {
     if (indexStream.isEmpty()) {
         throw IllegalArgumentException("Index stream is empty")
     }

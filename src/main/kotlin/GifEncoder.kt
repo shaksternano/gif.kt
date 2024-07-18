@@ -26,7 +26,7 @@ class GifEncoder(
 
     private val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
     private val quantizationQuality: Int = quantizationQuality.coerceIn(1, NeuQuant.MAX_SAMPLING_FACTOR)
-    private val colorTableSize: Int = maxColors.smallestGreaterThanOrEqualPowerOf2()
+    private val colorTableSize: Int = this.maxColors.smallestGreaterThanOrEqualPowerOf2()
         .coerceAtLeast(GIF_MINIMUM_COLOR_TABLE_SIZE)
     private var initialized: Boolean = false
 

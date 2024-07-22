@@ -5,10 +5,12 @@ import kotlinx.io.writeString
 import kotlin.math.ceil
 import kotlin.math.log2
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val GIF_MAX_COLORS: Int = 256
 private const val GIF_MINIMUM_COLOR_TABLE_SIZE: Int = 2
 internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
+private val GIF_MINIMUM_FRAME_DURATION: Duration = 20.milliseconds
 
 /*
  * Reference:
@@ -18,15 +20,22 @@ class GifEncoder(
     private val sink: Sink,
     private val loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
-    private val quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
-    private val alphaCompositeBackground: Int = -1,
+    private val colorTolerance: Double = 0.0,
+    private val alphaFill: Int = -1,
     private val comment: String = "",
+    private val minimumFrameDuration: Duration = GIF_MINIMUM_FRAME_DURATION,
+    private val quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
 ) : AutoCloseable {
 
     private val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
     private var initialized: Boolean = false
+    private lateinit var previousFrame: Image
+    private var pendingWrite: Image? = null
+    private var pendingDuration: Duration = Duration.ZERO
+    private var pendingDisposalMethod: DisposalMethod = DisposalMethod.UNSPECIFIED
+    private var frameCount: Int = 0
 
-    private fun init(width: Int, height: Int) {
+    private fun init(width: Int, height: Int, loopCount: Int) {
         if (initialized) return
         sink.writeGifHeader()
         sink.writeGifLogicalScreenDescriptor(width, height)
@@ -39,31 +48,117 @@ class GifEncoder(
         image: IntArray,
         width: Int,
         height: Int,
-        delay: Duration,
-        disposalMethod: DisposalMethod,
+        duration: Duration,
     ) {
-        init(width, height)
+        val currentFrame = Image(image, width, height).fillPartialAlpha(alphaFill)
+        if (::previousFrame.isInitialized && previousFrame.isSimilar(currentFrame, colorTolerance)) {
+            // Merge similar sequential frames into one
+            pendingDuration += duration
+            return
+        }
 
+        // Optimise transparency.
+        val (toWrite, disposalMethod) = if (!::previousFrame.isInitialized) {
+            // First frame
+            currentFrame to DisposalMethod.DO_NOT_DISPOSE
+        } else {
+            // Subsequent frames
+            val optimized = optimizeTransparency(previousFrame, currentFrame, colorTolerance)
+            if (optimized == null) {
+                pendingDisposalMethod = DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
+                currentFrame to DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
+            } else {
+                optimized to DisposalMethod.DO_NOT_DISPOSE
+            }
+        }
+
+        // Write the previous frame if it exists and the duration is long enough.
+        val pendingWrite1 = pendingWrite
+        if (pendingWrite1 != null && pendingDuration >= minimumFrameDuration) {
+            initAndWriteFrame(pendingWrite1)
+            pendingWrite = null
+        }
+
+        val pendingWrite2 = pendingWrite
+        if (pendingWrite2 == null) {
+            previousFrame = currentFrame
+            pendingWrite = toWrite
+            pendingDuration = duration
+            pendingDisposalMethod = disposalMethod
+        } else {
+            // Handle the minimum frame duration.
+            val remainingDuration = minimumFrameDuration - pendingDuration
+            if (remainingDuration < duration) {
+                initAndWriteFrame(pendingWrite2)
+                previousFrame = currentFrame
+                pendingWrite = toWrite
+                pendingDuration = duration - remainingDuration
+                pendingDisposalMethod = disposalMethod
+            } else {
+                pendingDuration += duration
+            }
+        }
+    }
+
+    private fun initAndWriteFrame(
+        frame: Image,
+        loopCount: Int = this.loopCount,
+    ) {
+        initAndWriteFrame(
+            frame.argb,
+            frame.width,
+            frame.height,
+            pendingDuration,
+            pendingDisposalMethod,
+            loopCount,
+        )
+    }
+
+    private fun initAndWriteFrame(
+        image: IntArray,
+        width: Int,
+        height: Int,
+        duration: Duration,
+        disposalMethod: DisposalMethod,
+        loopCount: Int,
+    ) {
+        init(width, height, loopCount)
+        val data = getImageData(image)
+        sink.writeGifImage(
+            data,
+            width,
+            height,
+            duration.coerceAtLeast(minimumFrameDuration),
+            disposalMethod,
+        )
+        frameCount++
+    }
+
+    private fun getImageData(image: IntArray): QuantizedImageData {
         // Build color table
         val rgb = mutableListOf<Byte>()
         val distinctColors = mutableSetOf<Int>()
         var hasTransparent = false
         image.forEach { pixel ->
-            val (red, green, blue, alpha) = getPixelComponents(pixel, alphaCompositeBackground)
+            val alpha = pixel shr 24 and 0xFF
             if (alpha == 0) {
                 hasTransparent = true
             } else {
+                val red = pixel shr 16 and 0xFF
+                val green = pixel shr 8 and 0xFF
+                val blue = pixel and 0xFF
                 rgb.add(red.toByte())
                 rgb.add(green.toByte())
                 rgb.add(blue.toByte())
                 distinctColors.add(red shl 16 or (green shl 8) or blue)
             }
         }
-        val distinctColorCount = distinctColors.size
+        val distinctColorCountNoTransparent = distinctColors.size
+        val distinctColorCount = distinctColorCountNoTransparent + if (hasTransparent) 1 else 0
         val colorCount = distinctColorCount.coerceAtMost(maxColors)
         val colorTableSize = colorCount.roundUpPowerOf2()
             .coerceAtLeast(GIF_MINIMUM_COLOR_TABLE_SIZE)
-        val quantizer = if (distinctColorCount > maxColors) {
+        val quantizer = if (distinctColorCountNoTransparent > maxColors) {
             quantizer
         } else {
             DirectColorQuantizer
@@ -104,60 +199,74 @@ class GifEncoder(
             val index = if (colorCount == 1) {
                 0
             } else {
-                val (red, green, blue, alpha) = getPixelComponents(pixel, alphaCompositeBackground)
+                val alpha = pixel shr 24 and 0xFF
                 if (alpha == 0) {
                     0
                 } else {
+                    val red = pixel shr 16 and 0xFF
+                    val green = pixel shr 8 and 0xFF
+                    val blue = pixel and 0xFF
                     quantizationResult.getColorIndex(red, green, blue) + indexOffset
                 }
             }
             imageColorIndices[i] = index.toByte()
         }
 
-        sink.writeGifGraphicsControlExtension(disposalMethod, delay, transparentColorIndex)
-        sink.writeGifImageDescriptor(width, height, colorTableSize)
-        sink.writeGifColorTable(colorTable)
-        sink.writeGifImageData(imageColorIndices, colorTableSize)
+        return QuantizedImageData(
+            colorTable,
+            imageColorIndices,
+            colorTableSize,
+            transparentColorIndex,
+        )
     }
 
     override fun close() {
+        val pendingWrite = pendingWrite
+        if (pendingWrite != null) {
+            if (frameCount < 2) {
+                pendingDisposalMethod = DisposalMethod.UNSPECIFIED
+            }
+            val loopCount = if (this.frameCount > 1) loopCount else -1
+            initAndWriteFrame(pendingWrite, loopCount)
+        }
         sink.writeGifTrailer()
         sink.close()
     }
 }
 
-private fun getPixelComponents(pixel: Int, alphaFill: Int): Pixel {
-    val alpha = pixel shr 24 and 0xFF
-    val red = pixel shr 16 and 0xFF
-    val green = pixel shr 8 and 0xFF
-    val blue = pixel and 0xFF
-
-    if (alpha == 0 || alpha == 0xFF || alphaFill < 0) {
-        return Pixel(red, green, blue, alpha)
-    }
-
-    val backgroundRed = alphaFill shr 16 and 0xFF
-    val backgroundGreen = alphaFill shr 8 and 0xFF
-    val backgroundBlue = alphaFill and 0xFF
-
-    val newRed = compositeAlpha(alpha, red, backgroundRed)
-    val newGreen = compositeAlpha(alpha, green, backgroundGreen)
-    val newBlue = compositeAlpha(alpha, blue, backgroundBlue)
-
-    return Pixel(newRed, newGreen, newBlue)
-}
-
-private fun compositeAlpha(alpha: Int, color: Int, backgroundColor: Int): Int {
-    val opacity = alpha / 255.0
-    return (color * opacity + backgroundColor * (1 - opacity)).toInt()
-}
-
-private data class Pixel(
-    val red: Int,
-    val green: Int,
-    val blue: Int,
-    val alpha: Int = 0xFF,
+@Suppress("ArrayInDataClass")
+private data class QuantizedImageData(
+    val colorTable: ByteArray,
+    val imageColorIndices: ByteArray,
+    val colorTableSize: Int,
+    val transparentColorIndex: Int,
 )
+
+private fun optimizeTransparency(
+    previousImage: Image,
+    currentImage: Image,
+    colorTolerance: Double,
+): Image? {
+    if (previousImage.width != currentImage.width || previousImage.height != currentImage.height) {
+        return null
+    }
+    val optimizedPixels = IntArray(currentImage.argb.size)
+    previousImage.argb.zip(currentImage.argb).forEachIndexed { i, (previousArgb, currentArgb) ->
+        val previousAlpha = previousArgb shr 24 and 0xFF
+        val currentAlpha = currentArgb shr 24 and 0xFF
+        if (currentAlpha == 0 && previousAlpha != 0) {
+            // Current frame has a transparent pixel where the previous frame had an opaque pixel.
+            return null
+        }
+        val colorDistance = colorDistance(previousArgb, currentArgb)
+        optimizedPixels[i] = if (colorDistance > colorTolerance) {
+            currentArgb
+        } else {
+            0
+        }
+    }
+    return Image(optimizedPixels, currentImage.width, currentImage.height)
+}
 
 internal fun Sink.writeGifHeader() {
     writeString("GIF89a")
@@ -200,6 +309,20 @@ internal fun Sink.writeGifCommentExtension(comment: String) {
     writeByte(0xFE) // Comment extension label
     writeGifSubBlocks(comment.encodeToByteArray())
     writeByte(0x00) // Block Terminator
+}
+
+private fun Sink.writeGifImage(
+    data: QuantizedImageData,
+    width: Int,
+    height: Int,
+    duration: Duration,
+    disposalMethod: DisposalMethod,
+) {
+    val (colorTable, imageColorIndices, colorTableSize, transparentColorIndex) = data
+    writeGifGraphicsControlExtension(disposalMethod, duration, transparentColorIndex)
+    writeGifImageDescriptor(width, height, colorTableSize)
+    writeGifColorTable(colorTable)
+    writeGifImageData(imageColorIndices, colorTableSize)
 }
 
 internal fun Sink.writeGifGraphicsControlExtension(

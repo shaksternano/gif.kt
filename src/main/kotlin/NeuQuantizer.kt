@@ -7,7 +7,8 @@ class NeuQuantizer(
 ) : ColorQuantizer {
 
     companion object {
-        internal val DEFAULT: ColorQuantizer = NeuQuantizer()
+        @JvmField
+        val DEFAULT: ColorQuantizer = NeuQuantizer()
     }
 
     private val quality: Int = quality.coerceIn(1, NEU_QUANT_MAX_SAMPLING_FACTOR)

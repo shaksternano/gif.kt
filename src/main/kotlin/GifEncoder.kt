@@ -140,7 +140,7 @@ class GifEncoder(
         val distinctColors = mutableSetOf<Int>()
         var hasTransparent = false
         image.forEach { pixel ->
-            val alpha = pixel shr 24 and 0xFF
+            val alpha = pixel ushr 24
             if (alpha == 0) {
                 hasTransparent = true
             } else {
@@ -150,7 +150,7 @@ class GifEncoder(
                 rgb.add(red.toByte())
                 rgb.add(green.toByte())
                 rgb.add(blue.toByte())
-                distinctColors.add(red shl 16 or (green shl 8) or blue)
+                distinctColors.add(pixel)
             }
         }
         val distinctColorCountNoTransparent = distinctColors.size
@@ -199,7 +199,7 @@ class GifEncoder(
             val index = if (colorCount == 1) {
                 0
             } else {
-                val alpha = pixel shr 24 and 0xFF
+                val alpha = pixel ushr 24
                 if (alpha == 0) {
                     0
                 } else {
@@ -252,8 +252,8 @@ private fun optimizeTransparency(
     }
     val optimizedPixels = IntArray(currentImage.argb.size)
     previousImage.argb.zip(currentImage.argb).forEachIndexed { i, (previousArgb, currentArgb) ->
-        val previousAlpha = previousArgb shr 24 and 0xFF
-        val currentAlpha = currentArgb shr 24 and 0xFF
+        val previousAlpha = previousArgb ushr 24
+        val currentAlpha = currentArgb ushr 24
         if (currentAlpha == 0 && previousAlpha != 0) {
             // Current frame has a transparent pixel where the previous frame had an opaque pixel.
             return null

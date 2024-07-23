@@ -59,7 +59,7 @@ private fun fillPartialAlpha(argb: Int, alphaFill: Int): Int {
     if (alphaFill < 0) {
         return argb
     }
-    val alpha = argb shr 24 and 0xFF
+    val alpha = argb ushr 24
     if (alpha == 0 || alpha == 0xFF) {
         return argb
     }

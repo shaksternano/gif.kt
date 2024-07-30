@@ -153,12 +153,11 @@ class GifEncoder(
                 distinctColors.add(pixel)
             }
         }
-        val distinctColorCountNoTransparent = distinctColors.size
-        val distinctColorCount = distinctColorCountNoTransparent + if (hasTransparent) 1 else 0
+        val distinctColorCount = distinctColors.size + if (hasTransparent) 1 else 0
         val colorCount = distinctColorCount.coerceAtMost(maxColors)
         val colorTableSize = colorCount.roundUpPowerOf2()
             .coerceAtLeast(GIF_MINIMUM_COLOR_TABLE_SIZE)
-        val quantizer = if (distinctColorCountNoTransparent > maxColors) {
+        val quantizer = if (distinctColorCount > maxColors) {
             quantizer
         } else {
             DirectColorQuantizer

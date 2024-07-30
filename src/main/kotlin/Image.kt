@@ -20,10 +20,30 @@ internal data class Image(
             }
         }
 
+    fun cropOrPad(width: Int, height: Int): Image =
+        if (this.width == width && this.height == height) {
+            this
+        } else if (this.width == width) {
+            val newArgb = argb.copyOf(width * height)
+            Image(newArgb, width, height)
+        } else {
+            val newArgb = IntArray(width * height) { i ->
+                val x = i % width
+                val y = i / width
+                val index = x + y * this.width
+                if (index < argb.size) {
+                    argb[index]
+                } else {
+                    0
+                }
+            }
+            Image(newArgb, width, height)
+        }
+
     fun fillPartialAlpha(alphaFill: Int): Image {
-        val newArgb = IntArray(argb.size)
-        argb.forEachIndexed { i, pixel ->
-            newArgb[i] = fillPartialAlpha(pixel, alphaFill)
+        val newArgb = IntArray(argb.size) { i ->
+            val pixel = argb[i]
+            fillPartialAlpha(pixel, alphaFill)
         }
         return Image(newArgb, width, height)
     }

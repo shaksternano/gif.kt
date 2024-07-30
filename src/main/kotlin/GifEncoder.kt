@@ -29,6 +29,8 @@ class GifEncoder(
 
     private val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
     private var initialized: Boolean = false
+    private var width: Int? = null
+    private var height: Int? = null
     private lateinit var previousFrame: Image
     private var pendingWrite: Image? = null
     private var pendingDuration: Duration = Duration.ZERO
@@ -37,6 +39,8 @@ class GifEncoder(
 
     private fun init(width: Int, height: Int, loopCount: Int) {
         if (initialized) return
+        this.width = width
+        this.height = height
         sink.writeGifHeader()
         sink.writeGifLogicalScreenDescriptor(width, height)
         sink.writeGifApplicationExtension(loopCount)
@@ -50,7 +54,11 @@ class GifEncoder(
         height: Int,
         duration: Duration,
     ) {
-        val currentFrame = Image(image, width, height).fillPartialAlpha(alphaFill)
+        val targetWidth = this.width ?: width
+        val targetHeight = this.height ?: height
+        val currentFrame = Image(image, width, height)
+            .cropOrPad(targetWidth, targetHeight)
+            .fillPartialAlpha(alphaFill)
         if (::previousFrame.isInitialized && previousFrame.isSimilar(currentFrame, colorTolerance)) {
             // Merge similar sequential frames into one
             pendingDuration += duration
@@ -254,7 +262,10 @@ private fun optimizeTransparency(
         val previousAlpha = previousArgb ushr 24
         val currentAlpha = currentArgb ushr 24
         if (currentAlpha == 0 && previousAlpha != 0) {
-            // Current frame has a transparent pixel where the previous frame had an opaque pixel.
+            /*
+             * Current frame has a transparent pixel where
+             * the previous frame had an opaque pixel
+             */
             return null
         }
         val colorDistance = colorDistance(previousArgb, currentArgb)

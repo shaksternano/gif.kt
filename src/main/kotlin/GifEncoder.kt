@@ -109,13 +109,11 @@ class GifEncoder(
     }
 
     private fun initAndWriteFrame(
-        frame: Image,
+        image: Image,
         loopCount: Int = this.loopCount,
     ) {
         initAndWriteFrame(
-            frame.argb,
-            frame.width,
-            frame.height,
+            image,
             pendingDuration,
             pendingDisposalMethod,
             loopCount,
@@ -123,31 +121,30 @@ class GifEncoder(
     }
 
     private fun initAndWriteFrame(
-        image: IntArray,
-        width: Int,
-        height: Int,
+        image: Image,
         duration: Duration,
         disposalMethod: DisposalMethod,
         loopCount: Int,
     ) {
-        init(width, height, loopCount)
+        init(image.width, image.height, loopCount)
         val data = getImageData(image)
         sink.writeGifImage(
             data,
-            width,
-            height,
+            image.width,
+            image.height,
             duration.coerceAtLeast(minimumFrameDuration),
             disposalMethod,
         )
         frameCount++
     }
 
-    private fun getImageData(image: IntArray): QuantizedImageData {
+    private fun getImageData(image: Image): QuantizedImageData {
         // Build color table
+        val argb = image.argb
         val rgb = mutableListOf<Byte>()
         val distinctColors = mutableSetOf<Int>()
         var hasTransparent = false
-        image.forEach { pixel ->
+        argb.forEach { pixel ->
             val alpha = pixel ushr 24
             if (alpha == 0) {
                 hasTransparent = true
@@ -199,10 +196,10 @@ class GifEncoder(
         }
 
         // Get color indices
-        val imageColorIndices = ByteArray(image.size)
+        val imageColorIndices = ByteArray(argb.size)
         // First index is reserved for transparent color
         val indexOffset = if (hasTransparent) 1 else 0
-        image.forEachIndexed { i, pixel ->
+        argb.forEachIndexed { i, pixel ->
             val index = if (colorCount == 1) {
                 0
             } else {
@@ -353,6 +350,7 @@ internal fun Sink.writeGifGraphicsControlExtension(
      */
     val packed = (disposalMethod.id shl 2 or transparentColorFlag) and 0b00011101
     writeByte(packed)
+    // Hundredths of a second
     writeLittleEndianShort(delay.inWholeMilliseconds / 10)
     writeByte(transparentColorIndex.coerceAtLeast(0))
     writeByte(0x00) // Block terminator

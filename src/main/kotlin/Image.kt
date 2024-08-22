@@ -45,7 +45,7 @@ internal data class Image(
             val pixel = argb[i]
             fillPartialAlpha(pixel, alphaFill)
         }
-        return Image(newArgb, width, height)
+        return copy(argb = newArgb)
     }
 
     override fun equals(other: Any?): Boolean {

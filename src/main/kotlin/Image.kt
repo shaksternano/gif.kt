@@ -9,17 +9,6 @@ internal data class Image(
     val height: Int,
 ) {
 
-    fun isSimilar(other: Image, tolerance: Double): Boolean =
-        if (equals(other)) {
-            true
-        } else if (width != other.width || height != other.height || tolerance == 0.0) {
-            false
-        } else {
-            argb.zip(other.argb).all { (pixel1, pixel2) ->
-                colorDistance(pixel1, pixel2) <= tolerance
-            }
-        }
-
     fun cropOrPad(width: Int, height: Int): Image =
         if (this.width == width && this.height == height) {
             this
@@ -47,6 +36,15 @@ internal data class Image(
         }
         return copy(argb = newArgb)
     }
+
+    fun isSimilar(other: Image, tolerance: Double): Boolean =
+        argb.zip(other.argb).all { (pixel1, pixel2) ->
+            if (tolerance == 0.0) {
+                pixel1 == pixel2
+            } else {
+                colorDistance(pixel1, pixel2) <= tolerance
+            }
+        }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

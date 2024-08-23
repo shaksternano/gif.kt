@@ -4,7 +4,6 @@ import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.time.Duration
 
 /*
  * GIF file data from:
@@ -85,7 +84,7 @@ class TestGifEncoder {
         val buffer = Buffer()
         buffer.writeGifGraphicsControlExtension(
             DisposalMethod.UNSPECIFIED,
-            Duration.ZERO,
+            durationCentiseconds = 0,
             transparentColorIndex = -1,
         )
         val bytes = buffer.readByteList()

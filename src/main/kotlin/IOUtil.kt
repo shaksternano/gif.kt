@@ -9,6 +9,3 @@ internal fun Sink.writeLittleEndianShort(int: Int) {
     val lowHigh = int.toLittleEndianShort()
     writeShort(lowHigh)
 }
-
-internal fun Sink.writeLittleEndianShort(long: Long) =
-    writeLittleEndianShort(long.toInt())

@@ -9,8 +9,8 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private const val GIF_MAX_COLORS: Int = 256
 private const val GIF_MINIMUM_COLOR_TABLE_SIZE: Int = 2
+private const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
 internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
-private val GIF_MINIMUM_FRAME_DURATION: Duration = 20.milliseconds
 
 /*
  * Reference:
@@ -23,11 +23,18 @@ class GifEncoder(
     private val colorTolerance: Double = 0.0,
     private val alphaFill: Int = -1,
     private val comment: String = "",
-    private val minimumFrameDuration: Duration = GIF_MINIMUM_FRAME_DURATION,
+    private val minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS,
     private val quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
 ) : AutoCloseable {
 
+    init {
+        require(minimumFrameDurationCentiseconds > 0) {
+            "Minimum frame duration must be positive: $minimumFrameDurationCentiseconds"
+        }
+    }
+
     private val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
+    private val minimumFrameDuration: Duration = minimumFrameDurationCentiseconds.centiseconds
     private var initialized: Boolean = false
     private var width: Int? = null
     private var height: Int? = null
@@ -56,6 +63,12 @@ class GifEncoder(
     ) {
         val targetWidth = this.width ?: width
         val targetHeight = this.height ?: height
+        /*
+         * Make sure all frames have the same dimensions
+         * by cropping or padding with transparent pixels,
+         * and remove any partial alpha, as GIFs do not
+         * support partial transparency.
+         */
         val currentFrame = Image(image, width, height)
             .cropOrPad(targetWidth, targetHeight)
             .fillPartialAlpha(alphaFill)
@@ -65,56 +78,80 @@ class GifEncoder(
             return
         }
 
-        // Optimise transparency.
-        val (toWrite, disposalMethod) = if (!::previousFrame.isInitialized) {
+        // Optimise transparency
+        val toWrite: Image
+        val disposalMethod: DisposalMethod
+        if (!::previousFrame.isInitialized) {
             // First frame
-            currentFrame to DisposalMethod.DO_NOT_DISPOSE
+            toWrite = currentFrame
+            disposalMethod = DisposalMethod.DO_NOT_DISPOSE
         } else {
             // Subsequent frames
             val optimized = optimizeTransparency(previousFrame, currentFrame, colorTolerance)
             if (optimized == null) {
                 pendingDisposalMethod = DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
-                currentFrame to DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
+                toWrite = currentFrame
+                disposalMethod = DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
             } else {
-                optimized to DisposalMethod.DO_NOT_DISPOSE
+                toWrite = optimized
+                disposalMethod = DisposalMethod.DO_NOT_DISPOSE
             }
         }
 
-        // Write the previous frame if it exists and the duration is long enough.
+        /*
+         * Write the previous frame if it exists and the
+         * duration is long enough. The previous frame and
+         * the current frame have already been established
+         * to be different.
+         */
         val pendingWrite1 = pendingWrite
         if (pendingWrite1 != null && pendingDuration >= minimumFrameDuration) {
-            initAndWriteFrame(pendingWrite1)
+            val centiseconds = pendingDuration.roundedUpCentiseconds
+            initAndWriteFrame(pendingWrite1, centiseconds)
+            // Might end up being negative
+            pendingDuration -= centiseconds.centiseconds
             pendingWrite = null
         }
 
         val pendingWrite2 = pendingWrite
         if (pendingWrite2 == null) {
+            /*
+             * Don't write frame just yet, as the
+             * frame's duration will be decided by
+             * whether subsequent frames are similar
+             * or not.
+             */
             previousFrame = currentFrame
             pendingWrite = toWrite
-            pendingDuration = duration
+            pendingDuration += duration
             pendingDisposalMethod = disposalMethod
         } else {
-            // Handle the minimum frame duration.
-            val remainingDuration = minimumFrameDuration - pendingDuration
-            if (remainingDuration < duration) {
-                initAndWriteFrame(pendingWrite2)
+            /*
+             * Handle the minimum frame duration.
+             * Pending duration is already established
+             * to be less than the minimum frame duration.
+             */
+            val newPendingDuration = pendingDuration + duration
+            if (newPendingDuration < minimumFrameDuration) {
+                pendingDuration = newPendingDuration
+            } else {
+                initAndWriteFrame(pendingWrite2, minimumFrameDurationCentiseconds)
                 previousFrame = currentFrame
                 pendingWrite = toWrite
-                pendingDuration = duration - remainingDuration
+                pendingDuration = newPendingDuration - minimumFrameDuration
                 pendingDisposalMethod = disposalMethod
-            } else {
-                pendingDuration += duration
             }
         }
     }
 
     private fun initAndWriteFrame(
         image: Image,
+        durationCentiseconds: Int,
         loopCount: Int = this.loopCount,
     ) {
         initAndWriteFrame(
             image,
-            pendingDuration,
+            durationCentiseconds,
             pendingDisposalMethod,
             loopCount,
         )
@@ -122,7 +159,7 @@ class GifEncoder(
 
     private fun initAndWriteFrame(
         image: Image,
-        duration: Duration,
+        durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
         loopCount: Int,
     ) {
@@ -132,7 +169,7 @@ class GifEncoder(
             data,
             image.width,
             image.height,
-            duration.coerceAtLeast(minimumFrameDuration),
+            durationCentiseconds,
             disposalMethod,
         )
         frameCount++
@@ -230,13 +267,25 @@ class GifEncoder(
             if (frameCount < 2) {
                 pendingDisposalMethod = DisposalMethod.UNSPECIFIED
             }
+            val centiseconds = pendingDuration.roundedUpCentiseconds
+                .coerceAtLeast(minimumFrameDurationCentiseconds)
             val loopCount = if (this.frameCount > 1) loopCount else -1
-            initAndWriteFrame(pendingWrite, loopCount)
+            initAndWriteFrame(
+                pendingWrite,
+                centiseconds,
+                loopCount,
+            )
         }
         sink.writeGifTrailer()
         sink.close()
     }
 }
+
+private val Int.centiseconds: Duration
+    get() = (this * 10).milliseconds
+
+private val Duration.roundedUpCentiseconds: Int
+    get() = ceil(inWholeMilliseconds / 10.0).toInt()
 
 @Suppress("ArrayInDataClass")
 private data class QuantizedImageData(
@@ -322,11 +371,11 @@ private fun Sink.writeGifImage(
     data: QuantizedImageData,
     width: Int,
     height: Int,
-    duration: Duration,
+    durationCentiseconds: Int,
     disposalMethod: DisposalMethod,
 ) {
     val (colorTable, imageColorIndices, colorTableSize, transparentColorIndex) = data
-    writeGifGraphicsControlExtension(disposalMethod, duration, transparentColorIndex)
+    writeGifGraphicsControlExtension(disposalMethod, durationCentiseconds, transparentColorIndex)
     writeGifImageDescriptor(width, height, colorTableSize)
     writeGifColorTable(colorTable)
     writeGifImageData(imageColorIndices, colorTableSize)
@@ -334,7 +383,7 @@ private fun Sink.writeGifImage(
 
 internal fun Sink.writeGifGraphicsControlExtension(
     disposalMethod: DisposalMethod,
-    delay: Duration,
+    durationCentiseconds: Int,
     transparentColorIndex: Int,
 ) {
     writeByte(0x21) // Extension code
@@ -350,8 +399,7 @@ internal fun Sink.writeGifGraphicsControlExtension(
      */
     val packed = (disposalMethod.id shl 2 or transparentColorFlag) and 0b00011101
     writeByte(packed)
-    // Hundredths of a second
-    writeLittleEndianShort(delay.inWholeMilliseconds / 10)
+    writeLittleEndianShort(durationCentiseconds)
     writeByte(transparentColorIndex.coerceAtLeast(0))
     writeByte(0x00) // Block terminator
 }

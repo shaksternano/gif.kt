@@ -256,7 +256,7 @@ class GifEncoder(
 
     override fun close() {
         val pendingWrite = pendingWrite
-        if (pendingWrite != null) {
+        if (pendingWrite != null && pendingDuration > Duration.ZERO) {
             if (frameCount < 2) {
                 pendingDisposalMethod = DisposalMethod.UNSPECIFIED
             }

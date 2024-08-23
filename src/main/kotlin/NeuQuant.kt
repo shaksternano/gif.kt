@@ -157,7 +157,7 @@ internal class NeuQuant(
     /**
      * The network itself.
      */
-    private val network: List<IntArray> = List(maxColors) { i ->
+    private val network: Array<IntArray> = Array(maxColors) { i ->
         // Initialize network in range (0, 0, 0) to (255, 255, 255) and set parameters
         val p = IntArray(4)
         val initial = (i shl (NETWORK_BIAS_SHIFT + 8)) / maxColors

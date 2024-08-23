@@ -39,10 +39,12 @@ class GifEncoder(
         if (initialized) return
         this.width = width
         this.height = height
-        sink.writeGifHeader()
-        sink.writeGifLogicalScreenDescriptor(width, height)
-        sink.writeGifApplicationExtension(loopCount)
-        sink.writeGifCommentExtension(comment)
+        sink.writeGifIntro(
+            width,
+            height,
+            loopCount,
+            comment,
+        )
         initialized = true
     }
 

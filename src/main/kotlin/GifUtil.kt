@@ -63,6 +63,18 @@ private fun Sink.writeLittleEndianShort(int: Int) {
     writeShort(lowHigh)
 }
 
+internal fun Sink.writeGifIntro(
+    width: Int,
+    height: Int,
+    loopCount: Int,
+    comment: String,
+) {
+    writeGifHeader()
+    writeGifLogicalScreenDescriptor(width, height)
+    writeGifApplicationExtension(loopCount)
+    writeGifCommentExtension(comment)
+}
+
 internal fun Sink.writeGifHeader() {
     writeString("GIF89a")
 }

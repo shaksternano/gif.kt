@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version "2.0.20"
     `maven-publish`
 }
 
@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    api("org.jetbrains.kotlinx:kotlinx-io-core:0.5.1")
+    api("org.jetbrains.kotlinx:kotlinx-io-core:0.5.3")
 
     testImplementation(kotlin("test"))
 }

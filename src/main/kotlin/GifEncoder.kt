@@ -11,9 +11,9 @@ class GifEncoder(
     private val sink: Sink,
     private val loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
-    private val colorTolerance: Double = 0.0,
-    private val quantizedColorTolerance: Double = 0.0,
-    private val optimizeQuantizedTransparency: Boolean = quantizedColorTolerance > 0.0,
+    private val transparencyColorTolerance: Double = 0.0,
+    private val quantizedTransparencyColorTolerance: Double = 0.0,
+    private val optimizeQuantizedTransparency: Boolean = quantizedTransparencyColorTolerance > 0.0,
     private val alphaFill: Int = -1,
     private val comment: String = "",
     private val minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS,
@@ -77,7 +77,7 @@ class GifEncoder(
         val currentFrame = Image(image, width, height)
             .cropOrPad(targetWidth, targetHeight)
             .fillPartialAlpha(alphaFill)
-        if (::previousFrame.isInitialized && previousFrame.isSimilar(currentFrame, colorTolerance)) {
+        if (::previousFrame.isInitialized && previousFrame.isSimilar(currentFrame, transparencyColorTolerance)) {
             // Merge similar sequential frames into one
             pendingDuration += duration
             return
@@ -95,7 +95,7 @@ class GifEncoder(
             val optimized = optimizeTransparency(
                 previousFrame,
                 currentFrame,
-                colorTolerance,
+                transparencyColorTolerance,
                 safeTransparent = false,
             )
             if (optimized == null) {
@@ -208,7 +208,7 @@ class GifEncoder(
     ) {
         val quantizedImage = data.toImage()
         if (::previousQuantizedFrame.isInitialized
-            && previousQuantizedFrame.isSimilar(quantizedImage, quantizedColorTolerance)
+            && previousQuantizedFrame.isSimilar(quantizedImage, quantizedTransparencyColorTolerance)
         ) {
             // Merge similar sequential frames into one
             pendingQuantizedDurationCentiseconds += durationCentiseconds
@@ -227,7 +227,7 @@ class GifEncoder(
             val optimized = optimizeTransparency(
                 previousQuantizedFrame.fillTransparent(previousQuantizedOriginalFrame),
                 quantizedImage,
-                quantizedColorTolerance,
+                quantizedTransparencyColorTolerance,
                 safeTransparent = optimizedLastFrame,
             )
             if (optimized == null) {

@@ -78,7 +78,7 @@ internal fun getImageData(image: Image, maxColors: Int, quantizer: ColorQuantize
     val colorCount = distinctColorCount.coerceAtMost(maxColors)
     val colorTableSize = colorCount.roundUpPowerOf2()
         .coerceAtLeast(GIF_MINIMUM_COLOR_TABLE_SIZE)
-    val quantizer = if (distinctColorCount > maxColors) {
+    val actualQuantizer = if (distinctColorCount > maxColors) {
         quantizer
     } else {
         DirectColorQuantizer
@@ -86,7 +86,7 @@ internal fun getImageData(image: Image, maxColors: Int, quantizer: ColorQuantize
     val quantizerMaxColors =
         if (hasTransparent) colorCount - 1
         else colorCount
-    val quantizationResult = quantizer.quantize(
+    val quantizationResult = actualQuantizer.quantize(
         rgb.toByteArray(),
         quantizerMaxColors,
     )

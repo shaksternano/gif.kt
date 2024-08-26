@@ -65,10 +65,6 @@ internal data class Image(
         result = 31 * result + height
         return result
     }
-
-    override fun toString(): String {
-        return "Image(argb=$argb, width=$width, height=$height)"
-    }
 }
 
 private const val ALPHA_FILL_MASK: Int = 0xFF shl 24

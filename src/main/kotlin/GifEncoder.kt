@@ -205,10 +205,11 @@ class GifEncoder(
             quantizerMaxColors,
         )
         val quantizedColors = quantizationResult.colors
+        val colorTableBytes = colorTableSize * 3
         val colorTable: ByteArray
         val transparentColorIndex: Int
         if (hasTransparent) {
-            colorTable = ByteArray(colorTableSize * 3)
+            colorTable = ByteArray(colorTableBytes)
             quantizedColors.copyInto(
                 colorTable,
                 // First three bytes are reserved for transparent color
@@ -216,10 +217,10 @@ class GifEncoder(
             )
             transparentColorIndex = 0
         } else {
-            if (colorCount == colorTableSize) {
+            if (quantizedColors.size == colorTableBytes) {
                 colorTable = quantizedColors
             } else {
-                colorTable = ByteArray(colorTableSize * 3)
+                colorTable = ByteArray(colorTableBytes)
                 quantizedColors.copyInto(colorTable)
             }
             transparentColorIndex = -1
@@ -249,7 +250,6 @@ class GifEncoder(
         return QuantizedImageData(
             colorTable,
             imageColorIndices,
-            colorTableSize,
             transparentColorIndex,
         )
     }

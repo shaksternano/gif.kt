@@ -22,7 +22,6 @@ internal val Duration.roundedUpCentiseconds: Int
 internal data class QuantizedImageData(
     val colorTable: ByteArray,
     val imageColorIndices: ByteArray,
-    val colorTableSize: Int,
     val transparentColorIndex: Int,
 )
 
@@ -125,7 +124,8 @@ internal fun Sink.writeGifImage(
     durationCentiseconds: Int,
     disposalMethod: DisposalMethod,
 ) {
-    val (colorTable, imageColorIndices, colorTableSize, transparentColorIndex) = data
+    val (colorTable, imageColorIndices, transparentColorIndex) = data
+    val colorTableSize = colorTable.size / 3
     writeGifGraphicsControlExtension(disposalMethod, durationCentiseconds, transparentColorIndex)
     writeGifImageDescriptor(width, height, colorTableSize)
     writeGifColorTable(colorTable)

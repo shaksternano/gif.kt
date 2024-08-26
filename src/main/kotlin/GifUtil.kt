@@ -54,9 +54,8 @@ internal fun optimizeTransparency(
     return Image(optimizedPixels, currentImage.width, currentImage.height)
 }
 
-internal fun getImageData(image: Image, maxColors: Int, quantizer: ColorQuantizer): QuantizedImageData {
+internal fun getImageData(argb: IntArray, maxColors: Int, quantizer: ColorQuantizer): QuantizedImageData {
     // Build color table
-    val argb = image.argb
     val rgb = mutableListOf<Byte>()
     val distinctColors = mutableSetOf<Int>()
     var hasTransparent = false

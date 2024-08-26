@@ -156,12 +156,13 @@ class GifEncoder(
         disposalMethod: DisposalMethod,
         loopCount: Int,
     ) {
-        init(image.width, image.height, loopCount)
-        val data = getImageData(image, maxColors, quantizer)
+        val (argb, width, height) = image
+        init(width, height, loopCount)
+        val data = getImageData(argb, maxColors, quantizer)
         sink.writeGifImage(
             data,
-            image.width,
-            image.height,
+            width,
+            height,
             durationCentiseconds,
             disposalMethod,
         )

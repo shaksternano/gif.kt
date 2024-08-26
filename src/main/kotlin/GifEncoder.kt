@@ -12,6 +12,8 @@ class GifEncoder(
     private val loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
     private val colorTolerance: Double = 0.0,
+    private val quantizedColorTolerance: Double = 0.0,
+    private val optimizeQuantizedTransparency: Boolean = quantizedColorTolerance > 0.0,
     private val alphaFill: Int = -1,
     private val comment: String = "",
     private val minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS,
@@ -26,13 +28,23 @@ class GifEncoder(
 
     private val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
     private val minimumFrameDuration: Duration = minimumFrameDurationCentiseconds.centiseconds
+
     private var initialized: Boolean = false
     private var width: Int? = null
     private var height: Int? = null
+
     private lateinit var previousFrame: Image
     private var pendingWrite: Image? = null
     private var pendingDuration: Duration = Duration.ZERO
     private var pendingDisposalMethod: DisposalMethod = DisposalMethod.UNSPECIFIED
+    private var optimizedLastFrame: Boolean = false
+
+    private lateinit var previousQuantizedFrame: Image
+    private lateinit var previousQuantizedOriginalFrame: Image
+    private var pendingQuantizedData: QuantizedImageData? = null
+    private var pendingQuantizedDurationCentiseconds: Int = 0
+    private var pendingQuantizedDisposalMethod: DisposalMethod = DisposalMethod.UNSPECIFIED
+
     private var frameCount: Int = 0
 
     private fun init(width: Int, height: Int, loopCount: Int) {
@@ -80,7 +92,12 @@ class GifEncoder(
             disposalMethod = DisposalMethod.DO_NOT_DISPOSE
         } else {
             // Subsequent frames
-            val optimized = optimizeTransparency(previousFrame, currentFrame, colorTolerance)
+            val optimized = optimizeTransparency(
+                previousFrame,
+                currentFrame,
+                colorTolerance,
+                safeTransparent = false,
+            )
             if (optimized == null) {
                 pendingDisposalMethod = DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
                 toWrite = currentFrame
@@ -89,6 +106,7 @@ class GifEncoder(
                 toWrite = optimized
                 disposalMethod = DisposalMethod.DO_NOT_DISPOSE
             }
+            optimizedLastFrame = optimized != null
         }
 
         /*
@@ -100,7 +118,7 @@ class GifEncoder(
         val pendingWrite1 = pendingWrite
         if (pendingWrite1 != null && pendingDuration >= minimumFrameDuration) {
             val centiseconds = pendingDuration.roundedUpCentiseconds
-            initAndWriteFrame(pendingWrite1, centiseconds)
+            initAndWriteFrame(pendingWrite1, previousFrame, centiseconds)
             // Might end up being negative
             pendingDuration -= centiseconds.centiseconds
             pendingWrite = null
@@ -128,7 +146,7 @@ class GifEncoder(
             if (newPendingDuration < minimumFrameDuration) {
                 pendingDuration = newPendingDuration
             } else {
-                initAndWriteFrame(pendingWrite2, minimumFrameDurationCentiseconds)
+                initAndWriteFrame(pendingWrite2, previousFrame, minimumFrameDurationCentiseconds)
                 previousFrame = currentFrame
                 pendingWrite = toWrite
                 pendingDuration = newPendingDuration - minimumFrameDuration
@@ -139,11 +157,13 @@ class GifEncoder(
 
     private fun initAndWriteFrame(
         image: Image,
+        originalImage: Image,
         durationCentiseconds: Int,
         loopCount: Int = this.loopCount,
     ) {
         initAndWriteFrame(
             image,
+            originalImage,
             durationCentiseconds,
             pendingDisposalMethod,
             loopCount,
@@ -152,17 +172,119 @@ class GifEncoder(
 
     private fun initAndWriteFrame(
         image: Image,
+        originalImage: Image,
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
         loopCount: Int,
     ) {
-        val (argb, width, height) = image
-        init(width, height, loopCount)
-        val data = getImageData(argb, maxColors, quantizer)
+        init(image.width, image.height, loopCount)
+        val data = getImageData(
+            image,
+            maxColors,
+            quantizer,
+            forceTransparency = optimizeQuantizedTransparency,
+        )
+        if (optimizeQuantizedTransparency) {
+            tryWriteOptimizedGifImage(
+                data,
+                originalImage,
+                durationCentiseconds,
+                disposalMethod,
+            )
+        } else {
+            writeGifImage(
+                data,
+                durationCentiseconds,
+                disposalMethod,
+            )
+        }
+    }
+
+    private fun tryWriteOptimizedGifImage(
+        data: QuantizedImageData,
+        originalImage: Image,
+        durationCentiseconds: Int,
+        disposalMethod: DisposalMethod,
+    ) {
+        val quantizedImage = data.toImage()
+        if (::previousQuantizedFrame.isInitialized
+            && previousQuantizedFrame.isSimilar(quantizedImage, quantizedColorTolerance)
+        ) {
+            // Merge similar sequential frames into one
+            pendingQuantizedDurationCentiseconds += durationCentiseconds
+            return
+        }
+
+        // Optimise transparency
+        val toWrite: Image
+        val actualDisposalMethod: DisposalMethod
+        if (!::previousQuantizedFrame.isInitialized) {
+            // First frame
+            toWrite = quantizedImage
+            actualDisposalMethod = disposalMethod
+        } else {
+            // Subsequent frames
+            val optimized = optimizeTransparency(
+                previousQuantizedFrame.fillTransparent(previousQuantizedOriginalFrame),
+                quantizedImage,
+                quantizedColorTolerance,
+                safeTransparent = optimizedLastFrame,
+            )
+            if (optimized == null) {
+                pendingQuantizedDisposalMethod = disposalMethod
+                toWrite = quantizedImage
+                actualDisposalMethod = disposalMethod
+            } else {
+                toWrite = optimized
+                actualDisposalMethod = DisposalMethod.DO_NOT_DISPOSE
+            }
+        }
+
+        /*
+         * Write the previous frame if it exists. The
+         * previous frame and the current frame have
+         * already been established to be different.
+         */
+        val pendingWrite = pendingQuantizedData
+        if (pendingWrite != null) {
+            writeGifImage(
+                pendingWrite,
+                pendingQuantizedDurationCentiseconds,
+                actualDisposalMethod,
+            )
+            pendingQuantizedDurationCentiseconds = 0
+            pendingQuantizedData = null
+        }
+
+        /*
+         * Don't write frame just yet, as the
+         * frame's duration will be decided by
+         * whether subsequent frames are similar
+         * or not.
+         */
+        previousQuantizedFrame = quantizedImage
+        previousQuantizedOriginalFrame = originalImage
+        val originalIndices = data.imageColorIndices
+        val optimizedArgb = toWrite.argb
+        val optimizedColorIndices = ByteArray(originalIndices.size) { i ->
+            if (optimizedArgb[i] == 0) {
+                0
+            } else {
+                originalIndices[i]
+            }
+        }
+        pendingQuantizedData = data.copy(imageColorIndices = optimizedColorIndices)
+        pendingQuantizedDurationCentiseconds += durationCentiseconds
+        pendingQuantizedDisposalMethod = disposalMethod
+    }
+
+    private fun writeGifImage(
+        data: QuantizedImageData,
+        durationCentiseconds: Int,
+        disposalMethod: DisposalMethod,
+    ) {
         sink.writeGifImage(
             data,
-            width,
-            height,
             durationCentiseconds,
             disposalMethod,
         )
@@ -180,8 +302,17 @@ class GifEncoder(
             val loopCount = if (this.frameCount > 1) loopCount else -1
             initAndWriteFrame(
                 pendingWrite,
+                previousFrame,
                 centiseconds,
                 loopCount,
+            )
+        }
+        val pendingQuantizedData = pendingQuantizedData
+        if (pendingQuantizedData != null) {
+            writeGifImage(
+                pendingQuantizedData,
+                pendingQuantizedDurationCentiseconds,
+                pendingQuantizedDisposalMethod,
             )
         }
         sink.writeGifTrailer()

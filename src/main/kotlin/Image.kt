@@ -38,13 +38,41 @@ internal data class Image(
     }
 
     fun isSimilar(other: Image, tolerance: Double): Boolean =
-        argb.zip(other.argb).all { (pixel1, pixel2) ->
-            if (tolerance == 0.0) {
-                pixel1 == pixel2
+        if (this === other) {
+            true
+        } else {
+            val resizedOther = other.cropOrPad(width, height)
+            val otherArgb = resizedOther.argb
+            argb.forEachIndexed { i, pixel ->
+                val otherPixel = otherArgb[i]
+                val similar = if (tolerance == 0.0) {
+                    pixel == otherPixel
+                } else {
+                    colorDistance(pixel, otherPixel) <= tolerance
+                }
+                if (!similar) {
+                    return false
+                }
+            }
+            true
+        }
+
+    fun fillTransparent(other: Image): Image {
+        if (this === other) {
+            return this
+        }
+        val fixedDimensions = other.cropOrPad(width, height)
+        val filledRgb = IntArray(argb.size) { i ->
+            val pixel = argb[i]
+            val alpha = pixel ushr 24
+            if (alpha == 0) {
+                fixedDimensions.argb[i]
             } else {
-                colorDistance(pixel1, pixel2) <= tolerance
+                pixel
             }
         }
+        return copy(argb = filledRgb)
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -67,14 +95,17 @@ internal data class Image(
     }
 }
 
-private const val ALPHA_FILL_MASK: Int = 0xFF shl 24
+internal const val ALPHA_FILL_MASK: Int = 0xFF shl 24
 
 private fun fillPartialAlpha(argb: Int, alphaFill: Int): Int {
     if (alphaFill < 0) {
         return argb
     }
     val alpha = argb ushr 24
-    if (alpha == 0 || alpha == 0xFF) {
+    if (alpha == 0) {
+        return 0
+    }
+    if (alpha == 0xFF) {
         return argb
     }
 

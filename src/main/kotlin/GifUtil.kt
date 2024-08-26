@@ -18,34 +18,43 @@ internal val Int.centiseconds: Duration
 internal val Duration.roundedUpCentiseconds: Int
     get() = ceil(inWholeMilliseconds / 10.0).toInt()
 
-@Suppress("ArrayInDataClass")
-internal data class QuantizedImageData(
-    val colorTable: ByteArray,
-    val imageColorIndices: ByteArray,
-    val transparentColorIndex: Int,
-)
-
 internal fun optimizeTransparency(
     previousImage: Image,
     currentImage: Image,
     colorTolerance: Double,
+    safeTransparent: Boolean,
 ): Image? {
-    if (previousImage.width != currentImage.width || previousImage.height != currentImage.height) {
+    if (previousImage.width != currentImage.width
+        || previousImage.height != currentImage.height
+        || previousImage.argb.size != currentImage.argb.size
+    ) {
         return null
     }
-    val optimizedPixels = IntArray(currentImage.argb.size)
-    previousImage.argb.zip(currentImage.argb).forEachIndexed { i, (previousArgb, currentArgb) ->
+    val optimizedPixels = IntArray(currentImage.argb.size) { i ->
+        val previousArgb = previousImage.argb[i]
+        val currentArgb = currentImage.argb[i]
+        if (previousArgb == currentArgb) {
+            return@IntArray 0
+        }
         val previousAlpha = previousArgb ushr 24
         val currentAlpha = currentArgb ushr 24
-        if (currentAlpha == 0 && previousAlpha != 0) {
-            /*
-             * Current frame has a transparent pixel where
-             * the previous frame had an opaque pixel
-             */
-            return null
+        // Previous is opaque, current is transparent
+        if (previousAlpha != 0 && currentAlpha == 0) {
+            if (safeTransparent) {
+                return@IntArray 0
+            } else {
+                return null
+            }
+        }
+        if (colorTolerance == 0.0) {
+            return@IntArray currentArgb
+        }
+        // Previous is transparent, current is opaque
+        if (previousAlpha == 0 && currentAlpha != 0) {
+            return@IntArray currentArgb
         }
         val colorDistance = colorDistance(previousArgb, currentArgb)
-        optimizedPixels[i] = if (colorDistance > colorTolerance) {
+        if (colorDistance > colorTolerance) {
             currentArgb
         } else {
             0
@@ -54,11 +63,17 @@ internal fun optimizeTransparency(
     return Image(optimizedPixels, currentImage.width, currentImage.height)
 }
 
-internal fun getImageData(argb: IntArray, maxColors: Int, quantizer: ColorQuantizer): QuantizedImageData {
+internal fun getImageData(
+    image: Image,
+    maxColors: Int,
+    quantizer: ColorQuantizer,
+    forceTransparency: Boolean,
+): QuantizedImageData {
     // Build color table
+    val (argb, width, height) = image
     val rgb = mutableListOf<Byte>()
     val distinctColors = mutableSetOf<Int>()
-    var hasTransparent = false
+    var hasTransparent = forceTransparency
     argb.forEach { pixel ->
         val alpha = pixel ushr 24
         if (alpha == 0) {
@@ -133,8 +148,10 @@ internal fun getImageData(argb: IntArray, maxColors: Int, quantizer: ColorQuanti
     }
 
     return QuantizedImageData(
-        colorTable,
         imageColorIndices,
+        width,
+        height,
+        colorTable,
         transparentColorIndex,
     )
 }
@@ -204,12 +221,10 @@ internal fun Sink.writeGifCommentExtension(comment: String) {
 
 internal fun Sink.writeGifImage(
     data: QuantizedImageData,
-    width: Int,
-    height: Int,
     durationCentiseconds: Int,
     disposalMethod: DisposalMethod,
 ) {
-    val (colorTable, imageColorIndices, transparentColorIndex) = data
+    val (imageColorIndices, width, height, colorTable, transparentColorIndex) = data
     val colorTableSize = colorTable.size / 3
     writeGifGraphicsControlExtension(disposalMethod, durationCentiseconds, transparentColorIndex)
     writeGifImageDescriptor(width, height, colorTableSize)

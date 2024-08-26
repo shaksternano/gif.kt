@@ -54,6 +54,92 @@ internal fun optimizeTransparency(
     return Image(optimizedPixels, currentImage.width, currentImage.height)
 }
 
+internal fun getImageData(image: Image, maxColors: Int, quantizer: ColorQuantizer): QuantizedImageData {
+    // Build color table
+    val argb = image.argb
+    val rgb = mutableListOf<Byte>()
+    val distinctColors = mutableSetOf<Int>()
+    var hasTransparent = false
+    argb.forEach { pixel ->
+        val alpha = pixel ushr 24
+        if (alpha == 0) {
+            hasTransparent = true
+        } else {
+            val red = pixel shr 16 and 0xFF
+            val green = pixel shr 8 and 0xFF
+            val blue = pixel and 0xFF
+            rgb.add(red.toByte())
+            rgb.add(green.toByte())
+            rgb.add(blue.toByte())
+            distinctColors.add(pixel)
+        }
+    }
+    val distinctColorCount = distinctColors.size + if (hasTransparent) 1 else 0
+    val colorCount = distinctColorCount.coerceAtMost(maxColors)
+    val colorTableSize = colorCount.roundUpPowerOf2()
+        .coerceAtLeast(GIF_MINIMUM_COLOR_TABLE_SIZE)
+    val quantizer = if (distinctColorCount > maxColors) {
+        quantizer
+    } else {
+        DirectColorQuantizer
+    }
+    val quantizerMaxColors =
+        if (hasTransparent) colorCount - 1
+        else colorCount
+    val quantizationResult = quantizer.quantize(
+        rgb.toByteArray(),
+        quantizerMaxColors,
+    )
+    val quantizedColors = quantizationResult.colors
+    val colorTableBytes = colorTableSize * 3
+    val colorTable: ByteArray
+    val transparentColorIndex: Int
+    if (hasTransparent) {
+        colorTable = ByteArray(colorTableBytes)
+        quantizedColors.copyInto(
+            colorTable,
+            // First three bytes are reserved for transparent color
+            destinationOffset = 3,
+        )
+        transparentColorIndex = 0
+    } else {
+        if (quantizedColors.size == colorTableBytes) {
+            colorTable = quantizedColors
+        } else {
+            colorTable = ByteArray(colorTableBytes)
+            quantizedColors.copyInto(colorTable)
+        }
+        transparentColorIndex = -1
+    }
+
+    // Get color indices
+    val imageColorIndices = ByteArray(argb.size)
+    // First index is reserved for transparent color
+    val indexOffset = if (hasTransparent) 1 else 0
+    argb.forEachIndexed { i, pixel ->
+        val index = if (colorCount == 1) {
+            0
+        } else {
+            val alpha = pixel ushr 24
+            if (alpha == 0) {
+                0
+            } else {
+                val red = pixel shr 16 and 0xFF
+                val green = pixel shr 8 and 0xFF
+                val blue = pixel and 0xFF
+                quantizationResult.getColorIndex(red, green, blue) + indexOffset
+            }
+        }
+        imageColorIndices[i] = index.toByte()
+    }
+
+    return QuantizedImageData(
+        colorTable,
+        imageColorIndices,
+        transparentColorIndex,
+    )
+}
+
 internal fun Sink.writeByte(byte: Int) =
     writeByte(byte.toByte())
 

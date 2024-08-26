@@ -273,7 +273,7 @@ internal fun Sink.writeGifImageDescriptor(width: Int, height: Int, localColorTab
 }
 
 internal fun Sink.writeGifImageData(imageColorIndices: ByteArray, colorTableSize: Int) {
-    writeLzwIndexStream(imageColorIndices.asList(), colorTableSize)
+    writeLzwIndexStream(imageColorIndices, colorTableSize)
 }
 
 internal fun Sink.writeGifTrailer() {

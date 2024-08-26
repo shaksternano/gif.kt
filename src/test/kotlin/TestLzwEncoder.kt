@@ -13,7 +13,7 @@ class TestLzwEncoder {
          * Image and index stream data from:
          * https://www.matthewflickinger.com/lab/whatsinagif/lzw_image_data.asp
          */
-        val indexStream = listOf<Byte>(
+        val indexStream = byteArrayOf(
             1, 1, 1, 1, 1,   2, 2, 2, 2, 2,
             1, 1, 1, 1, 1,   2, 2, 2, 2, 2,
             1, 1, 1, 1, 1,   2, 2, 2, 2, 2,

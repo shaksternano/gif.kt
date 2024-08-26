@@ -10,7 +10,7 @@ private const val LZW_MINIMUM_COLORS: Int = 4
  * Reference:
  * https://www.matthewflickinger.com/lab/whatsinagif/lzw_image_data.asp
  */
-internal fun Sink.writeLzwIndexStream(indexStream: List<Byte>, colorTableSize: Int) {
+internal fun Sink.writeLzwIndexStream(indexStream: ByteArray, colorTableSize: Int) {
     if (indexStream.isEmpty()) {
         throw IllegalArgumentException("Index stream is empty")
     }
@@ -31,7 +31,12 @@ internal fun Sink.writeLzwIndexStream(indexStream: List<Byte>, colorTableSize: I
     val indexBuffer = mutableListOf<Byte>()
     indexBuffer.add(indexStream.first())
 
-    indexStream.subList(1, indexStream.size).forEach { index ->
+    var skippedFirst = false
+    indexStream.forEach { index ->
+        if (!skippedFirst) {
+            skippedFirst = true
+            return@forEach
+        }
         val nextSequence = indexBuffer + index
         if (codeTable.containsKey(nextSequence)) {
             indexBuffer.add(index)

@@ -28,9 +28,7 @@ internal fun Sink.writeLzwIndexStream(indexStream: ByteArray, colorTableSize: In
     bitBuffer.writeBits(colorCount, codeSize) // Clear code
     tryWriteFullLzwSubBlock(bitBuffer)
 
-    val indexBuffer = mutableListOf<Byte>()
-    indexBuffer.add(indexStream.first())
-
+    val indexBuffer = mutableListOf(indexStream.first())
     var skippedFirst = false
     indexStream.forEach { index ->
         if (!skippedFirst) {

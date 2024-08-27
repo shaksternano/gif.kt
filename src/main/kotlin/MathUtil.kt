@@ -6,6 +6,9 @@ internal fun Int.pow(exponent: Int): Int =
     toDouble().pow(exponent).toInt()
 
 internal fun Int.toLittleEndianShort(): Short {
+    if (this == 0) {
+        return 0
+    }
     /*
      * No need to bit mask as the high byte is
      * truncated when converting to a Short

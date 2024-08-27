@@ -101,6 +101,8 @@ class TestGifEncoder {
         buffer.writeGifImageDescriptor(
             width = 10,
             height = 10,
+            x = 0,
+            y = 0,
             localColorTableSize = 4,
         )
         val bytes = buffer.readByteList()

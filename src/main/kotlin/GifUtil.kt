@@ -151,10 +151,102 @@ internal fun getImageData(
         imageColorIndices,
         width,
         height,
+        x = 0,
+        y = 0,
         colorTable,
         transparentColorIndex,
     )
 }
+
+internal fun cropTransparentBorder(data: QuantizedImageData): QuantizedImageData {
+    val transparentIndex = data.transparentColorIndex.toByte()
+    if (transparentIndex < 0) {
+        return data
+    }
+    val indices = data.imageColorIndices
+    val width = data.width
+    val height = data.height
+
+    var startX = Int.MAX_VALUE
+    var startY = -1
+
+    var endX = 0
+    var endY = 0
+
+    var x = 0
+    var y = 0
+    indices.forEach { index ->
+        if (index != transparentIndex) {
+            if (x < startX) {
+                startX = x
+            }
+            if (startY == -1) {
+                startY = y
+            }
+            if (x > endX) {
+                endX = x
+            }
+            endY = y
+        }
+
+        x++
+        if (x == width) {
+            x = 0
+            y++
+        }
+    }
+
+    val newWidth = endX - startX + 1
+    val newHeight = endY - startY + 1
+
+    val croppedIndices = crop(
+        indices,
+        width,
+        height,
+        startX,
+        startY,
+        newWidth,
+        newHeight,
+    )
+    return data.copy(
+        imageColorIndices = croppedIndices,
+        width = newWidth,
+        height = newHeight,
+        x = startX,
+        y = startY,
+    )
+}
+
+private fun crop(
+    indices: ByteArray,
+    oldWidth: Int,
+    oldHeight: Int,
+    startX: Int,
+    startY: Int,
+    newWidth: Int,
+    newHeight: Int
+): ByteArray =
+    if (oldWidth == newWidth && oldHeight == newHeight) {
+        indices
+    } else if (oldWidth == newWidth) {
+        indices.copyOfRange(startY * newWidth, (startY + newHeight) * newWidth)
+    } else {
+        var x = 0
+        var y = 0
+        ByteArray(newWidth * newHeight) {
+            val oldX = startX + x
+            val oldY = startY + y
+            val i = oldX + oldY * oldWidth
+
+            x++
+            if (x == newWidth) {
+                x = 0
+                y++
+            }
+
+            indices[i]
+        }
+    }
 
 internal fun Sink.writeByte(byte: Int) =
     writeByte(byte.toByte())
@@ -224,10 +316,24 @@ internal fun Sink.writeGifImage(
     durationCentiseconds: Int,
     disposalMethod: DisposalMethod,
 ) {
-    val (imageColorIndices, width, height, colorTable, transparentColorIndex) = data
+    val (
+        imageColorIndices,
+        width,
+        height,
+        x,
+        y,
+        colorTable,
+        transparentColorIndex,
+    ) = data
     val colorTableSize = colorTable.size / 3
     writeGifGraphicsControlExtension(disposalMethod, durationCentiseconds, transparentColorIndex)
-    writeGifImageDescriptor(width, height, colorTableSize)
+    writeGifImageDescriptor(
+        width,
+        height,
+        x,
+        y,
+        colorTableSize,
+    )
     writeGifColorTable(colorTable)
     writeGifImageData(imageColorIndices, colorTableSize)
 }
@@ -255,9 +361,16 @@ internal fun Sink.writeGifGraphicsControlExtension(
     writeByte(0x00) // Block terminator
 }
 
-internal fun Sink.writeGifImageDescriptor(width: Int, height: Int, localColorTableSize: Int) {
+internal fun Sink.writeGifImageDescriptor(
+    width: Int,
+    height: Int,
+    x: Int,
+    y: Int,
+    localColorTableSize: Int,
+) {
     writeByte(0x2C) // Image Separator
-    writeInt(0)     // Image left and top positions, two bytes each
+    writeLittleEndianShort(x)
+    writeLittleEndianShort(y)
     writeLittleEndianShort(width)
     writeLittleEndianShort(height)
     /*

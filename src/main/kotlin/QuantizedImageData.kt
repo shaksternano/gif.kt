@@ -4,6 +4,8 @@ internal data class QuantizedImageData(
     val imageColorIndices: ByteArray,
     val width: Int,
     val height: Int,
+    val x: Int,
+    val y: Int,
     val colorTable: ByteArray,
     val transparentColorIndex: Int,
 ) {

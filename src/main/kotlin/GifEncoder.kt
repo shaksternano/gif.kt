@@ -14,6 +14,7 @@ class GifEncoder(
     private val transparencyColorTolerance: Double = 0.0,
     private val quantizedTransparencyColorTolerance: Double = 0.0,
     private val optimizeQuantizedTransparency: Boolean = quantizedTransparencyColorTolerance > 0.0,
+    private val cropTransparent: Boolean = false,
     private val alphaFill: Int = -1,
     private val comment: String = "",
     private val minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS,
@@ -283,8 +284,13 @@ class GifEncoder(
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
     ) {
+        val toWrite = if (cropTransparent) {
+            cropTransparentBorder(data)
+        } else {
+            data
+        }
         sink.writeGifImage(
-            data,
+            toWrite,
             durationCentiseconds,
             disposalMethod,
         )

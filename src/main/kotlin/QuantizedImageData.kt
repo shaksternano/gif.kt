@@ -34,6 +34,8 @@ internal data class QuantizedImageData(
 
         if (width != other.width) return false
         if (height != other.height) return false
+        if (x != other.x) return false
+        if (y != other.y) return false
         if (transparentColorIndex != other.transparentColorIndex) return false
         if (!imageColorIndices.contentEquals(other.imageColorIndices)) return false
         if (!colorTable.contentEquals(other.colorTable)) return false
@@ -45,6 +47,8 @@ internal data class QuantizedImageData(
         var result = imageColorIndices.contentHashCode()
         result = 31 * result + width
         result = 31 * result + height
+        result = 31 * result + x
+        result = 31 * result + y
         result = 31 * result + colorTable.contentHashCode()
         result = 31 * result + transparentColorIndex
         return result

@@ -15,7 +15,7 @@ class GifEncoder(
     private val optimizeTransparency: Boolean = true,
     private val quantizedTransparencyColorTolerance: Double = 0.0,
     private val optimizeQuantizedTransparency: Boolean = quantizedTransparencyColorTolerance > 0.0,
-    private val cropTransparent: Boolean = false,
+    private val cropTransparent: Boolean = true,
     private val alphaFill: Int = -1,
     private val comment: String = "",
     private val minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS,

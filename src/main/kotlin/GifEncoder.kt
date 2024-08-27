@@ -12,6 +12,7 @@ class GifEncoder(
     private val loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
     private val transparencyColorTolerance: Double = 0.0,
+    private val optimizeTransparency: Boolean = true,
     private val quantizedTransparencyColorTolerance: Double = 0.0,
     private val optimizeQuantizedTransparency: Boolean = quantizedTransparencyColorTolerance > 0.0,
     private val cropTransparent: Boolean = false,
@@ -38,10 +39,9 @@ class GifEncoder(
     private var pendingWrite: Image? = null
     private var pendingDuration: Duration = Duration.ZERO
     private var pendingDisposalMethod: DisposalMethod = DisposalMethod.UNSPECIFIED
-    private var optimizedLastFrame: Boolean = false
+    private var optimizedPreviousFrame: Boolean = false
 
     private lateinit var previousQuantizedFrame: Image
-    private lateinit var previousQuantizedOriginalFrame: Image
     private var pendingQuantizedData: QuantizedImageData? = null
     private var pendingQuantizedDurationCentiseconds: Int = 0
     private var pendingQuantizedDisposalMethod: DisposalMethod = DisposalMethod.UNSPECIFIED
@@ -78,7 +78,10 @@ class GifEncoder(
         val currentFrame = Image(image, width, height)
             .cropOrPad(targetWidth, targetHeight)
             .fillPartialAlpha(alphaFill)
-        if (::previousFrame.isInitialized && previousFrame.isSimilar(currentFrame, transparencyColorTolerance)) {
+        if (optimizeTransparency
+            && ::previousFrame.isInitialized
+            && previousFrame.isSimilar(currentFrame, transparencyColorTolerance)
+        ) {
             // Merge similar sequential frames into one
             pendingDuration += duration
             return
@@ -86,28 +89,31 @@ class GifEncoder(
 
         // Optimise transparency
         val toWrite: Image
-        val disposalMethod: DisposalMethod
+        val optimizedTransparency: Boolean
         if (!::previousFrame.isInitialized) {
             // First frame
             toWrite = currentFrame
-            disposalMethod = DisposalMethod.DO_NOT_DISPOSE
+            optimizedTransparency = false
         } else {
             // Subsequent frames
-            val optimized = optimizeTransparency(
-                previousFrame,
-                currentFrame,
-                transparencyColorTolerance,
-                safeTransparent = false,
-            )
+            val optimized = if (optimizeTransparency) {
+                optimizeTransparency(
+                    previousFrame,
+                    currentFrame,
+                    transparencyColorTolerance,
+                    safeTransparent = false,
+                )
+            } else {
+                null
+            }
             if (optimized == null) {
                 pendingDisposalMethod = DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
                 toWrite = currentFrame
-                disposalMethod = DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
             } else {
+                pendingDisposalMethod = DisposalMethod.DO_NOT_DISPOSE
                 toWrite = optimized
-                disposalMethod = DisposalMethod.DO_NOT_DISPOSE
             }
-            optimizedLastFrame = optimized != null
+            optimizedTransparency = optimized != null
         }
 
         /*
@@ -136,7 +142,7 @@ class GifEncoder(
             previousFrame = currentFrame
             pendingWrite = toWrite
             pendingDuration += duration
-            pendingDisposalMethod = disposalMethod
+            optimizedPreviousFrame = optimizedTransparency
         } else {
             /*
              * Handle the minimum frame duration.
@@ -144,14 +150,14 @@ class GifEncoder(
              * to be less than the minimum frame duration.
              */
             val newPendingDuration = pendingDuration + duration
-            if (newPendingDuration < minimumFrameDuration) {
-                pendingDuration = newPendingDuration
-            } else {
+            if (newPendingDuration > minimumFrameDuration) {
                 initAndWriteFrame(pendingWrite2, previousFrame, minimumFrameDurationCentiseconds)
                 previousFrame = currentFrame
                 pendingWrite = toWrite
                 pendingDuration = newPendingDuration - minimumFrameDuration
-                pendingDisposalMethod = disposalMethod
+                optimizedPreviousFrame = optimizedTransparency
+            } else {
+                pendingDuration = newPendingDuration
             }
         }
     }
@@ -190,7 +196,6 @@ class GifEncoder(
                 data,
                 originalImage,
                 durationCentiseconds,
-                disposalMethod,
             )
         } else {
             writeGifImage(
@@ -205,7 +210,6 @@ class GifEncoder(
         data: QuantizedImageData,
         originalImage: Image,
         durationCentiseconds: Int,
-        disposalMethod: DisposalMethod,
     ) {
         val quantizedImage = data.toImage()
         if (::previousQuantizedFrame.isInitialized
@@ -217,27 +221,27 @@ class GifEncoder(
         }
 
         // Optimise transparency
-        val toWrite: Image
-        val actualDisposalMethod: DisposalMethod
-        if (!::previousQuantizedFrame.isInitialized) {
+        val toWrite = if (!::previousQuantizedFrame.isInitialized) {
             // First frame
-            toWrite = quantizedImage
-            actualDisposalMethod = disposalMethod
+            quantizedImage
         } else {
             // Subsequent frames
-            val optimized = optimizeTransparency(
-                previousQuantizedFrame.fillTransparent(previousQuantizedOriginalFrame),
-                quantizedImage,
-                quantizedTransparencyColorTolerance,
-                safeTransparent = optimizedLastFrame,
-            )
-            if (optimized == null) {
-                pendingQuantizedDisposalMethod = disposalMethod
-                toWrite = quantizedImage
-                actualDisposalMethod = disposalMethod
+            val optimized = if (optimizedPreviousFrame) {
+                optimizeTransparency(
+                    previousQuantizedFrame,
+                    quantizedImage,
+                    quantizedTransparencyColorTolerance,
+                    safeTransparent = true,
+                )
             } else {
-                toWrite = optimized
-                actualDisposalMethod = DisposalMethod.DO_NOT_DISPOSE
+                null
+            }
+            if (optimized == null) {
+                pendingQuantizedDisposalMethod = DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
+                quantizedImage
+            } else {
+                pendingQuantizedDisposalMethod = DisposalMethod.DO_NOT_DISPOSE
+                optimized
             }
         }
 
@@ -251,7 +255,7 @@ class GifEncoder(
             writeGifImage(
                 pendingWrite,
                 pendingQuantizedDurationCentiseconds,
-                actualDisposalMethod,
+                pendingQuantizedDisposalMethod,
             )
             pendingQuantizedDurationCentiseconds = 0
             pendingQuantizedData = null
@@ -263,8 +267,7 @@ class GifEncoder(
          * whether subsequent frames are similar
          * or not.
          */
-        previousQuantizedFrame = quantizedImage
-        previousQuantizedOriginalFrame = originalImage
+        previousQuantizedFrame = quantizedImage.fillTransparent(originalImage)
         val originalIndices = data.imageColorIndices
         val optimizedArgb = toWrite.argb
         val optimizedColorIndices = ByteArray(originalIndices.size) { i ->
@@ -276,7 +279,6 @@ class GifEncoder(
         }
         pendingQuantizedData = data.copy(imageColorIndices = optimizedColorIndices)
         pendingQuantizedDurationCentiseconds += durationCentiseconds
-        pendingQuantizedDisposalMethod = disposalMethod
     }
 
     private fun writeGifImage(
@@ -300,9 +302,6 @@ class GifEncoder(
     override fun close() {
         val pendingWrite = pendingWrite
         if (pendingWrite != null && pendingDuration > Duration.ZERO) {
-            if (frameCount < 2) {
-                pendingDisposalMethod = DisposalMethod.UNSPECIFIED
-            }
             val centiseconds = pendingDuration.roundedUpCentiseconds
                 .coerceAtLeast(minimumFrameDurationCentiseconds)
             val loopCount = if (this.frameCount > 1) loopCount else -1

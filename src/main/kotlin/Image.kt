@@ -45,7 +45,13 @@ internal data class Image(
             val otherArgb = resizedOther.argb
             argb.forEachIndexed { i, pixel ->
                 val otherPixel = otherArgb[i]
-                val similar = if (tolerance == 0.0) {
+                val alpha = pixel ushr 24
+                val otherAlpha = otherPixel ushr 24
+                val similar = if (alpha == 0 && otherAlpha == 0) {
+                    true
+                } else if (alpha != otherAlpha) {
+                    false
+                } else if (tolerance == 0.0) {
                     pixel == otherPixel
                 } else {
                     colorDistance(pixel, otherPixel) <= tolerance

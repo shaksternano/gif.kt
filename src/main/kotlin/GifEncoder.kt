@@ -47,6 +47,7 @@ class GifEncoder(
     private var pendingQuantizedDisposalMethod: DisposalMethod = DisposalMethod.UNSPECIFIED
 
     private var frameCount: Int = 0
+    private var nextCrop: Rectangle? = null
 
     private fun init(width: Int, height: Int, loopCount: Int) {
         if (initialized) return
@@ -286,8 +287,13 @@ class GifEncoder(
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
     ) {
-        val toWrite = if (cropTransparent && frameCount > 0) {
-            cropTransparentBorder(data)
+        val nextCrop = nextCrop
+        val toWrite = if (nextCrop != null) {
+            val (x, y, width, height) = nextCrop union data.opaqueArea()
+            this.nextCrop = null
+            data.crop(x, y, width, height)
+        } else if (cropTransparent && frameCount > 0) {
+            data.cropTransparentBorder()
         } else {
             data
         }
@@ -297,6 +303,9 @@ class GifEncoder(
             disposalMethod,
         )
         frameCount++
+        if (disposalMethod == DisposalMethod.DO_NOT_DISPOSE) {
+            this.nextCrop = toWrite.bounds
+        }
     }
 
     override fun close() {

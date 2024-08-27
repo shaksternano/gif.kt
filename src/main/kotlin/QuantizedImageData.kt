@@ -10,6 +10,9 @@ internal data class QuantizedImageData(
     val transparentColorIndex: Int,
 ) {
 
+    val bounds: Rectangle
+        get() = Rectangle(x, y, width, height)
+
     fun toImage(): Image {
         val argb = IntArray(imageColorIndices.size) { i ->
             val index = imageColorIndices[i].toInt() and 0xFF

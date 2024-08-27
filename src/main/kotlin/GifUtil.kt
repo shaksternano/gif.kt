@@ -158,14 +158,21 @@ internal fun getImageData(
     )
 }
 
-internal fun cropTransparentBorder(data: QuantizedImageData): QuantizedImageData {
-    val transparentIndex = data.transparentColorIndex.toByte()
+internal fun QuantizedImageData.cropTransparentBorder(): QuantizedImageData {
+    val transparentIndex = transparentColorIndex.toByte()
     if (transparentIndex < 0) {
-        return data
+        return this
     }
-    val indices = data.imageColorIndices
-    val width = data.width
-    val height = data.height
+
+    val (x, y, width, height) = opaqueArea()
+    return crop(x, y, width, height)
+}
+
+internal fun QuantizedImageData.opaqueArea(): Rectangle {
+    val transparentIndex = transparentColorIndex.toByte()
+    if (transparentIndex < 0) {
+        return bounds
+    }
 
     var startX = Int.MAX_VALUE
     var startY = -1
@@ -175,7 +182,7 @@ internal fun cropTransparentBorder(data: QuantizedImageData): QuantizedImageData
 
     var x = 0
     var y = 0
-    indices.forEach { index ->
+    imageColorIndices.forEach { index ->
         if (index != transparentIndex) {
             if (x < startX) {
                 startX = x
@@ -199,44 +206,30 @@ internal fun cropTransparentBorder(data: QuantizedImageData): QuantizedImageData
     val newWidth = endX - startX + 1
     val newHeight = endY - startY + 1
 
-    val croppedIndices = crop(
-        indices,
-        width,
-        height,
-        startX,
-        startY,
-        newWidth,
-        newHeight,
-    )
-    return data.copy(
-        imageColorIndices = croppedIndices,
-        width = newWidth,
-        height = newHeight,
-        x = startX,
-        y = startY,
-    )
+    return Rectangle(startX, startY, newWidth, newHeight)
 }
 
-private fun crop(
-    indices: ByteArray,
-    oldWidth: Int,
-    oldHeight: Int,
+internal fun QuantizedImageData.crop(
     startX: Int,
     startY: Int,
     newWidth: Int,
     newHeight: Int
-): ByteArray =
-    if (oldWidth == newWidth && oldHeight == newHeight) {
-        indices
-    } else if (oldWidth == newWidth) {
-        indices.copyOfRange(startY * newWidth, (startY + newHeight) * newWidth)
+): QuantizedImageData {
+    if (startX == 0 && startY == 0 && newWidth == width && newHeight == height) {
+        return this
+    }
+
+    val croppedIndices = if (width == newWidth && height == newHeight) {
+        imageColorIndices
+    } else if (width == newWidth) {
+        imageColorIndices.copyOfRange(startY * newWidth, (startY + newHeight) * newWidth)
     } else {
         var x = 0
         var y = 0
         ByteArray(newWidth * newHeight) {
             val oldX = startX + x
             val oldY = startY + y
-            val i = oldX + oldY * oldWidth
+            val i = oldX + oldY * width
 
             x++
             if (x == newWidth) {
@@ -244,9 +237,18 @@ private fun crop(
                 y++
             }
 
-            indices[i]
+            imageColorIndices[i]
         }
     }
+
+    return copy(
+        imageColorIndices = croppedIndices,
+        width = newWidth,
+        height = newHeight,
+        x = startX,
+        y = startY,
+    )
+}
 
 internal fun Sink.writeByte(byte: Int) =
     writeByte(byte.toByte())

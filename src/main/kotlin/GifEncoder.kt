@@ -286,7 +286,7 @@ class GifEncoder(
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
     ) {
-        val toWrite = if (cropTransparent) {
+        val toWrite = if (cropTransparent && frameCount > 0) {
             cropTransparentBorder(data)
         } else {
             data

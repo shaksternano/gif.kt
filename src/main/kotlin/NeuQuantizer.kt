@@ -9,6 +9,12 @@ class NeuQuantizer(
     companion object {
         @JvmField
         val DEFAULT: ColorQuantizer = NeuQuantizer()
+
+        @JvmField
+        val MAX_QUALITY: ColorQuantizer = NeuQuantizer(1)
+
+        @JvmField
+        val MIN_QUALITY: ColorQuantizer = NeuQuantizer(NEU_QUANT_MAX_SAMPLING_FACTOR)
     }
 
     private val quality: Int = quality.coerceIn(1, NEU_QUANT_MAX_SAMPLING_FACTOR)

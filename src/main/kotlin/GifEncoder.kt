@@ -307,9 +307,16 @@ class GifEncoder(
     override fun close() {
         val pendingWrite = pendingWrite
         if (pendingWrite != null && pendingDuration > Duration.ZERO) {
-            val centiseconds = pendingDuration.roundedUpCentiseconds
-                .coerceAtLeast(minimumFrameDurationCentiseconds)
-            val loopCount = if (this.frameCount > 1) loopCount else -1
+            val centiseconds: Int
+            val loopCount: Int
+            if (this.frameCount > 1) {
+                centiseconds = pendingDuration.roundedUpCentiseconds
+                    .coerceAtLeast(minimumFrameDurationCentiseconds)
+                loopCount = this.loopCount
+            } else {
+                centiseconds = 0
+                loopCount = -1
+            }
             initAndWriteFrame(
                 pendingWrite,
                 previousFrame,

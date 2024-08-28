@@ -68,14 +68,23 @@ class GifEncoder(
         height: Int,
         duration: Duration,
     ) {
-        val targetWidth = this.width ?: width
-        val targetHeight = this.height ?: height
+        /*
+         * Handle the minimum frame duration.
+         */
+        val newPendingDuration = pendingDuration + duration
+        if (::previousFrame.isInitialized && newPendingDuration <= minimumFrameDuration) {
+            pendingDuration = newPendingDuration
+            return
+        }
+
         /*
          * Make sure all frames have the same dimensions
          * by cropping or padding with transparent pixels,
          * and remove any partial alpha, as GIFs do not
          * support partial transparency.
          */
+        val targetWidth = this.width ?: width
+        val targetHeight = this.height ?: height
         val currentFrame = Image(image, width, height)
             .cropOrPad(targetWidth, targetHeight)
             .fillPartialAlpha(alphaFill)
@@ -132,35 +141,22 @@ class GifEncoder(
             pendingWrite = null
         }
 
+        /*
+         * Don't write frame just yet, as the
+         * frame's duration will be decided by
+         * whether subsequent frames are similar
+         * or not.
+         */
         val pendingWrite2 = pendingWrite
         if (pendingWrite2 == null) {
-            /*
-             * Don't write frame just yet, as the
-             * frame's duration will be decided by
-             * whether subsequent frames are similar
-             * or not.
-             */
-            previousFrame = currentFrame
-            pendingWrite = toWrite
             pendingDuration += duration
-            optimizedPreviousFrame = optimizedTransparency
         } else {
-            /*
-             * Handle the minimum frame duration.
-             * Pending duration is already established
-             * to be less than the minimum frame duration.
-             */
-            val newPendingDuration = pendingDuration + duration
-            if (newPendingDuration > minimumFrameDuration) {
-                initAndWriteFrame(pendingWrite2, previousFrame, minimumFrameDurationCentiseconds)
-                previousFrame = currentFrame
-                pendingWrite = toWrite
-                pendingDuration = newPendingDuration - minimumFrameDuration
-                optimizedPreviousFrame = optimizedTransparency
-            } else {
-                pendingDuration = newPendingDuration
-            }
+            initAndWriteFrame(pendingWrite2, previousFrame, minimumFrameDurationCentiseconds)
+            pendingDuration = newPendingDuration - minimumFrameDuration
         }
+        previousFrame = currentFrame
+        pendingWrite = toWrite
+        optimizedPreviousFrame = optimizedTransparency
     }
 
     private fun initAndWriteFrame(

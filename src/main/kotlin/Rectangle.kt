@@ -10,6 +10,7 @@ internal data class Rectangle(
     val height: Int,
 ) {
     infix fun union(other: Rectangle): Rectangle {
+        if (this == other) return this
         val x1 = min(x, other.x)
         val y1 = min(y, other.y)
         val x2 = max(x + width, other.x + other.width)

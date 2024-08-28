@@ -203,6 +203,10 @@ internal fun QuantizedImageData.opaqueArea(): Rectangle {
         }
     }
 
+    if (startX == Int.MAX_VALUE) {
+        return Rectangle(0, 0, 0, 0)
+    }
+
     val newWidth = endX - startX + 1
     val newHeight = endY - startY + 1
 

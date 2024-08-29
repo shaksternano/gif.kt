@@ -22,7 +22,7 @@ class ParallelGifEncoder(
     maxBufferedFrames: Int = 2,
     scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     private val wrapIo: suspend (() -> Unit) -> Unit = { it() },
-) : SuspendClosable, CoroutineScope by scope {
+) : SuspendClosable {
 
     private val baseEncoder: BaseGifEncoder = BaseGifEncoder(
         sink,

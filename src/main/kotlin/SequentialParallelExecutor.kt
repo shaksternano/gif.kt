@@ -11,7 +11,7 @@ internal class SequentialParallelExecutor<T, R>(
     private val task: suspend (T) -> R,
     private val onOutput: suspend (R) -> Unit,
     scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
-) : SuspendClosable, CoroutineScope by scope {
+) : SuspendClosable {
 
     private val inputChannel: Channel<T> = Channel(bufferSize)
     private val outputChannel: Channel<IndexedElement<R>> = Channel(bufferSize)
@@ -20,7 +20,7 @@ internal class SequentialParallelExecutor<T, R>(
         inputChannel.send(input)
     }
 
-    private val executorJob: Job = launch {
+    private val executorJob: Job = scope.launch {
         var index = 0
         for (input in inputChannel) {
             val finalIndex = index
@@ -32,7 +32,7 @@ internal class SequentialParallelExecutor<T, R>(
         }
     }
 
-    private val outputJob: Job = launch {
+    private val outputJob: Job = scope.launch {
         outputChannel.forEachSorted(IndexedElement<R>::index) { (_, output) ->
             onOutput(output)
         }

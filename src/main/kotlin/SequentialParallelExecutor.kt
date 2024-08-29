@@ -42,23 +42,21 @@ internal class SequentialParallelExecutor<T, R>(
         indexSelector: (E) -> Int,
         action: (E) -> Unit,
     ) {
-        val sortedElements = ArrayDeque<Pair<Int, E>>()
+        val sortedElements = ArrayDeque<IndexedElement<E>>()
         var currentIndex = 0
         for (element in this) {
             val index = indexSelector(element)
-            sortedElements.add(index to element)
+            sortedElements.add(IndexedElement(index, element))
             sortedElements.sortBy { (index, _) ->
                 index
             }
-            val (firstIndex, firstElement) = sortedElements.first()
-            if (firstIndex == currentIndex) {
+            var head = sortedElements.firstOrNull()
+            while (head != null && head.index == currentIndex) {
                 sortedElements.removeFirst()
-                action(firstElement)
+                action(head.element)
+                head = sortedElements.firstOrNull()
                 currentIndex++
             }
-        }
-        sortedElements.forEach { (_, element) ->
-            action(element)
         }
     }
 

@@ -4,6 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
 import kotlin.coroutines.EmptyCoroutineContext
 
 internal class SequentialParallelExecutor<T, R>(
@@ -12,6 +13,8 @@ internal class SequentialParallelExecutor<T, R>(
     private val onOutput: suspend (R) -> Unit,
     scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
 ) : SuspendClosable {
+
+    private val semaphore: Semaphore = Semaphore(bufferSize)
 
     private val inputChannel: Channel<T> = Channel(bufferSize)
     private val outputChannel: Channel<IndexedElement<R>> = Channel(bufferSize)
@@ -24,9 +27,14 @@ internal class SequentialParallelExecutor<T, R>(
         var index = 0
         for (input in inputChannel) {
             val finalIndex = index
+            semaphore.acquire()
             launch {
-                val output = task(input)
-                outputChannel.send(IndexedElement(finalIndex, output))
+                try {
+                    val output = task(input)
+                    outputChannel.send(IndexedElement(finalIndex, output))
+                } finally {
+                    semaphore.release()
+                }
             }
             index++
         }

@@ -1,14 +1,13 @@
 package io.github.shaksternano.gifcodec
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 
 class ParallelGifEncoder(
-    sink: Sink,
+    private val sink: Sink,
     loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
     transparencyColorTolerance: Double = 0.0,
@@ -40,6 +39,22 @@ class ParallelGifEncoder(
         quantizer,
     )
 
+    private val quantizeExecutor: SequentialParallelExecutor<QuantizeInput, QuantizeOutput> =
+        SequentialParallelExecutor(
+            bufferSize = maxBufferedFrames,
+            task = ::quantizeImage,
+            onOutput = ::writeOrOptimizeGifImage,
+            scope = scope,
+        )
+
+    private val encodeExecutor: SequentialParallelExecutor<EncodeInput, Buffer> =
+        SequentialParallelExecutor(
+            bufferSize = maxBufferedFrames,
+            task = ::encodeGifImage,
+            onOutput = ::writeGifImage,
+            scope = scope,
+        )
+
     suspend fun writeFrame(
         image: IntArray,
         width: Int,
@@ -66,7 +81,7 @@ class ParallelGifEncoder(
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
     ) {
-        quantizeInput.send(
+        quantizeExecutor.submit(
             QuantizeInput(
                 optimizedImage,
                 originalImage,
@@ -76,63 +91,45 @@ class ParallelGifEncoder(
         )
     }
 
-    private val quantizeInput: Channel<QuantizeInput> = Channel(maxBufferedFrames)
-    private val quantizeOutput: Channel<QuantizeOutput> = Channel(maxBufferedFrames)
-
-    private val quantizeJob: Job = launch {
-        var index = 0
-        for (parameters in quantizeInput) {
-            val finalIndex = index
-            launch {
-                val (
-                    image,
-                    originalImage,
-                    durationCentiseconds,
-                    disposalMethod,
-                ) = parameters
-                val result = QuantizeOutput(
-                    finalIndex,
-                    baseEncoder.getImageData(image),
-                    originalImage,
-                    durationCentiseconds,
-                    disposalMethod,
-                )
-                quantizeOutput.send(result)
-            }
-            index++
-        }
+    private fun quantizeImage(input: QuantizeInput): QuantizeOutput {
+        val (
+            image,
+            originalImage,
+            durationCentiseconds,
+            disposalMethod,
+        ) = input
+        return QuantizeOutput(
+            baseEncoder.getImageData(image),
+            originalImage,
+            durationCentiseconds,
+            disposalMethod,
+        )
     }
 
-    private val receiveQuantizeOutputJob: Job = launch {
-        quantizeOutput.forEachSorted(QuantizeOutput::index) {
-            val (
-                _,
-                imageData,
-                originalImage,
-                durationCentiseconds,
-                disposalMethod,
-            ) = it
-            baseEncoder.writeOrOptimizeGifImage(
-                imageData,
-                originalImage,
-                durationCentiseconds,
-                disposalMethod,
-                encodeAndWriteImage = { imageData1, durationCentiseconds1, disposalMethod1 ->
-                    encodeAndWriteImage(imageData1, durationCentiseconds1, disposalMethod1)
-                },
-            )
-        }
+    private suspend fun writeOrOptimizeGifImage(output: QuantizeOutput) {
+        val (
+            imageData,
+            originalImage,
+            durationCentiseconds,
+            disposalMethod,
+        ) = output
+        baseEncoder.writeOrOptimizeGifImage(
+            imageData,
+            originalImage,
+            durationCentiseconds,
+            disposalMethod,
+            encodeAndWriteImage = { imageData1, durationCentiseconds1, disposalMethod1 ->
+                encodeAndWriteImage(imageData1, durationCentiseconds1, disposalMethod1)
+            },
+        )
     }
-
-    private val encodeInput: Channel<EncodeInput> = Channel(maxBufferedFrames)
-    private val encodeOutput: Channel<Pair<Int, Buffer>> = Channel(maxBufferedFrames)
 
     private suspend fun encodeAndWriteImage(
         imageData: QuantizedImageData,
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
     ) {
-        encodeInput.send(
+        encodeExecutor.submit(
             EncodeInput(
                 imageData,
                 durationCentiseconds,
@@ -141,28 +138,24 @@ class ParallelGifEncoder(
         )
     }
 
-    private val encodeJob: Job = launch {
-        var index = 0
-        for ((imageData, durationCentiseconds, disposalMethod) in encodeInput) {
-            val finalIndex = index
-            launch {
-                val buffer = Buffer()
-                buffer.writeGifImage(
-                    imageData,
-                    durationCentiseconds,
-                    disposalMethod,
-                )
-                encodeOutput.send(finalIndex to buffer)
-            }
-            index++
-        }
+    private fun encodeGifImage(input: EncodeInput): Buffer {
+        val (
+            imageData,
+            durationCentiseconds,
+            disposalMethod,
+        ) = input
+        val buffer = Buffer()
+        buffer.writeGifImage(
+            imageData,
+            durationCentiseconds,
+            disposalMethod,
+        )
+        return buffer
     }
 
-    private val writeDataJob: Job = launch {
-        encodeOutput.forEachSorted(Pair<Int, Buffer>::first) { (_, buffer) ->
-            wrapIo {
-                buffer.transferTo(sink)
-            }
+    private suspend fun writeGifImage(buffer: Buffer) {
+        wrapIo {
+            buffer.transferTo(sink)
         }
     }
 
@@ -178,14 +171,8 @@ class ParallelGifEncoder(
                 wrapIo(it)
             },
             finalize = {
-                quantizeInput.close()
-                quantizeJob.join()
-                quantizeOutput.close()
-                receiveQuantizeOutputJob.join()
-                encodeInput.close()
-                encodeJob.join()
-                encodeOutput.close()
-                writeDataJob.join()
+                quantizeExecutor.close()
+                encodeExecutor.close()
             },
         )
     }
@@ -198,7 +185,6 @@ class ParallelGifEncoder(
     )
 
     private data class QuantizeOutput(
-        val index: Int,
         val data: QuantizedImageData,
         val originalImage: Image,
         val durationCentiseconds: Int,

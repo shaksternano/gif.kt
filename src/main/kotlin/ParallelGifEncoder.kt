@@ -25,7 +25,11 @@ class ParallelGifEncoder(
     quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
     maxBufferedFrames: Int = 2,
     private val scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
-    private val wrapIo: suspend (() -> Unit) -> Unit = { it() },
+    /**
+     * Wraps IO operations so that they can suspend instead of blocking.
+     * Without this deadlocks may occur.
+     */
+    private val wrapIo: suspend (() -> Unit) -> Unit,
     private val onFrameProcessed: suspend (index: Int) -> Unit = {},
 ) : SuspendClosable {
 

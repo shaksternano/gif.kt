@@ -1,6 +1,7 @@
 package io.github.shaksternano.gifcodec
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.Channel
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlin.coroutines.EmptyCoroutineContext
@@ -42,18 +43,21 @@ class ParallelGifEncoder(
     private val quantizeExecutor: SequentialParallelExecutor<QuantizeInput, QuantizeOutput> =
         SequentialParallelExecutor(
             bufferSize = maxBufferedFrames,
+            scope = scope,
             task = ::quantizeImage,
             onOutput = ::writeOrOptimizeGifImage,
-            scope = scope,
+            onBufferOverflow = ::flushCurrent,
         )
 
     private val encodeExecutor: SequentialParallelExecutor<EncodeInput, Buffer> =
         SequentialParallelExecutor(
             bufferSize = maxBufferedFrames,
-            task = ::encodeGifImage,
-            onOutput = ::writeGifImage,
             scope = scope,
+            task = ::encodeGifImage,
+            onOutput = ::queueWrite,
         )
+
+    private val writeChannel: Channel<Buffer> = Channel(maxBufferedFrames)
 
     suspend fun writeFrame(
         image: IntArray,
@@ -61,6 +65,7 @@ class ParallelGifEncoder(
         height: Int,
         duration: Duration,
     ) {
+        flushCurrent()
         baseEncoder.writeFrame(
             image,
             width,
@@ -153,10 +158,32 @@ class ParallelGifEncoder(
         return buffer
     }
 
+    private suspend fun queueWrite(buffer: Buffer) {
+        writeChannel.send(buffer)
+    }
+
     private suspend fun writeGifImage(buffer: Buffer) {
         wrapIo {
             buffer.transferTo(sink)
         }
+    }
+
+    private suspend fun flushCurrent() {
+        val totalBytes = Buffer()
+        var imageBytes = writeChannel.tryReceive().getOrNull()
+        while (imageBytes != null) {
+            imageBytes.transferTo(totalBytes)
+            imageBytes = writeChannel.tryReceive().getOrNull()
+        }
+        writeGifImage(totalBytes)
+    }
+
+    private suspend fun flushRemaining() {
+        val totalBytes = Buffer()
+        for (buffer in writeChannel) {
+            buffer.transferTo(totalBytes)
+        }
+        writeGifImage(totalBytes)
     }
 
     override suspend fun close() {
@@ -173,6 +200,8 @@ class ParallelGifEncoder(
             finalize = {
                 quantizeExecutor.close()
                 encodeExecutor.close()
+                writeChannel.close()
+                flushRemaining()
             },
         )
     }

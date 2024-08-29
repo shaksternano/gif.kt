@@ -9,9 +9,10 @@ import kotlin.coroutines.EmptyCoroutineContext
 
 internal class SequentialParallelExecutor<T, R>(
     bufferSize: Int,
+    scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     private val task: suspend (T) -> R,
     private val onOutput: suspend (R) -> Unit,
-    scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
+    private val onBufferOverflow: suspend () -> Unit = {},
 ) : SuspendClosable {
 
     private val semaphore: Semaphore = Semaphore(bufferSize)
@@ -20,7 +21,11 @@ internal class SequentialParallelExecutor<T, R>(
     private val outputChannel: Channel<IndexedElement<R>> = Channel(bufferSize)
 
     suspend fun submit(input: T) {
-        inputChannel.send(input)
+        var failed = inputChannel.trySend(input).isFailure
+        while (failed) {
+            onBufferOverflow()
+            failed = inputChannel.trySend(input).isFailure
+        }
     }
 
     private val executorJob: Job = scope.launch {

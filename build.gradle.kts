@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.0.20"
+    id("org.jetbrains.kotlinx.atomicfu") version "0.25.0"
     `maven-publish`
 }
 
@@ -14,6 +15,7 @@ repositories {
 dependencies {
     api("org.jetbrains.kotlinx:kotlinx-io-core:0.5.3")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC.2")
+    implementation("org.jetbrains.kotlinx:atomicfu:0.25.0")
 
     testImplementation(kotlin("test"))
 }

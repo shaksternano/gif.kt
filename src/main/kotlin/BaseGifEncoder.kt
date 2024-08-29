@@ -60,14 +60,14 @@ internal class BaseGifEncoder(
         duration: Duration,
         quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod) -> Unit,
         wrapIo: (() -> Unit) -> Unit = { it() },
-    ) {
+    ): Boolean {
         /*
          * Handle the minimum frame duration.
          */
         val newPendingDuration = pendingDuration + duration
         if (writtenAny && newPendingDuration <= minimumFrameDuration) {
             pendingDuration = newPendingDuration
-            return
+            return false
         }
 
         /*
@@ -87,7 +87,7 @@ internal class BaseGifEncoder(
         ) {
             // Merge similar sequential frames into one
             pendingDuration += duration
-            return
+            return false
         }
 
         // Optimise transparency
@@ -166,6 +166,7 @@ internal class BaseGifEncoder(
         previousFrame = currentFrame
         pendingWrite = toWrite
         optimizedPreviousFrame = optimizedTransparency
+        return true
     }
 
     private inline fun init(

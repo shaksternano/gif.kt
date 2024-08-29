@@ -4,6 +4,7 @@ import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlin.coroutines.EmptyCoroutineContext
@@ -23,7 +24,7 @@ class ParallelGifEncoder(
     minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS,
     quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
     maxBufferedFrames: Int = 2,
-    scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
+    private val scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     private val wrapIo: suspend (() -> Unit) -> Unit = { it() },
     private val onFrameProcessed: suspend (index: Int) -> Unit = {},
 ) : SuspendClosable {
@@ -49,7 +50,6 @@ class ParallelGifEncoder(
             scope = scope,
             task = ::quantizeImage,
             onOutput = ::writeOrOptimizeGifImage,
-            onBufferOverflow = ::flushCurrent,
         )
 
     private val encodeExecutor: SequentialParallelExecutor<EncodeInput, Buffer> =
@@ -70,7 +70,6 @@ class ParallelGifEncoder(
         height: Int,
         duration: Duration,
     ) {
-        flushCurrent()
         val willBeWritten = baseEncoder.writeFrame(
             image,
             width,
@@ -94,14 +93,20 @@ class ParallelGifEncoder(
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
     ) {
-        quantizeExecutor.submit(
-            QuantizeInput(
-                optimizedImage,
-                originalImage,
-                durationCentiseconds,
-                disposalMethod,
+        val submitJob = scope.launch {
+            quantizeExecutor.submit(
+                QuantizeInput(
+                    optimizedImage,
+                    originalImage,
+                    durationCentiseconds,
+                    disposalMethod,
+                )
             )
-        )
+        }
+        while (submitJob.isActive) {
+            flushCurrent()
+        }
+        submitJob.join()
     }
 
     private fun quantizeImage(input: QuantizeInput): QuantizeOutput {
@@ -171,23 +176,23 @@ class ParallelGifEncoder(
         onFrameProcessed()
     }
 
-    private suspend fun writeGifImage(buffer: Buffer) {
+    private suspend fun transferToSink(buffer: Buffer) {
         wrapIo {
             buffer.transferTo(sink)
         }
     }
 
     private suspend fun flushCurrent() {
-        var imageBytes = writeChannel.tryReceive().getOrNull()
-        while (imageBytes != null) {
-            writeGifImage(imageBytes)
-            imageBytes = writeChannel.tryReceive().getOrNull()
+        var buffer = writeChannel.tryReceive().getOrNull()
+        while (buffer != null) {
+            transferToSink(buffer)
+            buffer = writeChannel.tryReceive().getOrNull()
         }
     }
 
     private suspend fun flushRemaining() {
         for (buffer in writeChannel) {
-            writeGifImage(buffer)
+            transferToSink(buffer)
         }
     }
 
@@ -208,9 +213,15 @@ class ParallelGifEncoder(
                 wrapIo(it)
             },
             finalize = {
-                quantizeExecutor.close()
-                encodeExecutor.close()
-                writeChannel.close()
+                val closeJob = scope.launch {
+                    quantizeExecutor.close()
+                    encodeExecutor.close()
+                    writeChannel.close()
+                }
+                while (closeJob.isActive) {
+                    flushCurrent()
+                }
+                closeJob.join()
                 flushRemaining()
             },
         )

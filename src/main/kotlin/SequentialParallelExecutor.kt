@@ -12,26 +12,14 @@ internal class SequentialParallelExecutor<T, R>(
     scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     private val task: suspend (T) -> R,
     private val onOutput: suspend (R) -> Unit,
-    private val onBufferOverflow: (suspend () -> Unit)? = null,
 ) : SuspendClosable {
 
     private val semaphore: Semaphore = Semaphore(bufferSize)
-
     private val inputChannel: Channel<T> = Channel(bufferSize)
     private val outputChannel: Channel<IndexedElement<R>> = Channel(bufferSize)
 
     suspend fun submit(input: T) {
-        if (onBufferOverflow == null) {
-            inputChannel.send(input)
-        } else {
-            // IntelliJ reports a false error without this local variable
-            val onBufferOverflow = onBufferOverflow
-            var sendFailed = inputChannel.trySend(input).isFailure
-            while (sendFailed) {
-                onBufferOverflow()
-                sendFailed = inputChannel.trySend(input).isFailure
-            }
-        }
+        inputChannel.send(input)
     }
 
     private val executorJob: Job = scope.launch {

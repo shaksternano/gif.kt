@@ -53,7 +53,7 @@ internal class BaseGifEncoder(
     private var frameCount: Int = 0
     private var nextCrop: Rectangle? = null
 
-    internal inline fun writeFrame(
+    inline fun writeFrame(
         image: IntArray,
         width: Int,
         height: Int,
@@ -202,7 +202,7 @@ internal class BaseGifEncoder(
         quantizeAndWriteFrame(image, originalImage, durationCentiseconds, disposalMethod)
     }
 
-    internal fun getImageData(image: Image): QuantizedImageData =
+    fun getImageData(image: Image): QuantizedImageData =
         getImageData(
             image,
             maxColors,
@@ -210,7 +210,7 @@ internal class BaseGifEncoder(
             optimizeQuantizedTransparency,
         )
 
-    internal inline fun writeOrOptimizeGifImage(
+    inline fun writeOrOptimizeGifImage(
         imageData: QuantizedImageData,
         originalImage: Image,
         durationCentiseconds: Int,
@@ -338,7 +338,7 @@ internal class BaseGifEncoder(
         }
     }
 
-    internal fun writeGifImage(
+    fun writeGifImage(
         data: QuantizedImageData,
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
@@ -350,7 +350,7 @@ internal class BaseGifEncoder(
         )
     }
 
-    internal inline fun close(
+    inline fun close(
         quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod) -> Unit,
         encodeAndWriteImage: (QuantizedImageData, Int, DisposalMethod) -> Unit,
         wrapIo: (() -> Unit) -> Unit = { it() },

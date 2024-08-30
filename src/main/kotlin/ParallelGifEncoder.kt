@@ -100,20 +100,17 @@ class ParallelGifEncoder(
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
     ) = coroutineScope {
-        val submitJob = launch {
-            quantizeExecutor.submit(
-                QuantizeInput(
-                    optimizedImage,
-                    originalImage,
-                    durationCentiseconds,
-                    disposalMethod,
-                )
-            )
-        }
         val flushJob = launch {
             flushRemaining()
         }
-        submitJob.join()
+        quantizeExecutor.submit(
+            QuantizeInput(
+                optimizedImage,
+                originalImage,
+                durationCentiseconds,
+                disposalMethod,
+            )
+        )
         flushJob.cancel()
     }
 
@@ -215,11 +212,11 @@ class ParallelGifEncoder(
             finalize = {
                 coroutineScope {
                     launch {
-                        quantizeExecutor.close()
-                        encodeExecutor.close()
-                        writeChannel.close()
+                        flushRemaining()
                     }
-                    flushRemaining()
+                    quantizeExecutor.close()
+                    encodeExecutor.close()
+                    writeChannel.close()
                 }
             },
         )

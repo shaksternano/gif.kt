@@ -2,11 +2,8 @@ package io.github.shaksternano.gifcodec
 
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlin.coroutines.EmptyCoroutineContext
@@ -26,7 +23,7 @@ class ParallelGifEncoder(
     minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS,
     quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
     maxBufferedFrames: Int = 2,
-    private val scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
+    scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     /**
      * Wraps IO operations so that they can be suspending instead of blocking.
      * Warning: setting this incorrectly can cause deadlocks.
@@ -102,8 +99,8 @@ class ParallelGifEncoder(
         originalImage: Image,
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
-    ) {
-        val submitJob = scope.launch {
+    ) = coroutineScope {
+        val submitJob = launch {
             quantizeExecutor.submit(
                 QuantizeInput(
                     optimizedImage,
@@ -113,10 +110,11 @@ class ParallelGifEncoder(
                 )
             )
         }
-        while (submitJob.isActive) {
-            flushCurrent()
+        val flushJob = launch {
+            flushRemaining()
         }
         submitJob.join()
+        flushJob.cancel()
     }
 
     private fun quantizeImage(input: QuantizeInput): QuantizeOutput {
@@ -192,14 +190,6 @@ class ParallelGifEncoder(
         }
     }
 
-    private suspend fun flushCurrent() {
-        var buffer = writeChannel.tryReceive().getOrNull()
-        while (buffer != null) {
-            transferToSink(buffer)
-            buffer = writeChannel.tryReceive().getOrNull()
-        }
-    }
-
     private suspend fun flushRemaining() {
         for (buffer in writeChannel) {
             transferToSink(buffer)
@@ -223,16 +213,14 @@ class ParallelGifEncoder(
                 wrapIo(it)
             },
             finalize = {
-                val closeJob = scope.launch {
-                    quantizeExecutor.close()
-                    encodeExecutor.close()
-                    writeChannel.close()
+                coroutineScope {
+                    launch {
+                        quantizeExecutor.close()
+                        encodeExecutor.close()
+                        writeChannel.close()
+                    }
+                    flushRemaining()
                 }
-                while (closeJob.isActive) {
-                    flushCurrent()
-                }
-                closeJob.join()
-                flushRemaining()
             },
         )
     }

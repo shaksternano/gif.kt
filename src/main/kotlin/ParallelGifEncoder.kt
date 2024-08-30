@@ -3,8 +3,10 @@ package io.github.shaksternano.gifcodec
 import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlin.coroutines.EmptyCoroutineContext
@@ -26,10 +28,14 @@ class ParallelGifEncoder(
     maxBufferedFrames: Int = 2,
     private val scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     /**
-     * Wraps IO operations so that they can suspend instead of blocking.
-     * Without this deadlocks may occur.
+     * Wraps IO operations so that they can be suspending instead of blocking.
+     * Warning: setting this incorrectly can cause deadlocks.
      */
-    private val wrapIo: suspend (() -> Unit) -> Unit,
+    private val wrapIo: suspend (() -> Unit) -> Unit = {
+        withContext(Dispatchers.IO) {
+            it()
+        }
+    },
     private val onFrameProcessed: suspend (index: Int) -> Unit = {},
 ) : SuspendClosable {
 

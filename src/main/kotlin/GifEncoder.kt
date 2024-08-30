@@ -4,7 +4,7 @@ import kotlinx.io.Sink
 import kotlin.time.Duration
 
 class GifEncoder(
-    sink: Sink,
+    private val sink: Sink,
     loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
     transparencyColorTolerance: Double = 0.0,
@@ -59,14 +59,14 @@ class GifEncoder(
             originalImage,
             durationCentiseconds,
             disposalMethod,
-            baseEncoder::writeGifImage,
+            sink::writeGifImage,
         )
     }
 
     override fun close() {
         baseEncoder.close(
             ::quantizeAndWriteFrame,
-            baseEncoder::writeGifImage,
+            sink::writeGifImage,
         )
     }
 }

@@ -338,18 +338,6 @@ internal class BaseGifEncoder(
         }
     }
 
-    fun writeGifImage(
-        data: QuantizedImageData,
-        durationCentiseconds: Int,
-        disposalMethod: DisposalMethod,
-    ) {
-        sink.writeGifImage(
-            data,
-            durationCentiseconds,
-            disposalMethod,
-        )
-    }
-
     inline fun close(
         quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod) -> Unit,
         encodeAndWriteImage: (QuantizedImageData, Int, DisposalMethod) -> Unit,

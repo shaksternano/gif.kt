@@ -51,6 +51,10 @@ class ParallelGifEncoder(
         quantizer,
     )
 
+    private val writeChannel: Channel<Buffer> = Channel(maxBufferedFrames)
+
+    private val processedFrameIndex: AtomicInt = atomic(0)
+
     private val quantizeExecutor: SequentialParallelExecutor<QuantizeInput, QuantizeOutput> =
         SequentialParallelExecutor(
             bufferSize = maxBufferedFrames,
@@ -66,10 +70,6 @@ class ParallelGifEncoder(
             task = ::encodeGifImage,
             onOutput = ::queueWrite,
         )
-
-    private val writeChannel: Channel<Buffer> = Channel(maxBufferedFrames)
-
-    private val processedFrameIndex: AtomicInt = atomic(0)
 
     suspend fun writeFrame(
         image: IntArray,
@@ -188,8 +188,8 @@ class ParallelGifEncoder(
     }
 
     private suspend fun flushRemaining() {
-        for (buffer in writeChannel) {
-            transferToSink(buffer)
+        writeChannel.forEach {
+            transferToSink(it)
         }
     }
 

@@ -39,9 +39,10 @@ internal class BaseGifEncoder(
     private var pendingWrite: Image? = null
     private var pendingDuration: Duration = Duration.ZERO
     private var pendingDisposalMethod: DisposalMethod = DisposalMethod.UNSPECIFIED
-    private var optimizedPreviousFrame: Boolean = false
     private val writtenAny: Boolean
         get() = ::previousFrame.isInitialized
+
+    private var optimizedPreviousFrame: Boolean = false
 
     private lateinit var previousQuantizedFrame: Image
     private var pendingQuantizedData: QuantizedImageData? = null
@@ -58,7 +59,7 @@ internal class BaseGifEncoder(
         width: Int,
         height: Int,
         duration: Duration,
-        quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod) -> Unit,
+        quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod, Boolean) -> Unit,
         wrapIo: (() -> Unit) -> Unit = { it() },
     ): Boolean {
         /*
@@ -196,10 +197,10 @@ internal class BaseGifEncoder(
         disposalMethod: DisposalMethod,
         loopCount: Int,
         wrapIo: (() -> Unit) -> Unit,
-        quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod) -> Unit,
+        quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod, Boolean) -> Unit,
     ) {
         init(image.width, image.height, loopCount, wrapIo)
-        quantizeAndWriteFrame(image, originalImage, durationCentiseconds, disposalMethod)
+        quantizeAndWriteFrame(image, originalImage, durationCentiseconds, disposalMethod, optimizedPreviousFrame)
     }
 
     fun getImageData(image: Image): QuantizedImageData =
@@ -215,6 +216,7 @@ internal class BaseGifEncoder(
         originalImage: Image,
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
+        optimizedPreviousFrame: Boolean,
         encodeAndWriteImage: (QuantizedImageData, Int, DisposalMethod) -> Unit,
     ) {
         if (optimizeQuantizedTransparency) {
@@ -222,6 +224,7 @@ internal class BaseGifEncoder(
                 imageData,
                 originalImage,
                 durationCentiseconds,
+                optimizedPreviousFrame,
                 encodeAndWriteImage,
             )
         } else {
@@ -238,6 +241,7 @@ internal class BaseGifEncoder(
         imageData: QuantizedImageData,
         originalImage: Image,
         durationCentiseconds: Int,
+        optimizedPreviousFrame: Boolean,
         encodeAndWriteImage: (QuantizedImageData, Int, DisposalMethod) -> Unit,
     ) {
         val quantizedImage = imageData.toImage()
@@ -339,16 +343,16 @@ internal class BaseGifEncoder(
     }
 
     inline fun close(
-        quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod) -> Unit,
+        quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod, Boolean) -> Unit,
         encodeAndWriteImage: (QuantizedImageData, Int, DisposalMethod) -> Unit,
-        wrapIo: (() -> Unit) -> Unit = { it() },
         finalize: () -> Unit = {},
+        wrapIo: (() -> Unit) -> Unit = { it() },
     ) {
         val pendingWrite = pendingWrite
         if (pendingWrite != null && pendingDuration > Duration.ZERO) {
             val centiseconds: Int
             val loopCount: Int
-            if (this.frameCount > 1) {
+            if (frameCount > 1) {
                 centiseconds = pendingDuration.roundedUpCentiseconds
                     .coerceAtLeast(minimumFrameDurationCentiseconds)
                 loopCount = this.loopCount

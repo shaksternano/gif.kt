@@ -8,13 +8,21 @@ internal suspend inline fun <E> Channel<E>.forEach(action: (E) -> Unit) {
     }
 }
 
+internal inline fun <E> Channel<E>.forEachCurrent(action: (E) -> Unit) {
+    var element = tryReceive().getOrNull()
+    while (element != null) {
+        action(element)
+        element = tryReceive().getOrNull()
+    }
+}
+
 internal suspend inline fun <E> Channel<E>.forEachSorted(
     indexSelector: (E) -> Int,
     action: (E) -> Unit,
 ) {
     val sortedElements = ArrayDeque<IndexedElement<E>>()
     var currentIndex = 0
-    for (element in this) {
+    forEach { element ->
         val index = indexSelector(element)
         sortedElements.add(IndexedElement(index, element))
         sortedElements.sortBy { (index, _) ->

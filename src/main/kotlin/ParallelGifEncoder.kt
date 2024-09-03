@@ -22,12 +22,8 @@ class ParallelGifEncoder(
     comment: String = "",
     minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS,
     quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
-    maxBufferedFrames: Int = 2,
+    maxConcurrency: Int = 2,
     scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
-    /**
-     * Wraps IO operations so that they can be suspending instead of blocking.
-     * Warning: setting this incorrectly can cause deadlocks.
-     */
     private val wrapIo: suspend (() -> Unit) -> Unit = {
         withContext(Dispatchers.IO) {
             it()
@@ -35,6 +31,12 @@ class ParallelGifEncoder(
     },
     private val onFrameProcessed: suspend (index: Int) -> Unit = {},
 ) : SuspendClosable {
+
+    init {
+        require(maxConcurrency > 0) {
+            "maxConcurrency must be positive: $maxConcurrency"
+        }
+    }
 
     private val baseEncoder: BaseGifEncoder = BaseGifEncoder(
         sink,
@@ -51,13 +53,13 @@ class ParallelGifEncoder(
         quantizer,
     )
 
-    private val writeChannel: Channel<Buffer> = Channel(maxBufferedFrames)
+    private val writeChannel: Channel<Buffer> = Channel(maxConcurrency)
 
     private val processedFrameIndex: AtomicInt = atomic(0)
 
     private val quantizeExecutor: SequentialParallelExecutor<QuantizeInput, QuantizeOutput> =
         SequentialParallelExecutor(
-            bufferSize = maxBufferedFrames,
+            bufferSize = maxConcurrency,
             scope = scope,
             task = ::quantizeImage,
             onOutput = ::writeOrOptimizeGifImage,
@@ -65,7 +67,7 @@ class ParallelGifEncoder(
 
     private val encodeExecutor: SequentialParallelExecutor<EncodeInput, Buffer> =
         SequentialParallelExecutor(
-            bufferSize = maxBufferedFrames,
+            bufferSize = maxConcurrency,
             scope = scope,
             task = ::encodeGifImage,
             onOutput = ::queueWrite,
@@ -82,8 +84,14 @@ class ParallelGifEncoder(
             width,
             height,
             duration,
-            quantizeAndWriteFrame = { optimizedImage, originalImage, durationCentiseconds, disposalMethod ->
-                quantizeAndWriteFrame(optimizedImage, originalImage, durationCentiseconds, disposalMethod)
+            quantizeAndWriteFrame = { optimizedImage, originalImage, durationCentiseconds, disposalMethod, optimizedPreviousFrame ->
+                quantizeAndWriteFrame(
+                    optimizedImage,
+                    originalImage,
+                    durationCentiseconds,
+                    disposalMethod,
+                    optimizedPreviousFrame,
+                )
             },
             wrapIo = {
                 wrapIo(it)
@@ -99,19 +107,22 @@ class ParallelGifEncoder(
         originalImage: Image,
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
+        optimizedPreviousFrame: Boolean,
     ) = coroutineScope {
-        val flushJob = launch {
-            flushRemaining()
-        }
-        quantizeExecutor.submit(
-            QuantizeInput(
-                optimizedImage,
-                originalImage,
-                durationCentiseconds,
-                disposalMethod,
+        val quantizeJob = launch {
+            quantizeExecutor.submit(
+                QuantizeInput(
+                    optimizedImage,
+                    originalImage,
+                    durationCentiseconds,
+                    disposalMethod,
+                    optimizedPreviousFrame,
+                )
             )
-        )
-        flushJob.cancel()
+        }
+        while (quantizeJob.isActive) {
+            flushCurrent()
+        }
     }
 
     private fun quantizeImage(input: QuantizeInput): QuantizeOutput {
@@ -126,6 +137,7 @@ class ParallelGifEncoder(
             originalImage,
             durationCentiseconds,
             disposalMethod,
+            input.optimizedPreviousFrame,
         )
     }
 
@@ -135,12 +147,14 @@ class ParallelGifEncoder(
             originalImage,
             durationCentiseconds,
             disposalMethod,
+            optimizedPreviousFrame,
         ) = output
         baseEncoder.writeOrOptimizeGifImage(
             imageData,
             originalImage,
             durationCentiseconds,
             disposalMethod,
+            optimizedPreviousFrame,
             encodeAndWriteImage = { imageData1, durationCentiseconds1, disposalMethod1 ->
                 encodeAndWriteImage(imageData1, durationCentiseconds1, disposalMethod1)
             },
@@ -181,15 +195,21 @@ class ParallelGifEncoder(
         onFrameProcessed()
     }
 
-    private suspend fun transferToSink(buffer: Buffer) {
-        wrapIo {
-            buffer.transferTo(sink)
+    private suspend fun flushCurrent() {
+        writeChannel.forEachCurrent { buffer ->
+            transferToSink(buffer)
         }
     }
 
     private suspend fun flushRemaining() {
-        writeChannel.forEach {
-            transferToSink(it)
+        writeChannel.forEach { buffer ->
+            transferToSink(buffer)
+        }
+    }
+
+    private suspend fun transferToSink(buffer: Buffer) {
+        wrapIo {
+            buffer.transferTo(sink)
         }
     }
 
@@ -200,8 +220,14 @@ class ParallelGifEncoder(
 
     override suspend fun close() {
         baseEncoder.close(
-            quantizeAndWriteFrame = { optimizedImage, originalImage, durationCentiseconds, disposalMethod ->
-                quantizeAndWriteFrame(optimizedImage, originalImage, durationCentiseconds, disposalMethod)
+            quantizeAndWriteFrame = { optimizedImage, originalImage, durationCentiseconds, disposalMethod, optimizedPreviousFrame ->
+                quantizeAndWriteFrame(
+                    optimizedImage,
+                    originalImage,
+                    durationCentiseconds,
+                    disposalMethod,
+                    optimizedPreviousFrame,
+                )
             },
             encodeAndWriteImage = { imageData, durationCentiseconds, disposalMethod ->
                 encodeAndWriteImage(imageData, durationCentiseconds, disposalMethod)
@@ -212,11 +238,11 @@ class ParallelGifEncoder(
             finalize = {
                 coroutineScope {
                     launch {
-                        flushRemaining()
+                        quantizeExecutor.close()
+                        encodeExecutor.close()
+                        writeChannel.close()
                     }
-                    quantizeExecutor.close()
-                    encodeExecutor.close()
-                    writeChannel.close()
+                    flushRemaining()
                 }
             },
         )
@@ -227,6 +253,7 @@ class ParallelGifEncoder(
         val originalImage: Image,
         val durationCentiseconds: Int,
         val disposalMethod: DisposalMethod,
+        val optimizedPreviousFrame: Boolean,
     )
 
     private data class QuantizeOutput(
@@ -234,6 +261,7 @@ class ParallelGifEncoder(
         val originalImage: Image,
         val durationCentiseconds: Int,
         val disposalMethod: DisposalMethod,
+        val optimizedPreviousFrame: Boolean,
     )
 
     private data class EncodeInput(

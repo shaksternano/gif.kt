@@ -53,12 +53,14 @@ class GifEncoder(
         originalImage: Image,
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
+        optimizedPreviousFrame: Boolean,
     ) {
         baseEncoder.writeOrOptimizeGifImage(
             baseEncoder.getImageData(optimizedImage),
             originalImage,
             durationCentiseconds,
             disposalMethod,
+            optimizedPreviousFrame,
             sink::writeGifImage,
         )
     }

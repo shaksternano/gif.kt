@@ -24,7 +24,7 @@ internal class SequentialParallelExecutor<T, R>(
 
     private val executorJob: Job = scope.launch {
         var index = 0
-        for (input in inputChannel) {
+        inputChannel.forEach { input ->
             val finalIndex = index
             semaphore.acquire()
             launch {

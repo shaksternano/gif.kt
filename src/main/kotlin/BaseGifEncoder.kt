@@ -292,7 +292,6 @@ internal class BaseGifEncoder(
                 encodeAndWriteImage,
             )
             pendingQuantizedDurationCentiseconds = 0
-            pendingQuantizedData = null
         }
 
         /*

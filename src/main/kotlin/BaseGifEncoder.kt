@@ -135,8 +135,8 @@ internal class BaseGifEncoder(
                 centiseconds,
                 pendingDisposalMethod,
                 loopCount,
-                wrapIo,
                 quantizeAndWriteFrame,
+                wrapIo,
             )
             // Might end up being negative
             pendingDuration -= centiseconds.centiseconds
@@ -159,8 +159,8 @@ internal class BaseGifEncoder(
                 minimumFrameDurationCentiseconds,
                 pendingDisposalMethod,
                 loopCount,
-                wrapIo,
                 quantizeAndWriteFrame,
+                wrapIo,
             )
             pendingDuration = newPendingDuration - minimumFrameDuration
         }
@@ -196,8 +196,8 @@ internal class BaseGifEncoder(
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
         loopCount: Int,
-        wrapIo: (() -> Unit) -> Unit,
         quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod, Boolean) -> Unit,
+        wrapIo: (() -> Unit) -> Unit,
     ) {
         init(image.width, image.height, loopCount, wrapIo)
         quantizeAndWriteFrame(image, originalImage, durationCentiseconds, disposalMethod, optimizedPreviousFrame)
@@ -344,31 +344,33 @@ internal class BaseGifEncoder(
     inline fun close(
         quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod, Boolean) -> Unit,
         encodeAndWriteImage: (QuantizedImageData, Int, DisposalMethod) -> Unit,
-        finalize: () -> Unit = {},
+        afterFinalWrite: () -> Unit = {},
+        afterFinalQuantizedWrite: () -> Unit = {},
         wrapIo: (() -> Unit) -> Unit = { it() },
     ) {
         val pendingWrite = pendingWrite
         if (pendingWrite != null && pendingDuration > Duration.ZERO) {
             val centiseconds: Int
-            val loopCount: Int
+            val actualLoopCount: Int
             if (frameCount > 1) {
                 centiseconds = pendingDuration.roundedUpCentiseconds
                     .coerceAtLeast(minimumFrameDurationCentiseconds)
-                loopCount = this.loopCount
+                actualLoopCount = loopCount
             } else {
                 centiseconds = 0
-                loopCount = -1
+                actualLoopCount = -1
             }
             initAndWriteFrame(
                 pendingWrite,
                 previousFrame,
                 centiseconds,
                 pendingDisposalMethod,
-                loopCount,
-                wrapIo,
+                actualLoopCount,
                 quantizeAndWriteFrame,
+                wrapIo,
             )
         }
+        afterFinalWrite()
         val pendingQuantizedData = pendingQuantizedData
         if (pendingQuantizedData != null) {
             writeGifImage(
@@ -378,7 +380,7 @@ internal class BaseGifEncoder(
                 encodeAndWriteImage,
             )
         }
-        finalize()
+        afterFinalQuantizedWrite()
         wrapIo {
             sink.writeGifTrailer()
             sink.close()

@@ -218,7 +218,10 @@ class ParallelGifEncoder(
         onFrameProcessed(index)
     }
 
-    override suspend fun close() {
+    override suspend fun close() = coroutineScope {
+        val flushJob = launch {
+            flushRemaining()
+        }
         baseEncoder.close(
             quantizeAndWriteFrame = { optimizedImage, originalImage, durationCentiseconds, disposalMethod, optimizedPreviousFrame ->
                 quantizeAndWriteFrame(
@@ -232,18 +235,16 @@ class ParallelGifEncoder(
             encodeAndWriteImage = { imageData, durationCentiseconds, disposalMethod ->
                 encodeAndWriteImage(imageData, durationCentiseconds, disposalMethod)
             },
+            afterFinalWrite = {
+                quantizeExecutor.close()
+            },
+            afterFinalQuantizedWrite = {
+                encodeExecutor.close()
+                writeChannel.close()
+                flushJob.join()
+            },
             wrapIo = {
                 wrapIo(it)
-            },
-            finalize = {
-                coroutineScope {
-                    launch {
-                        quantizeExecutor.close()
-                        encodeExecutor.close()
-                        writeChannel.close()
-                    }
-                    flushRemaining()
-                }
             },
         )
     }

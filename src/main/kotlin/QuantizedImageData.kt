@@ -56,4 +56,20 @@ internal data class QuantizedImageData(
         result = 31 * result + transparentColorIndex
         return result
     }
+
+    override fun toString(): String {
+        val indicesHash = imageColorIndices.contentHashCode().toString(16)
+        val indicesString = "ByteArray(size=${imageColorIndices.size}, hashCode=$indicesHash)"
+        val colorTableHash = colorTable.contentHashCode().toString(16)
+        val colorTableString = "ByteArray(size=${colorTable.size}, hashCode=$colorTableHash)"
+        return "QuantizedImageData(" +
+            "imageColorIndices=$indicesString" +
+            ", width=$width" +
+            ", height=$height" +
+            ", x=$x" +
+            ", y=$y" +
+            ", colorTable=$colorTableString" +
+            ", transparentColorIndex=$transparentColorIndex" +
+            ")"
+    }
 }

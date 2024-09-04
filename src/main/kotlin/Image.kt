@@ -99,6 +99,16 @@ internal data class Image(
         result = 31 * result + height
         return result
     }
+
+    override fun toString(): String {
+        val argbHash = argb.contentHashCode().toString(16)
+        val argbString = "IntArray(size=${argb.size}, hashCode=$argbHash)"
+        return "Image(" +
+            "argb=$argbString" +
+            ", width=$width" +
+            ", height=$height" +
+            ")"
+    }
 }
 
 internal const val ALPHA_FILL_MASK: Int = 0xFF shl 24

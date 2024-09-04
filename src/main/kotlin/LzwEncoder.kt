@@ -19,7 +19,7 @@ internal fun Sink.writeLzwIndexStream(indexStream: ByteArray, colorTableSize: In
     val lzwMinCodeSize = requiredBits(colorCount)
     writeByte(lzwMinCodeSize)
 
-    val codeTable = mutableMapOf<List<Byte>, Int>()
+    val codeTable = mutableMapOf<ByteList, Int>()
     initLzwCodeTable(codeTable, colorCount)
     val initialCodeSize = lzwMinCodeSize + 1
     var codeSize = initialCodeSize
@@ -28,7 +28,7 @@ internal fun Sink.writeLzwIndexStream(indexStream: ByteArray, colorTableSize: In
     bitBuffer.writeBits(colorCount, codeSize) // Clear code
     tryWriteFullLzwSubBlock(bitBuffer)
 
-    val indexBuffer = mutableListOf(indexStream.first())
+    val indexBuffer = ByteList(indexStream.first())
     var skippedFirst = false
     indexStream.forEach { index ->
         if (!skippedFirst) {
@@ -86,12 +86,12 @@ private fun Sink.tryWriteFullLzwSubBlock(bitBuffer: BitBuffer) {
 }
 
 private fun initLzwCodeTable(
-    codeTable: MutableMap<List<Byte>, Int>,
+    codeTable: MutableMap<ByteList, Int>,
     colorTableSize: Int,
 ) {
     codeTable.clear()
     repeat(colorTableSize) { i ->
-        codeTable[listOf(i.toByte())] = i
+        codeTable[ByteList(i.toByte())] = i
     }
 }
 

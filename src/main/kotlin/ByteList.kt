@@ -10,6 +10,8 @@ internal class ByteList private constructor(
     private var hashCode: Int,
 ) {
 
+    private var lastHashCode: Int? = null
+
     constructor(element: Byte) : this(
         elements = byteArrayOf(element),
         size = 1,
@@ -25,25 +27,28 @@ internal class ByteList private constructor(
         }
         elements[size] = element
         size++
+        lastHashCode = hashCode
         hashCode = getNewHashCode(element)
     }
 
     /**
-     * Returns a new list containing all elements of
-     * the original list and then the given [element].
+     * Removes the last element from this mutable list.
      */
-    operator fun plus(element: Byte): ByteList {
-        val newElements = if (size == elements.size) {
-            getBiggerArray()
-        } else {
-            elements.copyOf()
+    fun removeLast() {
+        if (size == 0) {
+            throw NoSuchElementException("List is empty.")
         }
-        newElements[size] = element
-        return ByteList(
-            elements = newElements,
-            size = size + 1,
-            hashCode = getNewHashCode(element),
-        )
+        size--
+        hashCode = lastHashCode ?: recalculateHashCode()
+        lastHashCode = null
+    }
+
+    private fun recalculateHashCode(): Int {
+        var newHashCode = 1
+        repeat(size) { i ->
+            newHashCode = 31 * newHashCode + elements[i]
+        }
+        return newHashCode
     }
 
     private fun getBiggerArray(): ByteArray {
@@ -73,7 +78,15 @@ internal class ByteList private constructor(
     fun clear() {
         size = 0
         hashCode = 1
+        lastHashCode = null
     }
+
+    fun copyOf(): ByteList =
+        ByteList(
+            elements = elements.copyOf(size),
+            size = size,
+            hashCode = hashCode,
+        )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

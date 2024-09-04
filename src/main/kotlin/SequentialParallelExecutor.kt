@@ -8,15 +8,15 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlin.coroutines.EmptyCoroutineContext
 
 internal class SequentialParallelExecutor<T, R>(
-    bufferSize: Int,
+    maxConcurrency: Int,
     scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     private val task: suspend (T) -> R,
     private val onOutput: suspend (R) -> Unit,
 ) : SuspendClosable {
 
-    private val semaphore: Semaphore = Semaphore(bufferSize)
-    private val inputChannel: Channel<T> = Channel(bufferSize)
-    private val outputChannel: Channel<IndexedElement<R>> = Channel(bufferSize)
+    private val semaphore: Semaphore = Semaphore(maxConcurrency)
+    private val inputChannel: Channel<T> = Channel(maxConcurrency)
+    private val outputChannel: Channel<IndexedElement<R>> = Channel(maxConcurrency)
 
     suspend fun submit(input: T) {
         inputChannel.send(input)

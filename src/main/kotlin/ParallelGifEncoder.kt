@@ -59,7 +59,7 @@ class ParallelGifEncoder(
 
     private val quantizeExecutor: SequentialParallelExecutor<QuantizeInput, QuantizeOutput> =
         SequentialParallelExecutor(
-            bufferSize = maxConcurrency,
+            maxConcurrency = maxConcurrency,
             scope = scope,
             task = ::quantizeImage,
             onOutput = ::writeOrOptimizeGifImage,
@@ -67,7 +67,7 @@ class ParallelGifEncoder(
 
     private val encodeExecutor: SequentialParallelExecutor<EncodeInput, Buffer> =
         SequentialParallelExecutor(
-            bufferSize = maxConcurrency,
+            maxConcurrency = maxConcurrency,
             scope = scope,
             task = ::encodeGifImage,
             onOutput = ::queueWrite,

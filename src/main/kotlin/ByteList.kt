@@ -7,11 +7,13 @@ package io.github.shaksternano.gifcodec
 internal class ByteList private constructor(
     private var elements: ByteArray,
     private var size: Int,
+    private var hashCode: Int,
 ) {
 
     constructor(element: Byte) : this(
         elements = byteArrayOf(element),
         size = 1,
+        hashCode = 31 + element,
     )
 
     /**
@@ -23,6 +25,7 @@ internal class ByteList private constructor(
         }
         elements[size] = element
         size++
+        hashCode = getNewHashCode(element)
     }
 
     /**
@@ -39,6 +42,7 @@ internal class ByteList private constructor(
         return ByteList(
             elements = newElements,
             size = size + 1,
+            hashCode = getNewHashCode(element),
         )
     }
 
@@ -60,11 +64,15 @@ internal class ByteList private constructor(
         }
     }
 
+    private fun getNewHashCode(element: Byte): Int =
+        31 * hashCode + element
+
     /**
      * Removes all the elements from this list.
      */
     fun clear() {
         size = 0
+        hashCode = 1
     }
 
     override fun equals(other: Any?): Boolean {
@@ -90,11 +98,5 @@ internal class ByteList private constructor(
         return true
     }
 
-    override fun hashCode(): Int {
-        var result = 1
-        repeat(size) { i ->
-            result = 31 * result + elements[i]
-        }
-        return result
-    }
+    override fun hashCode(): Int = hashCode
 }

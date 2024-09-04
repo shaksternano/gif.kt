@@ -19,7 +19,7 @@ internal fun Sink.writeLzwIndexStream(indexStream: ByteArray, colorTableSize: In
     val lzwMinCodeSize = requiredBits(colorCount)
     writeByte(lzwMinCodeSize)
 
-    val codeTable = mutableMapOf<ByteList, Int>()
+    val codeTable = hashMapOf<ByteList, Int>()
     initLzwCodeTable(codeTable, colorCount)
     val initialCodeSize = lzwMinCodeSize + 1
     var codeSize = initialCodeSize

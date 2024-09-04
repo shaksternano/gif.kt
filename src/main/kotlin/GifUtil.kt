@@ -72,7 +72,7 @@ internal fun getImageData(
     // Build color table
     val (argb, width, height) = image
     val rgb = mutableListOf<Byte>()
-    val distinctColors = mutableSetOf<Int>()
+    val distinctColors = hashSetOf<Int>()
     var hasTransparent = forceTransparency
     argb.forEach { pixel ->
         val alpha = pixel ushr 24

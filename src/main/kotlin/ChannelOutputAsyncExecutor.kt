@@ -15,14 +15,14 @@ class ChannelOutputAsyncExecutor<T, R>(
     onOutput = {},
 ) {
 
-    val outputChannel: Channel<R> = Channel(maxConcurrency)
+    val output: Channel<R> = Channel(maxConcurrency)
 
     override suspend fun onOutputFunction(output: R) {
-        outputChannel.send(output)
+        this.output.send(output)
     }
 
     override suspend fun close() {
         super.close()
-        outputChannel.close()
+        output.close()
     }
 }

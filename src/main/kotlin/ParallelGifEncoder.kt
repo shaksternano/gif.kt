@@ -185,13 +185,13 @@ class ParallelGifEncoder(
     }
 
     private suspend fun flushCurrent() {
-        encodeExecutor.outputChannel.forEachCurrent { buffer ->
+        encodeExecutor.output.forEachCurrent { buffer ->
             transferToSink(buffer)
         }
     }
 
     private suspend fun flushRemaining() {
-        encodeExecutor.outputChannel.forEach { buffer ->
+        encodeExecutor.output.forEach { buffer ->
             transferToSink(buffer)
         }
     }

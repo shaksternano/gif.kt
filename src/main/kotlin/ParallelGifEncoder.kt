@@ -57,16 +57,16 @@ class ParallelGifEncoder(
 
     private val processedFrameIndex: AtomicInt = atomic(0)
 
-    private val quantizeExecutor: SequentialParallelExecutor<QuantizeInput, QuantizeOutput> =
-        SequentialParallelExecutor(
+    private val quantizeExecutor: AsyncExecutor<QuantizeInput, QuantizeOutput> =
+        AsyncExecutor(
             maxConcurrency = maxConcurrency,
             scope = scope,
             task = ::quantizeImage,
             onOutput = ::writeOrOptimizeGifImage,
         )
 
-    private val encodeExecutor: SequentialParallelExecutor<EncodeInput, Buffer> =
-        SequentialParallelExecutor(
+    private val encodeExecutor: AsyncExecutor<EncodeInput, Buffer> =
+        AsyncExecutor(
             maxConcurrency = maxConcurrency,
             scope = scope,
             task = ::encodeGifImage,

@@ -7,31 +7,24 @@ import kotlin.coroutines.EmptyCoroutineContext
 
 open class AsyncExecutor<T, R>(
     maxConcurrency: Int,
-    scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
+    private val scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     private val task: suspend (T) -> R,
     private val onOutput: suspend (R) -> Unit,
 ) : SuspendClosable {
 
     private val semaphore: Semaphore = Semaphore(maxConcurrency)
-    private val inputChannel: Channel<T> = Channel(maxConcurrency)
     private val outputChannel: Channel<Deferred<R>> = Channel(maxConcurrency)
 
     suspend fun submit(input: T) {
-        inputChannel.send(input)
-    }
-
-    private val executorJob: Job = scope.launch {
-        inputChannel.forEach { input ->
-            semaphore.acquire()
-            val deferred = async {
-                try {
-                    task(input)
-                } finally {
-                    semaphore.release()
-                }
+        semaphore.acquire()
+        val deferred = scope.async {
+            try {
+                task(input)
+            } finally {
+                semaphore.release()
             }
-            outputChannel.send(deferred)
         }
+        outputChannel.send(deferred)
     }
 
     private val outputJob: Job = scope.launch {
@@ -45,8 +38,6 @@ open class AsyncExecutor<T, R>(
     }
 
     override suspend fun close() {
-        inputChannel.close()
-        executorJob.join()
         outputChannel.close()
         outputJob.join()
     }

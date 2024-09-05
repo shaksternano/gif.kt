@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlin.coroutines.EmptyCoroutineContext
 
-class AsyncExecutor<T, R>(
+open class AsyncExecutor<T, R>(
     maxConcurrency: Int,
     scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     private val task: suspend (T) -> R,
@@ -39,9 +39,13 @@ class AsyncExecutor<T, R>(
         }
     }
 
+    protected open suspend fun onOutputFunction(output: R) {
+        onOutput(output)
+    }
+
     private val outputJob: Job = scope.launch {
         outputChannel.forEachSorted(IndexedElement<R>::index) { (_, output) ->
-            onOutput(output)
+            onOutputFunction(output)
         }
     }
 

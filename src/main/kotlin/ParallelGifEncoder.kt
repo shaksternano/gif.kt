@@ -1,9 +1,6 @@
 package io.github.shaksternano.gifcodec
 
-import kotlinx.atomicfu.AtomicInt
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlin.coroutines.EmptyCoroutineContext
@@ -53,9 +50,7 @@ class ParallelGifEncoder(
         quantizer,
     )
 
-    private val writeChannel: Channel<Buffer> = Channel(maxConcurrency)
-
-    private val processedFrameIndex: AtomicInt = atomic(0)
+    private var processedFrameIndex: Int = 0
 
     private val quantizeExecutor: AsyncExecutor<QuantizeInput, QuantizeOutput> =
         AsyncExecutor(
@@ -65,12 +60,11 @@ class ParallelGifEncoder(
             onOutput = ::writeOrOptimizeGifImage,
         )
 
-    private val encodeExecutor: AsyncExecutor<EncodeInput, Buffer> =
-        AsyncExecutor(
+    private val encodeExecutor: ChannelOutputAsyncExecutor<EncodeInput, Buffer> =
+        ChannelOutputAsyncExecutor(
             maxConcurrency = maxConcurrency,
             scope = scope,
             task = ::encodeGifImage,
-            onOutput = ::queueWrite,
         )
 
     suspend fun writeFrame(
@@ -190,19 +184,14 @@ class ParallelGifEncoder(
         return buffer
     }
 
-    private suspend fun queueWrite(buffer: Buffer) {
-        writeChannel.send(buffer)
-        onFrameProcessed()
-    }
-
     private suspend fun flushCurrent() {
-        writeChannel.forEachCurrent { buffer ->
+        encodeExecutor.outputChannel.forEachCurrent { buffer ->
             transferToSink(buffer)
         }
     }
 
     private suspend fun flushRemaining() {
-        writeChannel.forEach { buffer ->
+        encodeExecutor.outputChannel.forEach { buffer ->
             transferToSink(buffer)
         }
     }
@@ -211,11 +200,11 @@ class ParallelGifEncoder(
         wrapIo {
             buffer.transferTo(sink)
         }
+        onFrameProcessed()
     }
 
     private suspend fun onFrameProcessed() {
-        val index = processedFrameIndex.getAndIncrement()
-        onFrameProcessed(index)
+        onFrameProcessed(processedFrameIndex++)
     }
 
     override suspend fun close() = coroutineScope {
@@ -240,7 +229,6 @@ class ParallelGifEncoder(
             },
             afterFinalQuantizedWrite = {
                 encodeExecutor.close()
-                writeChannel.close()
                 flushJob.join()
             },
             wrapIo = {

@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Semaphore
 import kotlin.coroutines.EmptyCoroutineContext
 
-internal class SequentialParallelExecutor<T, R>(
+class SequentialParallelExecutor<T, R>(
     maxConcurrency: Int,
     scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     private val task: suspend (T) -> R,

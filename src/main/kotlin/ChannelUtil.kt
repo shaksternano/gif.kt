@@ -2,13 +2,13 @@ package io.github.shaksternano.gifcodec
 
 import kotlinx.coroutines.channels.Channel
 
-internal suspend inline fun <E> Channel<E>.forEach(action: (E) -> Unit) {
+suspend inline fun <E> Channel<E>.forEach(action: (E) -> Unit) {
     for (element in this) {
         action(element)
     }
 }
 
-internal inline fun <E> Channel<E>.forEachCurrent(action: (E) -> Unit) {
+inline fun <E> Channel<E>.forEachCurrent(action: (E) -> Unit) {
     var element = tryReceive().getOrNull()
     while (element != null) {
         action(element)
@@ -16,7 +16,7 @@ internal inline fun <E> Channel<E>.forEachCurrent(action: (E) -> Unit) {
     }
 }
 
-internal suspend inline fun <E> Channel<E>.forEachSorted(
+suspend inline fun <E> Channel<E>.forEachSorted(
     indexSelector: (E) -> Int,
     action: (E) -> Unit,
 ) {
@@ -38,7 +38,7 @@ internal suspend inline fun <E> Channel<E>.forEachSorted(
     }
 }
 
-internal data class IndexedElement<E>(
+data class IndexedElement<E>(
     val index: Int,
     val element: E,
 )

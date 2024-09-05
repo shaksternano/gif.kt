@@ -125,13 +125,14 @@ class ParallelGifEncoder(
             originalImage,
             durationCentiseconds,
             disposalMethod,
+            optimizedPreviousFrame,
         ) = input
         return QuantizeOutput(
             baseEncoder.getImageData(image),
             originalImage,
             durationCentiseconds,
             disposalMethod,
-            input.optimizedPreviousFrame,
+            optimizedPreviousFrame,
         )
     }
 

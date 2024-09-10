@@ -3,6 +3,7 @@ package io.github.shaksternano.gifcodec
 import kotlinx.coroutines.*
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 
@@ -21,11 +22,7 @@ class ParallelGifEncoder(
     quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
     maxConcurrency: Int = 2,
     scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
-    private val wrapIo: suspend (() -> Unit) -> Unit = {
-        withContext(Dispatchers.IO) {
-            it()
-        }
-    },
+    private val ioContext: CoroutineContext = Dispatchers.IO,
     private val onFrameProcessed: suspend (index: Int) -> Unit = {},
 ) : SuspendClosable {
 
@@ -206,6 +203,12 @@ class ParallelGifEncoder(
 
     private suspend fun onFrameProcessed() {
         onFrameProcessed(processedFrameIndex++)
+    }
+
+    private suspend fun wrapIo(block: () -> Unit) {
+        withContext(ioContext) {
+            block()
+        }
     }
 
     override suspend fun close() = coroutineScope {

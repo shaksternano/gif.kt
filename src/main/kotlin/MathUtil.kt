@@ -27,3 +27,9 @@ internal fun Int.roundUpPowerOf2(): Int {
     result = result or (result shr 16)
     return result + 1
 }
+
+internal fun Short.toBigEndianInt(): Int {
+    val low = toInt() and 0xFF
+    val high = toInt() ushr 8
+    return (low shl 8) or high
+}

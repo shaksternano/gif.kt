@@ -159,8 +159,7 @@ internal fun getImageData(
 }
 
 internal fun QuantizedImageData.cropTransparentBorder(): QuantizedImageData {
-    val transparentIndex = transparentColorIndex.toByte()
-    if (transparentIndex < 0) {
+    if (transparentColorIndex < 0) {
         return this
     }
 
@@ -169,10 +168,10 @@ internal fun QuantizedImageData.cropTransparentBorder(): QuantizedImageData {
 }
 
 internal fun QuantizedImageData.opaqueArea(): Rectangle {
-    val transparentIndex = transparentColorIndex.toByte()
-    if (transparentIndex < 0) {
+    if (transparentColorIndex < 0) {
         return bounds
     }
+    val transparentIndex = transparentColorIndex.toByte()
 
     var startX = Int.MAX_VALUE
     var startY = -1

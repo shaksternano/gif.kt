@@ -349,7 +349,7 @@ internal class BaseGifEncoder(
         wrapIo: (() -> Unit) -> Unit = { it() },
     ) {
         val pendingWrite = pendingWrite
-        if (pendingWrite != null && pendingDuration > Duration.ZERO) {
+        if (pendingWrite != null && (frameCount == 0 || pendingDuration > Duration.ZERO)) {
             val centiseconds: Int
             val actualLoopCount: Int
             if (frameCount > 1) {

@@ -93,6 +93,7 @@ class ParallelGifEncoder(
         }
     }
 
+    // Runs on caller's thread
     private suspend fun quantizeAndWriteFrame(
         optimizedImage: Image,
         originalImage: Image,
@@ -134,6 +135,11 @@ class ParallelGifEncoder(
     }
 
     private suspend fun writeOrOptimizeGifImage(output: Result<QuantizeOutput>) {
+        val error = output.exceptionOrNull()
+        if (error != null) {
+            encodeExecutor.submitFailure(error)
+            return
+        }
         val (
             imageData,
             originalImage,
@@ -182,18 +188,21 @@ class ParallelGifEncoder(
         return buffer
     }
 
+    // Runs on caller's thread
     private suspend fun flushCurrent() {
         encodeExecutor.output.forEachCurrent { bufferResult ->
             transferToSink(bufferResult.getOrThrow())
         }
     }
 
+    // Runs on caller's thread
     private suspend fun flushRemaining() {
         encodeExecutor.output.forEach { bufferResult ->
             transferToSink(bufferResult.getOrThrow())
         }
     }
 
+    // Runs on caller's thread
     private suspend fun transferToSink(buffer: Buffer) {
         wrapIo {
             buffer.transferTo(sink)
@@ -201,6 +210,7 @@ class ParallelGifEncoder(
         onFrameProcessed()
     }
 
+    // Runs on caller's thread
     private suspend fun onFrameProcessed() {
         onFrameProcessed(processedFrameIndex++)
     }

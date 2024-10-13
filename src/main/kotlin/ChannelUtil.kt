@@ -1,14 +1,14 @@
 package io.github.shaksternano.gifcodec
 
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
 
-suspend inline fun <E> Channel<E>.forEach(action: (E) -> Unit) {
+suspend inline fun <E> ReceiveChannel<E>.forEach(action: (E) -> Unit) {
     for (element in this) {
         action(element)
     }
 }
 
-inline fun <E> Channel<E>.forEachCurrent(action: (E) -> Unit) {
+inline fun <E> ReceiveChannel<E>.forEachCurrent(action: (E) -> Unit) {
     var element = tryReceive().getOrNull()
     while (element != null) {
         action(element)

@@ -29,6 +29,13 @@ open class AsyncExecutor<T, R>(
         outputChannel.send(deferred)
     }
 
+    /**
+     * For propagating exceptions.
+     */
+    suspend fun submitFailure(t: Throwable) {
+        outputChannel.send(CompletableDeferred(Result.failure(t)))
+    }
+
     private val outputJob: Job = scope.launch {
         outputChannel.forEach { output ->
             onOutputFunction(output.await())

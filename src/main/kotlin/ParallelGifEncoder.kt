@@ -133,14 +133,14 @@ class ParallelGifEncoder(
         )
     }
 
-    private suspend fun writeOrOptimizeGifImage(output: QuantizeOutput) {
+    private suspend fun writeOrOptimizeGifImage(output: Result<QuantizeOutput>) {
         val (
             imageData,
             originalImage,
             durationCentiseconds,
             disposalMethod,
             optimizedPreviousFrame,
-        ) = output
+        ) = output.getOrThrow()
         baseEncoder.writeOrOptimizeGifImage(
             imageData,
             originalImage,
@@ -183,14 +183,14 @@ class ParallelGifEncoder(
     }
 
     private suspend fun flushCurrent() {
-        encodeExecutor.output.forEachCurrent { buffer ->
-            transferToSink(buffer)
+        encodeExecutor.output.forEachCurrent { bufferResult ->
+            transferToSink(bufferResult.getOrThrow())
         }
     }
 
     private suspend fun flushRemaining() {
-        encodeExecutor.output.forEach { buffer ->
-            transferToSink(buffer)
+        encodeExecutor.output.forEach { bufferResult ->
+            transferToSink(bufferResult.getOrThrow())
         }
     }
 

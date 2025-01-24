@@ -30,3 +30,4 @@ bin/
 .kotlin/
 *.log
 .env
+Main.kt

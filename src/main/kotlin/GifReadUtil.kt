@@ -117,11 +117,12 @@ private fun Source.readGifGraphicsControlExtension(): GraphicsControlExtension =
         val delayTimeHigh = subBlocks[2].toUByte().toInt()
         val delayTime = delayTimeLow or (delayTimeHigh shl 8)
 
-        val transparentColorIndex = subBlocks[3].toUByte().toInt()
+        val transparentColorIndex = if (transparentColorFlag) {
+            subBlocks[3].toUByte().toInt()
+        } else -1
 
         GraphicsControlExtension(
             disposalMethod,
-            transparentColorFlag,
             delayTime,
             transparentColorIndex,
         )

@@ -6,7 +6,6 @@ internal sealed interface GifExtension : GifBlock
 
 internal data class GraphicsControlExtension(
     val disposalMethod: DisposalMethod,
-    val transparentColorFlag: Boolean,
     val delayTime: Int,
     val transparentColorIndex: Int,
 ) : GifExtension

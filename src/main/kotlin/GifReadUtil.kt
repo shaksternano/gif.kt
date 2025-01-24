@@ -153,7 +153,7 @@ private fun Source.readGifUnknownApplicationExtension(identifier: String): Unkno
     }
 
 private fun Source.readGifCommentExtension(): CommentExtension = readGifSection("comment extension") {
-    val comment = readGifSubBlocks().decodeToString()
+    val comment = readGifSubBlocks().toByteArray().decodeToString()
     CommentExtension(comment)
 }
 
@@ -210,7 +210,7 @@ private fun Source.readGifLocalColorTable(size: Int): ByteArray = readGifSection
 
 private fun Source.readGifImageData(): ImageData = readGifSection("image data") {
     val lzwMinimumCodeSize = readUByte().toInt()
-    val data = readGifSubBlocks()
+    val data = readGifSubBlocks().toByteArray()
     ImageData(lzwMinimumCodeSize, data)
 }
 
@@ -227,14 +227,16 @@ internal fun Source.readGifColorTable(size: Int): ByteArray {
     return readByteArray(size)
 }
 
-private fun Source.readGifSubBlocks(): ByteArray {
-    val data = mutableListOf<Byte>()
+private fun Source.readGifSubBlocks(): ByteList {
+    val data = ByteList()
     var blockSize = readUByte().toInt()
     while (blockSize != 0) {
-        data.addAll(readByteArray(blockSize).asList())
+        repeat(blockSize) {
+            data += readByte()
+        }
         blockSize = readUByte().toInt()
     }
-    return data.toByteArray()
+    return data
 }
 
 private fun Source.skipGifSubBlocks() {

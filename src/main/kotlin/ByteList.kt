@@ -12,11 +12,24 @@ internal class ByteList private constructor(
 
     private var lastHashCode: Int? = null
 
+    constructor() : this(
+        elements = ByteArray(8),
+        size = 0,
+        hashCode = 1,
+    )
+
     constructor(element: Byte) : this(
         elements = byteArrayOf(element),
         size = 1,
         hashCode = 31 + element,
     )
+
+    operator fun get(index: Int): Byte {
+        if (index < 0 || index >= size) {
+            throw IndexOutOfBoundsException("Index: $index, Size: $size")
+        }
+        return elements[index]
+    }
 
     /**
      * Adds the specified element to the end of this list.
@@ -29,6 +42,10 @@ internal class ByteList private constructor(
         size++
         lastHashCode = hashCode
         hashCode = getNewHashCode(element)
+    }
+
+    operator fun plusAssign(element: Byte) {
+        add(element)
     }
 
     /**
@@ -87,6 +104,9 @@ internal class ByteList private constructor(
             size = size,
             hashCode = hashCode,
         )
+
+    fun toByteArray(): ByteArray =
+        elements.copyOf(size)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

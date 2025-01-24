@@ -14,13 +14,8 @@ value class HexByteList(
         bytes.joinToString(
             prefix = "[",
             postfix = "]",
-        ) {
-            var hexString = it.toString(16).uppercase()
-            if (hexString.length == 1) {
-                hexString = "0$hexString"
-            }
-            "0x$hexString"
-        }
+            transform = Int::toHexByteString,
+        )
 }
 
 fun List<Int>.asHexByteList(): HexByteList =

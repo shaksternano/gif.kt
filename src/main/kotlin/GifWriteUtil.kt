@@ -1,6 +1,7 @@
 package io.github.shaksternano.gifcodec
 
 import kotlinx.io.Sink
+import kotlinx.io.writeShortLe
 import kotlinx.io.writeString
 import kotlin.math.ceil
 import kotlin.math.log2
@@ -257,8 +258,7 @@ internal fun Sink.writeByte(byte: Int) =
     writeByte(byte.toByte())
 
 private fun Sink.writeLittleEndianShort(int: Int) {
-    val lowHigh = int.toLittleEndianShort()
-    writeShort(lowHigh)
+    writeShortLe(int.toShort())
 }
 
 internal fun Sink.writeGifIntro(

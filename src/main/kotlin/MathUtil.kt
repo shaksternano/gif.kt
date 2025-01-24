@@ -5,19 +5,6 @@ import kotlin.math.pow
 internal fun Int.pow(exponent: Int): Int =
     toDouble().pow(exponent).toInt()
 
-internal fun Int.toLittleEndianShort(): Short {
-    if (this == 0) {
-        return 0
-    }
-    /*
-     * No need to bit mask as the high byte is
-     * truncated when converting to a Short
-     */
-    val low = this shl 8
-    val high = this shr 8 and 0xFF
-    return (low or high).toShort()
-}
-
 internal fun Int.roundUpPowerOf2(): Int {
     var result = this - 1
     result = result or (result shr 1)
@@ -28,8 +15,10 @@ internal fun Int.roundUpPowerOf2(): Int {
     return result + 1
 }
 
-internal fun Short.toBigEndianInt(): Int {
-    val low = toInt() and 0xFF
-    val high = toInt() ushr 8
-    return (low shl 8) or high
+internal fun Int.toHexByteString(): String {
+    var hexString = toString(16).uppercase()
+    if (hexString.length == 1) {
+        hexString = "0$hexString"
+    }
+    return "0x$hexString"
 }

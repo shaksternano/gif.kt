@@ -32,5 +32,12 @@ enum class DisposalMethod(
      * area overwritten by the frame with what
      * was there prior to rendering the frame.
      */
-    RESTORE_TO_PREVIOUS(3),
+    RESTORE_TO_PREVIOUS(3);
+
+    companion object {
+        fun fromId(id: Int): DisposalMethod {
+            return DisposalMethod.entries.firstOrNull { it.id == id }
+                ?: throw NoSuchElementException("No DisposalMethod with id $id")
+        }
+    }
 }

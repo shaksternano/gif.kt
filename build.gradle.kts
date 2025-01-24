@@ -14,6 +14,7 @@ repositories {
 dependencies {
     api("org.jetbrains.kotlinx:kotlinx-io-core:0.5.4")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
+    implementation("com.squareup.okio:okio:3.10.2")
 
     testImplementation(kotlin("test"))
 }

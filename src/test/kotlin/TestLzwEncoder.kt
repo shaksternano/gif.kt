@@ -3,7 +3,7 @@ package io.github.shaksternano.gifcodec
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.assertContentEquals
 
 class TestLzwEncoder {
 
@@ -44,6 +44,6 @@ class TestLzwEncoder {
             0x04, 0x91, 0x4C, 0x01,
             0x00,
         )
-        assertEquals(expectedImageData, imageData)
+        assertContentEquals(expectedImageData, imageData)
     }
 }

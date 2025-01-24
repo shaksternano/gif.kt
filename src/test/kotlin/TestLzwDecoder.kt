@@ -2,7 +2,7 @@ package io.github.shaksternano.gifcodec
 
 import kotlinx.io.Buffer
 import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.assertContentEquals
 
 class TestLzwDecoder {
 
@@ -26,8 +26,8 @@ class TestLzwDecoder {
         imageData.forEach {
             buffer.writeByte(it)
         }
-        val indexStream = buffer.readLzwIndexStream(maxColors)
-        val expectedIndices = listOf<Byte>(
+        val indexStream = buffer.readLzwIndexStream(maxColors).toByteArray()
+        val expectedIndices = byteArrayOf(
             1, 1, 1, 1, 1,   2, 2, 2, 2, 2,
             1, 1, 1, 1, 1,   2, 2, 2, 2, 2,
             1, 1, 1, 1, 1,   2, 2, 2, 2, 2,
@@ -40,6 +40,6 @@ class TestLzwDecoder {
             2, 2, 2, 2, 2,   1, 1, 1, 1, 1,
             2, 2, 2, 2, 2,   1, 1, 1, 1, 1,
         )
-        assertEquals(expectedIndices, indexStream)
+        assertContentEquals(expectedIndices, indexStream)
     }
 }

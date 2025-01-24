@@ -3,7 +3,7 @@ package io.github.shaksternano.gifcodec
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlin.test.assertContentEquals
 
 /*
  * GIF file data from:
@@ -20,7 +20,7 @@ class TestGifEncoder {
             0x47, 0x49, 0x46, 0x38,
             0x39, 0x61,
         )
-        assertEquals(expected, bytes)
+        assertContentEquals(expected, bytes)
     }
 
     @Test
@@ -32,7 +32,7 @@ class TestGifEncoder {
             0x0A, 0x00, 0x0A, 0x00,
             0x00, 0x00, 0x00,
         )
-        assertEquals(expected, bytes)
+        assertContentEquals(expected, bytes)
     }
 
     @Test
@@ -47,7 +47,7 @@ class TestGifEncoder {
             0x2E, 0x30, 0x03, 0x01,
             0x00, 0x00, 0x00,
         )
-        assertEquals(expected, bytes)
+        assertContentEquals(expected, bytes)
     }
 
     @Test
@@ -76,7 +76,7 @@ class TestGifEncoder {
             0x69, 0x6E, 0x67, 0x2E,
             0x67, 0x69, 0x66, 0x00,
         )
-        assertEquals(expected, bytes)
+        assertContentEquals(expected, bytes)
     }
 
     @Test
@@ -92,7 +92,7 @@ class TestGifEncoder {
             0x21, 0xF9, 0x04, 0x00,
             0x00, 0x00, 0x00, 0x00,
         )
-        assertEquals(expected, bytes)
+        assertContentEquals(expected, bytes)
     }
 
     @Test
@@ -111,7 +111,7 @@ class TestGifEncoder {
             0x00, 0x0A, 0x00, 0x0A,
             0x00, 0x81,
         )
-        assertEquals(expected, bytes)
+        assertContentEquals(expected, bytes)
     }
 
     @Test
@@ -148,7 +148,7 @@ class TestGifEncoder {
             0x04, 0x91, 0x4C, 0x01,
             0x00,
         )
-        assertEquals(expected, bytes)
+        assertContentEquals(expected, bytes)
     }
 
     @Test
@@ -159,7 +159,7 @@ class TestGifEncoder {
         val expected = HexByteList(
             0x3B,
         )
-        assertEquals(expected, bytes)
+        assertContentEquals(expected, bytes)
 
     }
 }

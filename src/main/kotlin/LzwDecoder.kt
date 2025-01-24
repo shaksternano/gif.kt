@@ -4,7 +4,7 @@ import kotlinx.io.Source
 import kotlinx.io.readUByte
 import kotlin.properties.Delegates
 
-internal fun Source.readLzwIndexStream(maxColors: Int): List<Byte> {
+internal fun Source.readLzwIndexStream(maxColors: Int): ByteList {
     val lzwMinCodeSize = readUByte().toInt()
     val endOfInformationCode = maxColors + 1
 
@@ -18,8 +18,8 @@ internal fun Source.readLzwIndexStream(maxColors: Int): List<Byte> {
     var reset = true
     var previousCode by Delegates.notNull<Int>()
 
-    val codeTable = mutableListOf<List<Byte>>()
-    val indexStream = mutableListOf<Byte>()
+    val codeTable = mutableListOf<ByteList>()
+    val indexStream = ByteList()
     while (blockSize > 0) {
         repeat(blockSize) {
             val byte = readUByte().toInt()
@@ -71,11 +71,11 @@ internal fun Source.readLzwIndexStream(maxColors: Int): List<Byte> {
     return indexStream
 }
 
-private fun initCodeTable(codeTable: MutableList<List<Byte>>, maxColors: Int) {
+private fun initCodeTable(codeTable: MutableList<ByteList>, maxColors: Int) {
     codeTable.clear()
     repeat(maxColors) { i ->
-        codeTable.add(listOf(i.toByte()))
+        codeTable.add(ByteList(i.toByte()))
     }
-    codeTable.add(emptyList()) // Clear code
-    codeTable.add(emptyList()) // End of information code
+    codeTable.add(ByteList()) // Clear code
+    codeTable.add(ByteList()) // End of information code
 }

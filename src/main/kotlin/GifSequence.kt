@@ -48,7 +48,7 @@ internal fun readGifFrames(sourceSupplier: () -> Source): Sequence<ImageFrame> =
                     val top = block.descriptor.top
                     val width = block.descriptor.width
                     val height = block.descriptor.height
-                    val indices = block.data.indices
+                    val colorIndices = block.data.indices
 
                     val image = IntArray(canvasWidth * canvasHeight)
                     if (
@@ -57,12 +57,17 @@ internal fun readGifFrames(sourceSupplier: () -> Source): Sequence<ImageFrame> =
                         && width == canvasWidth
                         && height == canvasHeight
                     ) {
-                        if (indices.size < image.size) {
-                            throw InvalidGifException("Frame ${frameIndex + 1} has too few indices")
+                        if (colorIndices.size < image.size) {
+                            throw InvalidGifException("Frame ${frameIndex + 1} has too few color indices")
                         }
                         // Ignore indices that are out of bounds
                         repeat(image.size) { i ->
-                            val colorIndex = indices[i].toInt()
+                            val colorIndex = if (i < colorIndices.size) {
+                                colorIndices[i].toInt()
+                            } else {
+                                // Missing indices are treated as transparent
+                                currentTransparentColorIndex
+                            }
                             val pixel = getPixel(
                                 colorIndex,
                                 i,
@@ -85,7 +90,7 @@ internal fun readGifFrames(sourceSupplier: () -> Source): Sequence<ImageFrame> =
                                     continue
                                 }
                                 val i = y * width + x
-                                val colorIndex = indices[i].toInt()
+                                val colorIndex = colorIndices[i].toInt()
                                 val imageIndex = absoluteY * canvasWidth + absoluteX
                                 val pixel = getPixel(
                                     colorIndex,

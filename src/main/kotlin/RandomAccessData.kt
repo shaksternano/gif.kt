@@ -41,6 +41,7 @@ class FileData(
         val okioSource = fileHandle.source(offset).buffer()
         return object : RawSource {
             override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
+                if (okioSource.exhausted()) return -1
                 var bytesRead = 0L
                 while (bytesRead < byteCount && !okioSource.exhausted()) {
                     val byte = okioSource.readByte()

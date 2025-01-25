@@ -33,7 +33,7 @@ class TestNeuQuant {
     }
 
     private fun testMaxColors(maxColors: Int) {
-        val pixels = loadRgbPixels("media/sonic.png")
+        val pixels = loadRgbPixels("media/sonic/sonic.png")
         val neuQuant = NeuQuant(
             image = pixels,
             maxColors = maxColors,
@@ -47,7 +47,7 @@ class TestNeuQuant {
 
     @Test
     fun testQuantization() {
-        val pixels = loadRgbPixels("media/sonic.png")
+        val pixels = loadRgbPixels("media/sonic/sonic.png")
         val neuQuant = NeuQuant(
             image = pixels,
             samplingFactor = 10,
@@ -66,7 +66,7 @@ class TestNeuQuant {
                 val quantizedBlue = colorTable[index * 3 + 2]
                 listOf(quantizedRed, quantizedGreen, quantizedBlue)
             }
-        val expectedPixels = loadRgbPixels("media/sonic-quantized.png").asList()
+        val expectedPixels = loadRgbPixels("media/sonic/sonic-quantized.png").asList()
         assertContentEquals(expectedPixels, quantizedPixels)
     }
 

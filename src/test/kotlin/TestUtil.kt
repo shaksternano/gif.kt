@@ -15,3 +15,9 @@ fun getResource(path: String): InputStream =
 
 fun loadImage(path: String): BufferedImage =
     ImageIO.read(getResource(path))
+
+var BufferedImage.rgb: IntArray
+    get() = getRGB(0, 0, width, height, null, 0, width)
+    set(rgb) {
+        setRGB(0, 0, width, height, rgb, 0, width)
+    }

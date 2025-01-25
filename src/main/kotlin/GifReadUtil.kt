@@ -9,11 +9,17 @@ internal fun Source.readLittleEndianShort(): Int = readShortLe().toInt()
 /**
  * Used to identify which part of the GIF file caused an exception.
  */
-private inline fun <T> readGifSection(name: String, block: () -> T): T {
+internal inline fun <T> readGifSection(name: String = "", block: () -> T): T {
     try {
         return block()
+    } catch (e: InvalidGifException) {
+        throw e
     } catch (t: Throwable) {
-        throw t as? InvalidGifException ?: InvalidGifException("Failed to read GIF $name", t)
+        var message = "Failed to read GIF"
+        if (name.isNotBlank()) {
+            message += " $name"
+        }
+        throw InvalidGifException(message, t)
     }
 }
 

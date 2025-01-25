@@ -65,6 +65,6 @@ internal data class DecodedImageData(
     val indices: ByteList,
 ) : ImageData
 
-internal object IgnoredImageData : ImageData
+internal data object IgnoredImageData : ImageData
 
 internal data object GifTerminator : GifBlock

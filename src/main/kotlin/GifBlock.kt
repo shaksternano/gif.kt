@@ -56,31 +56,15 @@ internal data class ImageDescriptor(
     val top: Int,
     val width: Int,
     val height: Int,
-    val localColorTableBytes: Int,
+    val localColorTableColors: Int,
 )
 
-internal data class ImageData(
-    val lzwMinimumCodeSize: Int,
-    val data: ByteArray,
-) {
+internal sealed interface ImageData
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
+internal data class DecodedImageData(
+    val indices: ByteList,
+) : ImageData
 
-        other as ImageData
-
-        if (lzwMinimumCodeSize != other.lzwMinimumCodeSize) return false
-        if (!data.contentEquals(other.data)) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = lzwMinimumCodeSize
-        result = 31 * result + data.contentHashCode()
-        return result
-    }
-}
+internal object IgnoredImageData : ImageData
 
 internal data object GifTerminator : GifBlock

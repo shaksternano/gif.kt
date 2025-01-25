@@ -48,6 +48,14 @@ class GifEncoder(
         )
     }
 
+    fun writeFrame(frame: ImageFrame) =
+        writeFrame(
+            frame.argb,
+            frame.width,
+            frame.height,
+            frame.duration
+        )
+
     private fun quantizeAndWriteFrame(
         optimizedImage: Image,
         originalImage: Image,

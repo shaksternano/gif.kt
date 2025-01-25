@@ -16,12 +16,8 @@ internal class ByteList private constructor(
     /**
      * The number of elements in the list.
      */
-    var size: Int
+    var size: Int = size
         private set
-
-    init {
-        this.size = size
-    }
 
     constructor() : this(
         elements = ByteArray(8),

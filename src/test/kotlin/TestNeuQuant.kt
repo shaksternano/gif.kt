@@ -1,8 +1,5 @@
 package io.github.shaksternano.gifcodec
 
-import java.awt.image.BufferedImage
-import java.io.InputStream
-import javax.imageio.ImageIO
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -87,11 +84,4 @@ class TestNeuQuant {
         }
         return rgb
     }
-
-    private fun loadImage(path: String): BufferedImage =
-        ImageIO.read(getResource(path))
-
-    private fun getResource(path: String): InputStream =
-        TestNeuQuant::class.java.classLoader.getResourceAsStream(path)
-            ?: throw IllegalArgumentException("Resource not found: $path")
 }

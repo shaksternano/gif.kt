@@ -1,7 +1,6 @@
 package io.github.shaksternano.gifcodec
 
 import kotlinx.io.Buffer
-import kotlinx.io.readByteArray
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 
@@ -160,9 +159,5 @@ class TestGifEncoder {
             0x3B,
         )
         assertContentEquals(expected, bytes)
-
     }
 }
-
-private fun Buffer.readByteList(): HexByteList =
-    readByteArray().map { it.toInt() and 0xFF }.asHexByteList()

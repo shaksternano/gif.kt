@@ -2,6 +2,8 @@ package io.github.shaksternano.gifcodec
 
 import kotlinx.io.*
 
+internal const val BYTES_PER_COLOR: Int = 3
+
 internal fun Source.readLittleEndianShort(): Int = readShortLe().toInt()
 
 /**
@@ -12,6 +14,39 @@ private inline fun <T> readGifSection(name: String, block: () -> T): T {
         return block()
     } catch (t: Throwable) {
         throw t as? InvalidGifException ?: InvalidGifException("Failed to read GIF $name", t)
+    }
+}
+
+internal fun Source.readGifIntroduction(): GifIntroduction {
+    readGifHeader()
+    val logicalScreenDescriptor = readGifLogicalScreenDescriptor()
+    val globalColorTable = if (logicalScreenDescriptor.globalColorTableColors > 0) {
+        readGifGlobalColorTable(BYTES_PER_COLOR * logicalScreenDescriptor.globalColorTableColors)
+    } else null
+    return GifIntroduction(logicalScreenDescriptor, globalColorTable)
+}
+
+internal data class GifIntroduction(
+    val logicalScreenDescriptor: LogicalScreenDescriptor,
+    val globalColorTable: ByteArray?,
+) {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as GifIntroduction
+
+        if (logicalScreenDescriptor != other.logicalScreenDescriptor) return false
+        if (!globalColorTable.contentEquals(other.globalColorTable)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = logicalScreenDescriptor.hashCode()
+        result = 31 * result + (globalColorTable?.contentHashCode() ?: 0)
+        return result
     }
 }
 
@@ -37,15 +72,15 @@ internal fun Source.readGifLogicalScreenDescriptor(): LogicalScreenDescriptor =
         val packed = readByte().toInt()
         // Bit 1
         val globalColorTableFlag = packed and 0b10000000 != 0
-        val globalColorTableBytes: Int
+        val globalColorTableColors: Int
         val backgroundColorIndex: Int
         if (globalColorTableFlag) {
             // Bits 6-8
             val globalColorTableSize = packed and 0b00000111
-            globalColorTableBytes = calculateColorTableBytes(globalColorTableSize)
+            globalColorTableColors = calculateColorTableColors(globalColorTableSize)
             backgroundColorIndex = readByte().toInt()
         } else {
-            globalColorTableBytes = 0
+            globalColorTableColors = 0
             backgroundColorIndex = 0
             // Background color index
             skip(1)
@@ -55,7 +90,7 @@ internal fun Source.readGifLogicalScreenDescriptor(): LogicalScreenDescriptor =
         LogicalScreenDescriptor(
             width,
             height,
-            globalColorTableBytes,
+            globalColorTableColors,
             backgroundColorIndex,
         )
     }
@@ -63,7 +98,7 @@ internal fun Source.readGifLogicalScreenDescriptor(): LogicalScreenDescriptor =
 internal data class LogicalScreenDescriptor(
     val width: Int,
     val height: Int,
-    val globalColorTableBytes: Int,
+    val globalColorTableColors: Int,
     val backgroundColorIndex: Int,
 )
 
@@ -71,12 +106,13 @@ internal fun Source.readGifGlobalColorTable(size: Int): ByteArray = readGifSecti
     readGifColorTable(size)
 }
 
-internal fun Source.readGifContentPart(): GifBlock = readGifSection("content") {
+internal fun Source.readGifBlock(decodeImage: Boolean, globalColorTableColors: Int): GifBlock =
+    readGifSection("content") {
     if (exhausted()) return GifTerminator
     val blockIntroducer = readUByte().toInt()
     when (blockIntroducer) {
         0x21 -> readGifExtension()
-        0x2C -> readGifImage()
+        0x2C -> readGifImage(decodeImage, globalColorTableColors)
         0x3B -> GifTerminator
         else -> throw InvalidGifException("Unknown block introducer: ${blockIntroducer.toHexByteString()}")
     }
@@ -163,12 +199,12 @@ private fun Source.readGifUnknownExtension(label: Int): UnknownExtension =
         UnknownExtension
     }
 
-private fun Source.readGifImage(): GifImage = readGifSection("image") {
+private fun Source.readGifImage(decodeImage: Boolean, globalColorTableColors: Int): GifImage = readGifSection("image") {
     val imageDescriptor = readGifImageDescriptor()
-    val localColorTable = if (imageDescriptor.localColorTableBytes > 0) {
-        readGifLocalColorTable(imageDescriptor.localColorTableBytes)
+    val localColorTable = if (imageDescriptor.localColorTableColors > 0) {
+        readGifLocalColorTable(BYTES_PER_COLOR * imageDescriptor.localColorTableColors)
     } else null
-    val imageData = readGifImageData()
+    val imageData = readGifImageData(decodeImage, globalColorTableColors)
     GifImage(imageDescriptor, localColorTable, imageData)
 }
 
@@ -190,9 +226,9 @@ private fun Source.readGifImageDescriptor(): ImageDescriptor = readGifSection("i
     // Bit 1
     val localColorTableFlag = packed and 0b10000000 != 0
     // Bits 6-8
-    val localColorTableBytes = if (localColorTableFlag) {
+    val localColorTableColors = if (localColorTableFlag) {
         val localColorTableSize = packed and 0b00000111
-        calculateColorTableBytes(localColorTableSize)
+        calculateColorTableColors(localColorTableSize)
     } else 0
 
     ImageDescriptor(
@@ -200,7 +236,7 @@ private fun Source.readGifImageDescriptor(): ImageDescriptor = readGifSection("i
         top,
         width,
         height,
-        localColorTableBytes,
+        localColorTableColors,
     )
 }
 
@@ -208,19 +244,25 @@ private fun Source.readGifLocalColorTable(size: Int): ByteArray = readGifSection
     readGifColorTable(size)
 }
 
-private fun Source.readGifImageData(): ImageData = readGifSection("image data") {
-    val lzwMinimumCodeSize = readUByte().toInt()
-    val data = readGifSubBlocks().toByteArray()
-    ImageData(lzwMinimumCodeSize, data)
+private fun Source.readGifImageData(decodeImage: Boolean, maxColors: Int): ImageData =
+    readGifSection("LZW image data") {
+        if (decodeImage) {
+            val indices = readLzwIndexStream(maxColors)
+            DecodedImageData(indices)
+        } else {
+            // LZW minimum code size
+            skip(1)
+            skipGifSubBlocks()
+            IgnoredImageData
+        }
 }
 
-private fun calculateColorTableBytes(colorTableSize: Int): Int {
+private fun calculateColorTableColors(colorTableSize: Int): Int {
     /*
-     * Color table bytes = 2^(n + 1) * 3:
-     *     2^(n + 1) colors, where n is the color table size
-     *     3 bytes per color
+     * The number of colors in a color table is 2^(n + 1)s,
+     * where n is the color table size.
      */
-    return 2.pow(colorTableSize + 1) * 3
+    return 2.pow(colorTableSize + 1)
 }
 
 internal fun Source.readGifColorTable(size: Int): ByteArray {

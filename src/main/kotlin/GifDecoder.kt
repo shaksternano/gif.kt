@@ -2,7 +2,7 @@ package io.github.shaksternano.gifcodec
 
 import kotlinx.io.Source
 import kotlinx.io.buffered
-import kotlin.properties.Delegates
+import kotlin.time.Duration
 
 /*
  * Reference:
@@ -10,27 +10,46 @@ import kotlin.properties.Delegates
  */
 class GifDecoder(
     private val data: RandomAccessData,
-    private val maxCachedFrames: Int = 10,
+    private val keyFrameInterval: Int = 50,
 ) : AutoCloseable {
 
     val source: Source = data.read().buffered()
 
-    private var width: Int by Delegates.notNull()
-    private var height: Int by Delegates.notNull()
+    private var initialized: Boolean = false
+
+    private var width: Int = -1
+    private var height: Int = -1
 
     private var globalColorTable: ByteArray? = null
     private var backgroundColorIndex: Int = 0
 
     private fun init() {
-        source.readGifHeader()
-        val logicalScreenDescriptor = source.readGifLogicalScreenDescriptor()
-        width = logicalScreenDescriptor.width
-        height = logicalScreenDescriptor.height
-        if (logicalScreenDescriptor.globalColorTableBytes > 0) {
-            globalColorTable = source.readGifGlobalColorTable(logicalScreenDescriptor.globalColorTableBytes)
-            backgroundColorIndex = logicalScreenDescriptor.backgroundColorIndex
-        }
+        val introduction = source.readGifIntroduction()
+        width = introduction.logicalScreenDescriptor.width
+        height = introduction.logicalScreenDescriptor.height
+        backgroundColorIndex = introduction.logicalScreenDescriptor.backgroundColorIndex
+        globalColorTable = introduction.globalColorTable
+        initialized = true
     }
+
+    fun readFrame(index: Int): ImageFrame {
+        TODO()
+    }
+
+    operator fun get(index: Int): ImageFrame =
+        readFrame(index)
+
+    fun readFrame(timestamp: Duration): ImageFrame {
+        TODO()
+    }
+
+    operator fun get(timestamp: Duration): ImageFrame =
+        readFrame(timestamp)
+
+    fun asSequence(): Sequence<ImageFrame> =
+        readGifFrames {
+            data.read().buffered()
+        }
 
     override fun close() {
         source.close()

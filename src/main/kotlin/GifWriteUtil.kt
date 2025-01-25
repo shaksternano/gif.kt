@@ -5,19 +5,11 @@ import kotlinx.io.writeShortLe
 import kotlinx.io.writeString
 import kotlin.math.ceil
 import kotlin.math.log2
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 internal const val GIF_MAX_COLORS: Int = 256
 internal const val GIF_MINIMUM_COLOR_TABLE_SIZE: Int = 2
 internal const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
 internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
-
-internal val Int.centiseconds: Duration
-    get() = (this * 10).milliseconds
-
-internal val Duration.roundedUpCentiseconds: Int
-    get() = ceil(inWholeMilliseconds / 10.0).toInt()
 
 internal fun optimizeTransparency(
     previousImage: Image,

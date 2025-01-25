@@ -1,6 +1,15 @@
 package io.github.shaksternano.gifcodec
 
+import kotlin.math.ceil
 import kotlin.math.pow
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+
+internal val Int.centiseconds: Duration
+    get() = (this * 10).milliseconds
+
+internal val Duration.roundedUpCentiseconds: Int
+    get() = ceil(inWholeMilliseconds / 10.0).toInt()
 
 internal fun Int.pow(exponent: Int): Int =
     toDouble().pow(exponent).toInt()

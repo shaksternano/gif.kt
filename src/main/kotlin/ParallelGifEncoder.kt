@@ -93,6 +93,14 @@ class ParallelGifEncoder(
         }
     }
 
+    suspend fun writeFrame(frame: ImageFrame) =
+        writeFrame(
+            frame.argb,
+            frame.width,
+            frame.height,
+            frame.duration,
+        )
+
     // Runs on caller's thread
     private suspend fun quantizeAndWriteFrame(
         optimizedImage: Image,

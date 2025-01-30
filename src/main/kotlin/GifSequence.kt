@@ -9,6 +9,7 @@ internal fun readGifFrames(sourceSupplier: () -> Source): Sequence<ImageFrame> =
             val introduction = source.readGifIntroduction()
             val canvasWidth = introduction.logicalScreenDescriptor.width
             val canvasHeight = introduction.logicalScreenDescriptor.height
+            val canvasSize = canvasWidth * canvasHeight
             val backgroundColorIndex = introduction.logicalScreenDescriptor.backgroundColorIndex
             val globalColorTableColors = introduction.logicalScreenDescriptor.globalColorTableColors
             val globalColorTable = introduction.globalColorTable
@@ -48,60 +49,41 @@ internal fun readGifFrames(sourceSupplier: () -> Source): Sequence<ImageFrame> =
                         val height = block.descriptor.height
                         val colorIndices = block.data.indices
 
-                        val image = IntArray(canvasWidth * canvasHeight)
-                        if (
-                            left == 0
-                            && top == 0
-                            && width == canvasWidth
-                            && height == canvasHeight
-                        ) {
-                            if (colorIndices.size < image.size) {
-                                throw InvalidGifException("Frame $frameNumber has too few color indices")
-                            }
-                            // Ignore indices that are out of bounds
-                            repeat(image.size) { i ->
-                                val colorIndex = if (i < colorIndices.size) {
-                                    colorIndices[i].toUByte().toInt()
-                                } else {
-                                    // Missing indices are treated as transparent
-                                    currentTransparentColorIndex
-                                }
-                                val pixel = getPixel(
-                                    colorIndex,
-                                    i,
-                                    currentTransparentColorIndex,
-                                    previousImage,
-                                    currentColorTable,
-                                    globalColorTableColors,
-                                    globalColorTable,
-                                    backgroundColorIndex,
-                                )
-                                image[i] = pixel
-                            }
-                        } else {
-                            previousImage?.copyInto(image)
-                            for (y in 0 until height) {
-                                for (x in 0 until width) {
-                                    val absoluteX = left + x
-                                    val absoluteY = top + y
-                                    if (absoluteX >= canvasWidth || absoluteY >= canvasHeight) {
-                                        continue
+                        val image = IntArray(canvasSize) { i ->
+                            val absoluteX = i % canvasWidth
+                            val absoluteY = i / canvasWidth
+
+                            val relativeX = absoluteX - left
+                            val relativeY = absoluteY - top
+
+                            val colorIndex = run {
+                                if (relativeX in 0..<width && relativeY in 0..<height) {
+                                    val index = relativeY * width + relativeX
+                                    if (index in colorIndices.indices) {
+                                        return@run colorIndices[index].toUByte().toInt()
                                     }
-                                    val i = y * width + x
-                                    val colorIndex = colorIndices[i].toUByte().toInt()
-                                    val imageIndex = absoluteY * canvasWidth + absoluteX
-                                    val pixel = getPixel(
-                                        colorIndex,
-                                        imageIndex,
-                                        currentTransparentColorIndex,
-                                        previousImage,
-                                        currentColorTable,
-                                        globalColorTableColors,
-                                        globalColorTable,
-                                        backgroundColorIndex,
-                                    )
-                                    image[imageIndex] = pixel
                                 }
+                                // Missing indices are treated as transparent
+                                currentTransparentColorIndex
+                            }
+
+                            if (colorIndex == currentTransparentColorIndex) {
+                                val finalPreviousImage = previousImage
+                                if (finalPreviousImage == null) {
+                                    if (
+                                        currentColorTable == globalColorTable
+                                        && backgroundColorIndex in 0..<globalColorTableColors
+                                    ) {
+                                        getColor(globalColorTable, backgroundColorIndex)
+                                    } else {
+                                        // Transparent
+                                        0
+                                    }
+                                } else {
+                                    finalPreviousImage[i]
+                                }
+                            } else {
+                                getColor(currentColorTable, colorIndex)
                             }
                         }
 
@@ -128,10 +110,11 @@ internal fun readGifFrames(sourceSupplier: () -> Source): Sequence<ImageFrame> =
                                 ) {
                                     getColor(globalColorTable, backgroundColorIndex)
                                 } else {
+                                    // Transparent
                                     0
                                 }
-                                for (y in left until height) {
-                                    for (x in 0 until width) {
+                                for (y in left..<height) {
+                                    for (x in 0..<width) {
                                         val absoluteX = left + x
                                         val absoluteY = top + y
                                         if (absoluteX >= canvasWidth || absoluteY >= canvasHeight) {
@@ -164,34 +147,6 @@ internal fun readGifFrames(sourceSupplier: () -> Source): Sequence<ImageFrame> =
                 )
             }
         }
-    }
-}
-
-private fun getPixel(
-    colorIndex: Int,
-    imageIndex: Int,
-    currentTransparentColorIndex: Int,
-    previousImage: IntArray?,
-    currentColorTable: ByteArray,
-    globalColorTableColors: Int,
-    globalColorTable: ByteArray?,
-    backgroundColorIndex: Int,
-): Int {
-    return if (colorIndex == currentTransparentColorIndex) {
-        if (previousImage == null) {
-            if (
-                currentColorTable == globalColorTable
-                && backgroundColorIndex in 0..<globalColorTableColors
-            ) {
-                getColor(globalColorTable, backgroundColorIndex)
-            } else {
-                0
-            }
-        } else {
-            previousImage[imageIndex]
-        }
-    } else {
-        getColor(currentColorTable, colorIndex)
     }
 }
 

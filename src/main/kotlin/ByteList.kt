@@ -18,6 +18,8 @@ internal class ByteList private constructor(
      */
     var size: Int = size
         private set
+    val indices: IntRange
+        get() = 0..<size
 
     constructor() : this(
         elements = ByteArray(8),
@@ -200,26 +202,26 @@ internal class ByteList private constructor(
             return elements[index++]
         }
     }
-}
 
-private fun calculateHashCode(elements: ByteArray, size: Int): Int {
-    var newHashCode = 1
-    repeat(size) { i ->
-        newHashCode = 31 * newHashCode + elements[i]
+    private fun calculateHashCode(elements: ByteArray, size: Int): Int {
+        var newHashCode = 1
+        repeat(size) { i ->
+            newHashCode = 31 * newHashCode + elements[i]
+        }
+        return newHashCode
     }
-    return newHashCode
-}
 
-private fun getNewHashCode(currentHashCode: Int, element: Byte): Int =
-    31 * currentHashCode + element
+    private fun getNewHashCode(currentHashCode: Int, element: Byte): Int =
+        31 * currentHashCode + element
 
-/**
- * Ignores the elements after the specified [size].
- */
-private fun ByteArray.contentEquals(other: ByteArray, size: Int): Boolean {
-    if (this === other) return true
-    repeat(size) { i ->
-        if (this[i] != other[i]) return false
+    /**
+     * Ignores the elements after the specified [size].
+     */
+    private fun ByteArray.contentEquals(other: ByteArray, size: Int): Boolean {
+        if (this === other) return true
+        repeat(size) { i ->
+            if (this[i] != other[i]) return false
+        }
+        return true
     }
-    return true
 }

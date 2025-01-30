@@ -73,8 +73,8 @@ class TestNeuQuant {
     fun loadRgbPixels(path: String): ByteArray {
         val image = loadImage(path)
         val rgb = ByteArray(image.width * image.height * 3)
-        for (y in 0 until image.height) {
-            for (x in 0 until image.width) {
+        for (y in 0..<image.height) {
+            for (x in 0..<image.width) {
                 val pixel = image.getRGB(x, y)
                 val index = (y * image.width + x) * 3
                 rgb[index] = pixel.toByte()

@@ -112,8 +112,10 @@ internal fun Source.readGifGlobalColorTable(size: Int): ByteArray = readGifSecti
     readGifColorTable(size)
 }
 
-internal fun Source.readGifBlock(decodeImage: Boolean, globalColorTableColors: Int): GifBlock =
-    readGifSection("content") {
+internal fun Source.readGifBlock(
+    decodeImage: Boolean,
+    globalColorTableColors: Int,
+): GifBlock = readGifSection("content") {
     if (exhausted()) return GifTerminator
     val blockIntroducer = readUByte().toInt()
     when (blockIntroducer) {

@@ -17,7 +17,6 @@ internal fun readGifFrames(sourceSupplier: () -> Source): Sequence<ImageFrame> =
             var currentDelayTime = 0
             var currentTransparentColorIndex = -1
 
-            var currentColorTable = globalColorTable
             var frameIndex = 0
             var previousImage: IntArray? = null
             var timestamp = Duration.ZERO
@@ -39,12 +38,9 @@ internal fun readGifFrames(sourceSupplier: () -> Source): Sequence<ImageFrame> =
                         if (block.data !is DecodedImageData) {
                             throw IllegalStateException("Did not decode image data")
                         }
-                        if (block.localColorTable != null) {
-                            currentColorTable = block.localColorTable
-                        }
-                        if (currentColorTable == null) {
-                            throw InvalidGifException("Frame $frameNumber has no color table")
-                        }
+
+                        val currentColorTable = block.localColorTable ?: globalColorTable
+                        ?: throw InvalidGifException("Frame $frameNumber has no color table")
 
                         val left = block.descriptor.left
                         val top = block.descriptor.top
@@ -118,6 +114,7 @@ internal fun readGifFrames(sourceSupplier: () -> Source): Sequence<ImageFrame> =
                             timestamp,
                             frameIndex,
                         )
+
                         yield(imageFrame)
 
                         when (currentDisposalMethod) {
@@ -149,8 +146,13 @@ internal fun readGifFrames(sourceSupplier: () -> Source): Sequence<ImageFrame> =
                             DisposalMethod.RESTORE_TO_PREVIOUS -> Unit
                         }
 
-                        timestamp += duration
+                        // Reset values for next frame
+                        currentDisposalMethod = DisposalMethod.UNSPECIFIED
+                        currentDelayTime = 0
+                        currentTransparentColorIndex = -1
+
                         frameIndex++
+                        timestamp += duration
                     }
 
                     else -> Unit

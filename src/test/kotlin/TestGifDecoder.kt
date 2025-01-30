@@ -54,7 +54,7 @@ class TestGifDecoder {
             val frameNumber = i + 1
             val expectedRgb = loadImage("media/trafficlight/traffic-light-frame-$frameNumber.png").rgb
             val expectedDuration = expectedFrameDurations[i]
-            assertContentEquals(expectedRgb, frame.argb)
+            assertContentEquals(expectedRgb, frame.argb, "Frame $frameNumber")
             assertEquals(11, frame.width)
             assertEquals(29, frame.height)
             assertEquals(expectedDuration, frame.duration)

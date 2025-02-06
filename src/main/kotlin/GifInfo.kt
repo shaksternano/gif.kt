@@ -5,8 +5,8 @@ import kotlin.time.Duration
 internal data class GifInfo(
     val width: Int,
     val height: Int,
-    val backgroundColorIndex: Int,
     val globalColorTable: ByteArray?,
+    val backgroundColorIndex: Int,
     val frameCount: Int,
     val duration: Duration,
     val loopCount: Int,

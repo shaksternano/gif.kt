@@ -25,7 +25,6 @@ internal inline fun RawSource.readGif(
     val introduction = source.readGifIntroduction()
     val canvasWidth = introduction.logicalScreenDescriptor.width
     val canvasHeight = introduction.logicalScreenDescriptor.height
-    val canvasSize = canvasWidth * canvasHeight
     val backgroundColorIndex = introduction.logicalScreenDescriptor.backgroundColorIndex
     val globalColorTableColors = introduction.logicalScreenDescriptor.globalColorTableColors
     val globalColorTable = introduction.globalColorTable
@@ -49,7 +48,6 @@ internal inline fun RawSource.readGif(
         globalColorTableColors = globalColorTableColors,
     )
     while (block != GifTerminator) {
-        val frameNumber = frameIndex + 1
         when (block) {
             is GraphicsControlExtension -> {
                 currentDisposalMethod = block.disposalMethod
@@ -69,107 +67,59 @@ internal inline fun RawSource.readGif(
                 }
             }
 
-            is GifImage -> readGifSection("image $frameNumber") {
-                val duration = currentDelayTime.centiseconds
-                if (block.data is DecodedImageData) {
-                    val currentColorTable = block.localColorTable ?: globalColorTable
-                    ?: throw InvalidGifException("Frame $frameNumber has no color table")
+            is GifImage -> {
+                val frameNumber = frameIndex + 1
+                readGifSection("image $frameNumber") {
+                    val duration = currentDelayTime.centiseconds
+                    if (block.data is DecodedImageData) {
+                        val currentColorTable = block.localColorTable ?: globalColorTable
+                        ?: throw InvalidGifException("Frame $frameNumber has no color table")
 
-                    val left = block.descriptor.left
-                    val top = block.descriptor.top
-                    val width = block.descriptor.width
-                    val height = block.descriptor.height
-                    val colorIndices = block.data.indices
+                        val imageFrame = readImage(
+                            canvasWidth,
+                            canvasHeight,
+                            block.descriptor,
+                            block.data,
+                            globalColorTableColors,
+                            globalColorTable,
+                            currentColorTable,
+                            backgroundColorIndex,
+                            currentTransparentColorIndex,
+                            previousImage,
+                            duration,
+                            timestamp,
+                            frameIndex,
+                        )
 
-                    val image = IntArray(canvasSize) { i ->
-                        val absoluteX = i % canvasWidth
-                        val absoluteY = i / canvasWidth
+                        onImageDecode(imageFrame)
 
-                        val relativeX = absoluteX - left
-                        val relativeY = absoluteY - top
-
-                        val colorIndex = run {
-                            if (relativeX in 0..<width && relativeY in 0..<height) {
-                                val index = relativeY * width + relativeX
-                                if (index in colorIndices.indices) {
-                                    return@run colorIndices[index].toUByte().toInt()
-                                }
-                            }
-                            // Missing indices are treated as transparent
-                            currentTransparentColorIndex
-                        }
-
-                        if (colorIndex == currentTransparentColorIndex) {
-                            val finalPreviousImage = previousImage
-                            if (finalPreviousImage == null) {
-                                if (
-                                    currentColorTable == globalColorTable
-                                    && backgroundColorIndex in 0..<globalColorTableColors
-                                ) {
-                                    getColor(globalColorTable, backgroundColorIndex)
-                                } else {
-                                    // Transparent
-                                    0
-                                }
-                            } else {
-                                finalPreviousImage[i]
-                            }
-                        } else {
-                            getColor(currentColorTable, colorIndex)
+                        val disposedImage = disposeImage(
+                            imageFrame.argb,
+                            previousImage,
+                            currentDisposalMethod,
+                            canvasWidth,
+                            canvasHeight,
+                            block.descriptor,
+                            globalColorTableColors,
+                            globalColorTable,
+                            currentColorTable,
+                            backgroundColorIndex,
+                        )
+                        if (disposedImage != null) {
+                            previousImage = disposedImage
                         }
                     }
 
-                    val imageFrame = ImageFrame(
-                        image,
-                        canvasWidth,
-                        canvasHeight,
-                        duration,
-                        timestamp,
-                        frameIndex,
-                    )
+                    frameOffsets.add(bytesRead)
 
-                    onImageDecode(imageFrame)
+                    // Reset values for next frame
+                    currentDisposalMethod = DisposalMethod.UNSPECIFIED
+                    currentDelayTime = 0
+                    currentTransparentColorIndex = -1
 
-                    when (currentDisposalMethod) {
-                        DisposalMethod.UNSPECIFIED -> previousImage = image
-                        DisposalMethod.DO_NOT_DISPOSE -> previousImage = image
-                        DisposalMethod.RESTORE_TO_BACKGROUND_COLOR -> run {
-                            if (previousImage == null) return@run
-                            val backgroundColor = if (
-                                currentColorTable == globalColorTable
-                                && backgroundColorIndex in 0..<globalColorTableColors
-                            ) {
-                                getColor(globalColorTable, backgroundColorIndex)
-                            } else {
-                                // Transparent
-                                0
-                            }
-                            for (y in left..<height) {
-                                for (x in 0..<width) {
-                                    val absoluteX = left + x
-                                    val absoluteY = top + y
-                                    if (absoluteX >= canvasWidth || absoluteY >= canvasHeight) {
-                                        continue
-                                    }
-                                    val i = absoluteY * canvasWidth + absoluteX
-                                    previousImage[i] = backgroundColor
-                                }
-                            }
-                        }
-
-                        DisposalMethod.RESTORE_TO_PREVIOUS -> Unit
-                    }
+                    frameIndex++
+                    timestamp += duration
                 }
-
-                frameOffsets.add(bytesRead)
-
-                // Reset values for next frame
-                currentDisposalMethod = DisposalMethod.UNSPECIFIED
-                currentDelayTime = 0
-                currentTransparentColorIndex = -1
-
-                frameIndex++
-                timestamp += duration
             }
 
             else -> Unit
@@ -185,13 +135,134 @@ internal inline fun RawSource.readGif(
     GifInfo(
         canvasWidth,
         canvasHeight,
-        backgroundColorIndex,
         globalColorTable,
+        backgroundColorIndex,
         frameIndex,
         timestamp,
         loopCount,
         frameOffsets,
     )
+}
+
+internal fun readImage(
+    canvasWidth: Int,
+    canvasHeight: Int,
+    imageDescriptor: ImageDescriptor,
+    imageData: DecodedImageData,
+    globalColorTableColors: Int,
+    globalColorTable: ByteArray?,
+    currentColorTable: ByteArray,
+    backgroundColorIndex: Int,
+    currentTransparentColorIndex: Int,
+    previousImage: IntArray?,
+    duration: Duration,
+    timestamp: Duration,
+    frameIndex: Int,
+): ImageFrame {
+    val left = imageDescriptor.left
+    val top = imageDescriptor.top
+    val width = imageDescriptor.width
+    val height = imageDescriptor.height
+    val colorIndices = imageData.indices
+
+    val canvasSize = canvasWidth * canvasHeight
+    val image = IntArray(canvasSize) { i ->
+        val absoluteX = i % canvasWidth
+        val absoluteY = i / canvasWidth
+
+        val relativeX = absoluteX - left
+        val relativeY = absoluteY - top
+
+        val colorIndex = run {
+            if (relativeX in 0..<width && relativeY in 0..<height) {
+                val index = relativeY * width + relativeX
+                if (index in colorIndices.indices) {
+                    return@run colorIndices[index].toUByte().toInt()
+                }
+            }
+            // Missing indices are treated as transparent
+            currentTransparentColorIndex
+        }
+
+        if (colorIndex == currentTransparentColorIndex) {
+            val finalPreviousImage = previousImage
+            if (finalPreviousImage == null) {
+                if (
+                    currentColorTable == globalColorTable
+                    && backgroundColorIndex in 0..<globalColorTableColors
+                ) {
+                    getColor(globalColorTable, backgroundColorIndex)
+                } else {
+                    // Transparent
+                    0
+                }
+            } else {
+                finalPreviousImage[i]
+            }
+        } else {
+            getColor(currentColorTable, colorIndex)
+        }
+    }
+
+    return ImageFrame(
+        image,
+        canvasWidth,
+        canvasHeight,
+        duration,
+        timestamp,
+        frameIndex,
+    )
+}
+
+internal fun disposeImage(
+    image: IntArray,
+    previousImage: IntArray?,
+    disposalMethod: DisposalMethod,
+    canvasWidth: Int,
+    canvasHeight: Int,
+    imageDescriptor: ImageDescriptor,
+    globalColorTableColors: Int,
+    globalColorTable: ByteArray?,
+    currentColorTable: ByteArray,
+    backgroundColorIndex: Int,
+): IntArray? = when (disposalMethod) {
+    DisposalMethod.UNSPECIFIED -> image
+    DisposalMethod.DO_NOT_DISPOSE -> image
+    DisposalMethod.RESTORE_TO_BACKGROUND_COLOR -> {
+        if (previousImage == null) null
+        else {
+            val left = imageDescriptor.left
+            val top = imageDescriptor.top
+            val width = imageDescriptor.width
+            val height = imageDescriptor.height
+
+            val backgroundColor = if (
+                currentColorTable == globalColorTable
+                && backgroundColorIndex in 0..<globalColorTableColors
+            ) {
+                getColor(globalColorTable, backgroundColorIndex)
+            } else {
+                // Transparent
+                0
+            }
+
+            val newPreviousImage = previousImage.copyOf()
+            for (y in left..<height) {
+                for (x in 0..<width) {
+                    val absoluteX = left + x
+                    val absoluteY = top + y
+                    if (absoluteX >= canvasWidth || absoluteY >= canvasHeight) {
+                        continue
+                    }
+                    val i = absoluteY * canvasWidth + absoluteX
+                    newPreviousImage[i] = backgroundColor
+                }
+            }
+            newPreviousImage
+        }
+    }
+
+    DisposalMethod.RESTORE_TO_PREVIOUS -> null
 }
 
 internal fun Source.readLittleEndianShort(): Int = readShortLe().toInt()

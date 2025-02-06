@@ -10,7 +10,7 @@ internal data class GifInfo(
     val frameCount: Int,
     val duration: Duration,
     val loopCount: Int,
-    val frameOffsets: List<Long>,
+    val frames: List<FrameInfo>,
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -26,7 +26,7 @@ internal data class GifInfo(
         if (loopCount != other.loopCount) return false
         if (!globalColorTable.contentEquals(other.globalColorTable)) return false
         if (duration != other.duration) return false
-        if (frameOffsets != other.frameOffsets) return false
+        if (frames != other.frames) return false
 
         return true
     }
@@ -39,7 +39,37 @@ internal data class GifInfo(
         result = 31 * result + loopCount
         result = 31 * result + globalColorTable.contentHashCode()
         result = 31 * result + duration.hashCode()
-        result = 31 * result + frameOffsets.hashCode()
+        result = 31 * result + frames.hashCode()
+        return result
+    }
+}
+
+internal data class FrameInfo(
+    val argb: IntArray?,
+    val offset: Long,
+    val index: Int,
+    val timestamp: Duration,
+) {
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as FrameInfo
+
+        if (offset != other.offset) return false
+        if (index != other.index) return false
+        if (!argb.contentEquals(other.argb)) return false
+        if (timestamp != other.timestamp) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = offset.hashCode()
+        result = 31 * result + index
+        result = 31 * result + (argb?.contentHashCode() ?: 0)
+        result = 31 * result + timestamp.hashCode()
         return result
     }
 }

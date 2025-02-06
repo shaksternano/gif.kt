@@ -5,10 +5,13 @@ import kotlin.time.Duration
 
 internal const val BYTES_PER_COLOR: Int = 3
 
-internal fun readGifFrames(sourceSupplier: () -> RawSource): Sequence<ImageFrame> = sequence {
+internal fun readGifFrames(
+    keyFrameInterval: Int = -1,
+    sourceSupplier: () -> RawSource,
+): Sequence<ImageFrame> = sequence {
     sourceSupplier().use { source ->
         source.readGif(
-            decodeImage = true,
+            keyFrameInterval,
         ) {
             yield(it)
         }
@@ -16,9 +19,9 @@ internal fun readGifFrames(sourceSupplier: () -> RawSource): Sequence<ImageFrame
 }
 
 internal inline fun RawSource.readGif(
-    decodeImage: Boolean = false,
+    keyFrameInterval: Int,
     onImageDecode: (ImageFrame) -> Unit = {},
-): GifInfo = readGifSection {
+): GifInfo {
     val monitoredSource = MonitoredSource(this)
     val source = monitoredSource.buffered()
 
@@ -32,7 +35,7 @@ internal inline fun RawSource.readGif(
     var loopCount = -1
     var comment = ""
 
-    val frameOffsets = mutableListOf<Long>()
+    val frames = mutableListOf<FrameInfo>()
 
     var currentDisposalMethod = DisposalMethod.UNSPECIFIED
     var currentDelayTime = 0
@@ -43,10 +46,7 @@ internal inline fun RawSource.readGif(
     var timestamp = Duration.ZERO
 
     var bytesRead = monitoredSource.bytesRead
-    var block = source.readGifBlock(
-        decodeImage = decodeImage,
-        globalColorTableColors = globalColorTableColors,
-    )
+    var block = source.readGifBlock(globalColorTableColors)
     while (block != GifTerminator) {
         when (block) {
             is GraphicsControlExtension -> {
@@ -68,71 +68,72 @@ internal inline fun RawSource.readGif(
             }
 
             is GifImage -> {
-                val frameNumber = frameIndex + 1
-                readGifSection("image $frameNumber") {
-                    val duration = currentDelayTime.centiseconds
-                    if (block.data is DecodedImageData) {
-                        val currentColorTable = block.localColorTable ?: globalColorTable
-                        ?: throw InvalidGifException("Frame $frameNumber has no color table")
+                val duration = currentDelayTime.centiseconds
+                val currentColorTable = block.localColorTable ?: globalColorTable
+                ?: throw InvalidGifException("Frame $frameIndex has no color table")
 
-                        val imageFrame = readImage(
-                            canvasWidth,
-                            canvasHeight,
-                            block.descriptor,
-                            block.data,
-                            globalColorTableColors,
-                            globalColorTable,
-                            currentColorTable,
-                            backgroundColorIndex,
-                            currentTransparentColorIndex,
-                            previousImage,
-                            duration,
-                            timestamp,
-                            frameIndex,
-                        )
+                val imageFrame = readImage(
+                    canvasWidth,
+                    canvasHeight,
+                    block.descriptor,
+                    block.colorIndices,
+                    globalColorTableColors,
+                    globalColorTable,
+                    currentColorTable,
+                    backgroundColorIndex,
+                    currentTransparentColorIndex,
+                    previousImage,
+                    duration,
+                    timestamp,
+                    frameIndex,
+                )
 
-                        onImageDecode(imageFrame)
+                onImageDecode(imageFrame)
 
-                        val disposedImage = disposeImage(
-                            imageFrame.argb,
-                            previousImage,
-                            currentDisposalMethod,
-                            canvasWidth,
-                            canvasHeight,
-                            block.descriptor,
-                            globalColorTableColors,
-                            globalColorTable,
-                            currentColorTable,
-                            backgroundColorIndex,
-                        )
-                        if (disposedImage != null) {
-                            previousImage = disposedImage
-                        }
-                    }
-
-                    frameOffsets.add(bytesRead)
-
-                    // Reset values for next frame
-                    currentDisposalMethod = DisposalMethod.UNSPECIFIED
-                    currentDelayTime = 0
-                    currentTransparentColorIndex = -1
-
-                    frameIndex++
-                    timestamp += duration
+                val disposedImage = disposeImage(
+                    imageFrame.argb,
+                    previousImage,
+                    currentDisposalMethod,
+                    canvasWidth,
+                    canvasHeight,
+                    block.descriptor,
+                    globalColorTableColors,
+                    globalColorTable,
+                    currentColorTable,
+                    backgroundColorIndex,
+                )
+                if (disposedImage != null) {
+                    previousImage = disposedImage
                 }
+
+                val keyframeArgb = if (keyFrameInterval > 0 && frameIndex % keyFrameInterval == 0) {
+                    imageFrame.argb
+                } else null
+                val frame = FrameInfo(
+                    keyframeArgb,
+                    bytesRead,
+                    frameIndex,
+                    timestamp,
+                )
+                frames.add(frame)
+
+                // Reset values for next frame
+                currentDisposalMethod = DisposalMethod.UNSPECIFIED
+                currentDelayTime = 0
+                currentTransparentColorIndex = -1
+
+                frameIndex++
+                timestamp += duration
             }
 
             else -> Unit
         }
 
         bytesRead = monitoredSource.bytesRead
-        block = source.readGifBlock(
-            decodeImage = decodeImage,
-            globalColorTableColors = globalColorTableColors,
-        )
+        block = source.readGifBlock(globalColorTableColors)
     }
 
-    GifInfo(
+    return GifInfo(
         canvasWidth,
         canvasHeight,
         globalColorTable,
@@ -140,7 +141,7 @@ internal inline fun RawSource.readGif(
         frameIndex,
         timestamp,
         loopCount,
-        frameOffsets,
+        frames,
     )
 }
 
@@ -148,7 +149,7 @@ internal fun readImage(
     canvasWidth: Int,
     canvasHeight: Int,
     imageDescriptor: ImageDescriptor,
-    imageData: DecodedImageData,
+    colorIndices: ByteList,
     globalColorTableColors: Int,
     globalColorTable: ByteArray?,
     currentColorTable: ByteArray,
@@ -163,7 +164,6 @@ internal fun readImage(
     val top = imageDescriptor.top
     val width = imageDescriptor.width
     val height = imageDescriptor.height
-    val colorIndices = imageData.indices
 
     val canvasSize = canvasWidth * canvasHeight
     val image = IntArray(canvasSize) { i ->
@@ -270,17 +270,13 @@ internal fun Source.readLittleEndianShort(): Int = readShortLe().toInt()
 /**
  * Used to identify which part of the GIF file caused an exception.
  */
-internal inline fun <T> readGifSection(name: String = "", block: () -> T): T {
+internal inline fun <T> readGifSection(name: String, block: () -> T): T {
     try {
         return block()
     } catch (e: InvalidGifException) {
         throw e
     } catch (t: Throwable) {
-        var message = "Failed to read GIF"
-        if (name.isNotBlank()) {
-            message += " $name"
-        }
-        throw InvalidGifException(message, t)
+        throw InvalidGifException("Failed to read GIF $name", t)
     }
 }
 
@@ -373,15 +369,12 @@ internal fun Source.readGifGlobalColorTable(size: Int): ByteArray = readGifSecti
     readGifColorTable(size)
 }
 
-internal fun Source.readGifBlock(
-    decodeImage: Boolean,
-    globalColorTableColors: Int,
-): GifBlock = readGifSection("content") {
+internal fun Source.readGifBlock(globalColorTableColors: Int): GifBlock = readGifSection("content") {
     if (exhausted()) return GifTerminator
     val blockIntroducer = readUByte().toInt()
     when (blockIntroducer) {
         0x21 -> readGifExtension()
-        0x2C -> readGifImage(decodeImage, globalColorTableColors)
+        0x2C -> readGifImage(globalColorTableColors)
         0x3B -> GifTerminator
         else -> throw InvalidGifException("Unknown block introducer: ${blockIntroducer.toHexByteString()}")
     }
@@ -468,13 +461,13 @@ private fun Source.readGifUnknownExtension(label: Int): UnknownExtension =
         UnknownExtension
     }
 
-private fun Source.readGifImage(decodeImage: Boolean, globalColorTableColors: Int): GifImage = readGifSection("image") {
+private fun Source.readGifImage(globalColorTableColors: Int): GifImage = readGifSection("image") {
     val imageDescriptor = readGifImageDescriptor()
     val localColorTable = if (imageDescriptor.localColorTableColors > 0) {
         readGifLocalColorTable(BYTES_PER_COLOR * imageDescriptor.localColorTableColors)
     } else null
-    val imageData = readGifImageData(decodeImage, globalColorTableColors)
-    GifImage(imageDescriptor, localColorTable, imageData)
+    val indices = readGifImageData(globalColorTableColors)
+    GifImage(imageDescriptor, localColorTable, indices)
 }
 
 private fun Source.readGifImageDescriptor(): ImageDescriptor = readGifSection("image descriptor") {
@@ -513,17 +506,8 @@ private fun Source.readGifLocalColorTable(size: Int): ByteArray = readGifSection
     readGifColorTable(size)
 }
 
-private fun Source.readGifImageData(decodeImage: Boolean, maxColors: Int): ImageData =
-    readGifSection("LZW image data") {
-        if (decodeImage) {
-            val indices = readLzwIndexStream(maxColors)
-            DecodedImageData(indices)
-        } else {
-            // LZW minimum code size
-            skip(1)
-            skipGifSubBlocks()
-            IgnoredImageData
-        }
+private fun Source.readGifImageData(maxColors: Int): ByteList = readGifSection("LZW image data") {
+    readLzwIndexStream(maxColors)
 }
 
 private fun calculateColorTableColors(colorTableSize: Int): Int {

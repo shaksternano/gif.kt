@@ -27,7 +27,7 @@ internal data object UnknownExtension : GifExtension
 internal data class GifImage(
     val descriptor: ImageDescriptor,
     val localColorTable: ByteArray?,
-    val data: ImageData,
+    val colorIndices: ByteList,
 ) : GifBlock {
 
     override fun equals(other: Any?): Boolean {
@@ -38,7 +38,7 @@ internal data class GifImage(
 
         if (descriptor != other.descriptor) return false
         if (!localColorTable.contentEquals(other.localColorTable)) return false
-        if (data != other.data) return false
+        if (colorIndices != other.colorIndices) return false
 
         return true
     }
@@ -46,7 +46,7 @@ internal data class GifImage(
     override fun hashCode(): Int {
         var result = descriptor.hashCode()
         result = 31 * result + (localColorTable?.contentHashCode() ?: 0)
-        result = 31 * result + data.hashCode()
+        result = 31 * result + colorIndices.hashCode()
         return result
     }
 }
@@ -58,13 +58,5 @@ internal data class ImageDescriptor(
     val height: Int,
     val localColorTableColors: Int,
 )
-
-internal sealed interface ImageData
-
-internal data class DecodedImageData(
-    val indices: ByteList,
-) : ImageData
-
-internal data object IgnoredImageData : ImageData
 
 internal data object GifTerminator : GifBlock

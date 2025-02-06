@@ -48,7 +48,7 @@ class GifDecoder(
 
     fun asSequence(): Sequence<ImageFrame> =
         readGifFrames {
-            data.read().buffered()
+            data.read()
         }
 
     override fun close() {

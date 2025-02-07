@@ -466,7 +466,12 @@ private fun Source.readGifImage(globalColorTableColors: Int): GifImage = readGif
     val localColorTable = if (imageDescriptor.localColorTableColors > 0) {
         readGifLocalColorTable(BYTES_PER_COLOR * imageDescriptor.localColorTableColors)
     } else null
-    val indices = readGifImageData(globalColorTableColors)
+    val maxColors = if (localColorTable == null) {
+        globalColorTableColors
+    } else {
+        imageDescriptor.localColorTableColors
+    }
+    val indices = readGifImageData(maxColors)
     GifImage(imageDescriptor, localColorTable, indices)
 }
 

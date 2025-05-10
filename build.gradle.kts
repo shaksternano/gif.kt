@@ -12,7 +12,9 @@ repositories {
 }
 
 dependencies {
-    api("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
+    val kotlinxIoVersion = "0.7.0"
+    api("org.jetbrains.kotlinx:kotlinx-io-core:$kotlinxIoVersion")
+    implementation("org.jetbrains.kotlinx:kotlinx-io-okio:$kotlinxIoVersion")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
     implementation("com.squareup.okio:okio:3.10.2")
 

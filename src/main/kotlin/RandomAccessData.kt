@@ -1,13 +1,12 @@
 package io.github.shaksternano.gifcodec
 
-import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.okio.asKotlinxIoRawSource
 import okio.FileHandle
 import okio.FileSystem
 import okio.Path.Companion.toPath
-import okio.buffer
 
 interface RandomAccessData : AutoCloseable {
     fun read(offset: Long = 0): RawSource
@@ -38,23 +37,7 @@ class FileData(
             return SystemFileSystem.source(path)
         }
         require(offset >= 0) { "offset ($offset) < 0" }
-        val okioSource = fileHandle.source(offset).buffer()
-        return object : RawSource {
-            override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
-                if (okioSource.exhausted()) return -1
-                var bytesRead = 0L
-                while (bytesRead < byteCount && !okioSource.exhausted()) {
-                    val byte = okioSource.readByte()
-                    sink.writeByte(byte)
-                    bytesRead++
-                }
-                return bytesRead
-            }
-
-            override fun close() {
-                okioSource.close()
-            }
-        }
+        return fileHandle.source(offset).asKotlinxIoRawSource()
     }
 
     override fun close() {

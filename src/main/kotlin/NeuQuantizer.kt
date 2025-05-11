@@ -3,12 +3,12 @@ package io.github.shaksternano.gifcodec
 private const val NEU_QUANT_MAX_SAMPLING_FACTOR: Int = 30
 
 class NeuQuantizer(
-    quality: Int = 10,
+    quality: Int,
 ) : ColorQuantizer {
 
     companion object {
         @JvmField
-        val DEFAULT: ColorQuantizer = NeuQuantizer()
+        val DEFAULT: ColorQuantizer = NeuQuantizer(10)
 
         @JvmField
         val MAX_QUALITY: ColorQuantizer = NeuQuantizer(1)

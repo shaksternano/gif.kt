@@ -188,7 +188,7 @@ internal fun readImage(
             val finalPreviousImage = previousImage
             if (finalPreviousImage == null) {
                 if (
-                    currentColorTable == globalColorTable
+                    currentColorTable === globalColorTable
                     && backgroundColorIndex in 0..<globalColorTableColors
                 ) {
                     getColor(globalColorTable, backgroundColorIndex)
@@ -237,7 +237,7 @@ internal fun disposeImage(
             val height = imageDescriptor.height
 
             val backgroundColor = if (
-                currentColorTable == globalColorTable
+                currentColorTable === globalColorTable
                 && backgroundColorIndex in 0..<globalColorTableColors
             ) {
                 getColor(globalColorTable, backgroundColorIndex)

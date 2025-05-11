@@ -21,17 +21,19 @@ data class ImageFrame(
         if (height != other.height) return false
         if (duration != other.duration) return false
         if (timestamp != other.timestamp) return false
+        if (index != other.index) return false
         if (!argb.contentEquals(other.argb)) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = width
+        var result = argb.contentHashCode()
+        result = 31 * result + width
         result = 31 * result + height
-        result = 31 * result + argb.contentHashCode()
         result = 31 * result + duration.hashCode()
         result = 31 * result + timestamp.hashCode()
+        result = 31 * result + index
         return result
     }
 
@@ -42,6 +44,7 @@ data class ImageFrame(
             ", height=$height" +
             ", duration=$duration" +
             ", timestamp=$timestamp" +
+            ", index=$index" +
             ")"
     }
 }

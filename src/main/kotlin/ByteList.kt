@@ -10,7 +10,7 @@ internal class ByteList private constructor(
     private var elements: ByteArray,
     size: Int,
     private var hashCode: Int,
-    private var lastHashCode: Int? = null
+    private var lastHashCode: Int? = null,
 ) {
 
     /**
@@ -166,6 +166,9 @@ internal class ByteList private constructor(
      */
     fun toByteArray(): ByteArray =
         elements.copyOf(size)
+
+    fun decodeToString(): String =
+        elements.decodeToString(endIndex = size)
 
     /**
      * Returns a new [Iterator] over the elements in this list.

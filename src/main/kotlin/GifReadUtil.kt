@@ -451,7 +451,7 @@ private fun Source.readGifUnknownApplicationExtension(identifier: String): Unkno
     }
 
 private fun Source.readGifCommentExtension(): CommentExtension = readGifSection("comment extension") {
-    val comment = readGifSubBlocks().toByteArray().decodeToString()
+    val comment = readGifSubBlocks().decodeToString()
     CommentExtension(comment)
 }
 

@@ -4,6 +4,8 @@ import kotlinx.io.Source
 import kotlinx.io.readUByte
 import kotlin.properties.Delegates
 
+private const val MAX_LZW_CODE: Int = 0xFFF
+
 internal fun Source.readLzwIndexStream(): ByteList {
     val lzwMinCodeSize = readUByte().toInt()
     val clearCode = 2 shl (lzwMinCodeSize - 1)
@@ -58,7 +60,7 @@ internal fun Source.readLzwIndexStream(): ByteList {
                         val firstIndex = indices.first()
                         previousIndices + firstIndex
                     }
-                    if (codeTable.size < 0xFFF) {
+                    if (codeTable.size < MAX_LZW_CODE) {
                         codeTable.add(nextSequence)
                         if (codeTable.size == 2.pow(currentCodeSize)) {
                             currentCodeSize++

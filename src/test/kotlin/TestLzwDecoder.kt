@@ -22,11 +22,10 @@ class TestLzwDecoder {
             0x04, 0x91, 0x4C, 0x01,
             0x00,
         )
-        val maxColors = 4
         imageData.forEach {
             buffer.writeByte(it)
         }
-        val indexStream = buffer.readLzwIndexStream(maxColors).toByteArray()
+        val indexStream = buffer.readLzwIndexStream().toByteArray()
         val expectedIndices = byteArrayOf(
             1, 1, 1, 1, 1,   2, 2, 2, 2, 2,
             1, 1, 1, 1, 1,   2, 2, 2, 2, 2,

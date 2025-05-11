@@ -4,11 +4,12 @@ import kotlinx.io.Source
 import kotlinx.io.readUByte
 import kotlin.properties.Delegates
 
-internal fun Source.readLzwIndexStream(maxColors: Int): ByteList {
+internal fun Source.readLzwIndexStream(): ByteList {
     val lzwMinCodeSize = readUByte().toInt()
-    val endOfInformationCode = maxColors + 1
+    val clearCode = 2 shl (lzwMinCodeSize - 1)
+    val endOfInformationCode = clearCode + 1
 
-    // Sub-block byte count
+    // Subblock byte count
     var blockSize = readUByte().toInt()
     val initialCodeSize = lzwMinCodeSize + 1
     var currentCodeSize = initialCodeSize
@@ -33,36 +34,37 @@ internal fun Source.readLzwIndexStream(maxColors: Int): ByteList {
                 currentBits = currentBits ushr currentCodeSize
                 currentBitPosition -= currentCodeSize
 
-                // Clear code
-                if (code == maxColors) {
+                if (code == clearCode) {
                     currentCodeSize = initialCodeSize
-                    initCodeTable(codeTable, maxColors)
                     reset = true
                 } else if (code == endOfInformationCode) {
                     return@repeat
                 } else if (reset) {
-                    reset = false
+                    initCodeTable(codeTable, clearCode)
                     val indices = codeTable[code]
                     indexStream.addAll(indices)
                     previousCode = code
+                    reset = false
                 } else {
                     val indices = codeTable.getOrNull(code)
                     val previousIndices = codeTable[previousCode]
-                    if (indices == null) {
+                    val nextSequence = if (indices == null) {
                         val firstIndex = previousIndices.first()
                         val nextSequence = previousIndices + firstIndex
                         indexStream.addAll(nextSequence)
-                        codeTable.add(nextSequence)
+                        nextSequence
                     } else {
                         indexStream.addAll(indices)
                         val firstIndex = indices.first()
-                        val nextSequence = previousIndices + firstIndex
+                        previousIndices + firstIndex
+                    }
+                    if (codeTable.size < 0xFFF) {
                         codeTable.add(nextSequence)
+                        if (codeTable.size == 2.pow(currentCodeSize)) {
+                            currentCodeSize++
+                        }
                     }
                     previousCode = code
-                    if (codeTable.size == 2.pow(currentCodeSize)) {
-                        currentCodeSize++
-                    }
                 }
             }
         }
@@ -71,9 +73,9 @@ internal fun Source.readLzwIndexStream(maxColors: Int): ByteList {
     return indexStream
 }
 
-private fun initCodeTable(codeTable: MutableList<ByteList>, maxColors: Int) {
+private fun initCodeTable(codeTable: MutableList<ByteList>, clearCode: Int) {
     codeTable.clear()
-    repeat(maxColors) { i ->
+    repeat(clearCode) { i ->
         codeTable.add(ByteList(i.toByte()))
     }
     codeTable.add(ByteList()) // Clear code

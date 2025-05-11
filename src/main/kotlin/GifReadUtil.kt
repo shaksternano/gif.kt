@@ -46,7 +46,7 @@ internal inline fun RawSource.readGif(
     var timestamp = Duration.ZERO
 
     var bytesRead = monitoredSource.bytesRead
-    var block = source.readGifBlock(globalColorTableColors)
+    var block = source.readGifBlock()
     while (block != GifTerminator) {
         when (block) {
             is GraphicsControlExtension -> {
@@ -130,7 +130,7 @@ internal inline fun RawSource.readGif(
         }
 
         bytesRead = monitoredSource.bytesRead
-        block = source.readGifBlock(globalColorTableColors)
+        block = source.readGifBlock()
     }
 
     return GifInfo(
@@ -369,12 +369,12 @@ internal fun Source.readGifGlobalColorTable(size: Int): ByteArray = readGifSecti
     readGifColorTable(size)
 }
 
-internal fun Source.readGifBlock(globalColorTableColors: Int): GifBlock = readGifSection("content") {
+internal fun Source.readGifBlock(): GifBlock = readGifSection("content") {
     if (exhausted()) return GifTerminator
     val blockIntroducer = readUByte().toInt()
     when (blockIntroducer) {
         0x21 -> readGifExtension()
-        0x2C -> readGifImage(globalColorTableColors)
+        0x2C -> readGifImage()
         0x3B -> GifTerminator
         else -> throw InvalidGifException("Unknown block introducer: ${blockIntroducer.toHexByteString()}")
     }
@@ -461,17 +461,12 @@ private fun Source.readGifUnknownExtension(label: Int): UnknownExtension =
         UnknownExtension
     }
 
-private fun Source.readGifImage(globalColorTableColors: Int): GifImage = readGifSection("image") {
+private fun Source.readGifImage(): GifImage = readGifSection("image") {
     val imageDescriptor = readGifImageDescriptor()
     val localColorTable = if (imageDescriptor.localColorTableColors > 0) {
         readGifLocalColorTable(BYTES_PER_COLOR * imageDescriptor.localColorTableColors)
     } else null
-    val maxColors = if (localColorTable == null) {
-        globalColorTableColors
-    } else {
-        imageDescriptor.localColorTableColors
-    }
-    val indices = readGifImageData(maxColors)
+    val indices = readGifImageData()
     GifImage(imageDescriptor, localColorTable, indices)
 }
 
@@ -511,8 +506,8 @@ private fun Source.readGifLocalColorTable(size: Int): ByteArray = readGifSection
     readGifColorTable(size)
 }
 
-private fun Source.readGifImageData(maxColors: Int): ByteList = readGifSection("LZW image data") {
-    readLzwIndexStream(maxColors)
+private fun Source.readGifImageData(): ByteList = readGifSection("LZW image data") {
+    readLzwIndexStream()
 }
 
 private fun calculateColorTableColors(colorTableSize: Int): Int {

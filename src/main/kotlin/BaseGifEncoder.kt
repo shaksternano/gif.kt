@@ -61,14 +61,14 @@ internal class BaseGifEncoder(
         duration: Duration,
         quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod, Boolean) -> Unit,
         wrapIo: (() -> Unit) -> Unit = { it() },
-    ): Boolean {
+    ) {
         /*
          * Handle the minimum frame duration.
          */
         val newPendingDuration = pendingDuration + duration
         if (writtenAny && newPendingDuration <= minimumFrameDuration) {
             pendingDuration = newPendingDuration
-            return false
+            return
         }
 
         /*
@@ -88,7 +88,7 @@ internal class BaseGifEncoder(
         ) {
             // Merge similar sequential frames into one
             pendingDuration += duration
-            return false
+            return
         }
 
         // Optimise transparency
@@ -167,7 +167,7 @@ internal class BaseGifEncoder(
         previousFrame = currentFrame
         pendingWrite = toWrite
         optimizedPreviousFrame = optimizedTransparency
-        return true
+        return
     }
 
     private inline fun init(
@@ -348,42 +348,59 @@ internal class BaseGifEncoder(
         afterFinalQuantizedWrite: () -> Unit = {},
         wrapIo: (() -> Unit) -> Unit = { it() },
     ) {
-        val pendingWrite = pendingWrite
-        if (pendingWrite != null && (frameCount == 0 || pendingDuration > Duration.ZERO)) {
-            val centiseconds: Int
-            val actualLoopCount: Int
-            if (frameCount > 1) {
-                centiseconds = pendingDuration.roundedUpCentiseconds
-                    .coerceAtLeast(minimumFrameDurationCentiseconds)
-                actualLoopCount = loopCount
-            } else {
-                centiseconds = 0
-                actualLoopCount = -1
+        var closeThrowable: Throwable? = null
+        try {
+            val pendingWrite = pendingWrite
+            if (pendingWrite != null && (frameCount == 0 || pendingDuration > Duration.ZERO)) {
+                val centiseconds: Int
+                val actualLoopCount: Int
+                if (frameCount > 1) {
+                    centiseconds = pendingDuration.roundedUpCentiseconds
+                        .coerceAtLeast(minimumFrameDurationCentiseconds)
+                    actualLoopCount = loopCount
+                } else {
+                    centiseconds = 0
+                    actualLoopCount = -1
+                }
+                initAndWriteFrame(
+                    pendingWrite,
+                    previousFrame,
+                    centiseconds,
+                    pendingDisposalMethod,
+                    actualLoopCount,
+                    quantizeAndWriteFrame,
+                    wrapIo,
+                )
             }
-            initAndWriteFrame(
-                pendingWrite,
-                previousFrame,
-                centiseconds,
-                pendingDisposalMethod,
-                actualLoopCount,
-                quantizeAndWriteFrame,
-                wrapIo,
-            )
-        }
-        afterFinalWrite()
-        val pendingQuantizedData = pendingQuantizedData
-        if (pendingQuantizedData != null) {
-            writeGifImage(
-                pendingQuantizedData,
-                pendingQuantizedDurationCentiseconds,
-                pendingQuantizedDisposalMethod,
-                encodeAndWriteImage,
-            )
-        }
-        afterFinalQuantizedWrite()
-        wrapIo {
-            sink.writeGifTrailer()
-            sink.close()
+            afterFinalWrite()
+            val pendingQuantizedData = pendingQuantizedData
+            if (pendingQuantizedData != null) {
+                writeGifImage(
+                    pendingQuantizedData,
+                    pendingQuantizedDurationCentiseconds,
+                    pendingQuantizedDisposalMethod,
+                    encodeAndWriteImage,
+                )
+            }
+            afterFinalQuantizedWrite()
+            wrapIo {
+                sink.writeGifTrailer()
+            }
+        } catch (t: Throwable) {
+            closeThrowable = t
+            throw t
+        } finally {
+            try {
+                wrapIo {
+                    sink.close()
+                }
+            } catch (t: Throwable) {
+                if (closeThrowable == null) {
+                    throw t
+                } else {
+                    closeThrowable.addSuppressed(t)
+                }
+            }
         }
     }
 }

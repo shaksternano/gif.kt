@@ -1,8 +1,12 @@
 package io.github.shaksternano.gifcodec
 
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.io.Buffer
+import kotlinx.io.IOException
 import kotlinx.io.Sink
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
@@ -47,7 +51,8 @@ class ParallelGifEncoder(
         quantizer,
     )
 
-    private var processedFrameIndex: Int = 0
+    @OptIn(ExperimentalAtomicApi::class)
+    private val throwableReference: AtomicReference<Throwable?> = AtomicReference(null)
 
     private val quantizeExecutor: AsyncExecutor<QuantizeInput, QuantizeOutput> =
         AsyncExecutor(
@@ -57,12 +62,31 @@ class ParallelGifEncoder(
             onOutput = ::writeOrOptimizeGifImage,
         )
 
-    private val encodeExecutor: ChannelOutputAsyncExecutor<EncodeInput, Buffer> =
-        ChannelOutputAsyncExecutor(
+    private val encodeExecutor: AsyncExecutor<EncodeInput, Buffer> =
+        AsyncExecutor(
             maxConcurrency = maxConcurrency,
             scope = scope,
             task = ::encodeGifImage,
+            onOutput = ::transferToSink,
         )
+
+    private val onFrameProcessedChannel: Channel<Unit> = Channel(capacity = Channel.UNLIMITED)
+    private val onFrameProcessedJob: Job = scope.launch {
+        var processedFrameIndex = 0
+        @Suppress("unused")
+        for (unused in onFrameProcessedChannel) {
+            launch {
+                try {
+                    onFrameProcessed(processedFrameIndex)
+                } catch (t: Throwable) {
+                    val exception = Exception("Error running onFrameProcessed callback", t)
+                    @OptIn(ExperimentalAtomicApi::class)
+                    throwableReference.compareAndSet(null, exception)
+                }
+            }
+            processedFrameIndex++
+        }
+    }
 
     suspend fun writeFrame(
         image: IntArray,
@@ -70,7 +94,13 @@ class ParallelGifEncoder(
         height: Int,
         duration: Duration,
     ) {
-        val willBeWritten = baseEncoder.writeFrame(
+        @OptIn(ExperimentalAtomicApi::class)
+        val throwable = throwableReference.load()
+        if (throwable != null) {
+            throw createException(throwable)
+        }
+
+        baseEncoder.writeFrame(
             image,
             width,
             height,
@@ -85,12 +115,11 @@ class ParallelGifEncoder(
                 )
             },
             wrapIo = {
-                wrapIo(it)
+                withContext(ioContext) {
+                    it()
+                }
             },
         )
-        if (!willBeWritten) {
-            onFrameProcessed()
-        }
     }
 
     suspend fun writeFrame(frame: ImageFrame) =
@@ -101,28 +130,22 @@ class ParallelGifEncoder(
             frame.duration,
         )
 
-    // Runs on caller's thread
     private suspend fun quantizeAndWriteFrame(
         optimizedImage: Image,
         originalImage: Image,
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
         optimizedPreviousFrame: Boolean,
-    ) = coroutineScope {
-        val quantizeJob = launch {
-            quantizeExecutor.submit(
-                QuantizeInput(
-                    optimizedImage,
-                    originalImage,
-                    durationCentiseconds,
-                    disposalMethod,
-                    optimizedPreviousFrame,
-                )
+    ) {
+        quantizeExecutor.submit(
+            QuantizeInput(
+                optimizedImage,
+                originalImage,
+                durationCentiseconds,
+                disposalMethod,
+                optimizedPreviousFrame,
             )
-        }
-        while (quantizeJob.isActive) {
-            flushCurrent()
-        }
+        )
     }
 
     private fun quantizeImage(input: QuantizeInput): QuantizeOutput {
@@ -145,7 +168,8 @@ class ParallelGifEncoder(
     private suspend fun writeOrOptimizeGifImage(output: Result<QuantizeOutput>) {
         val error = output.exceptionOrNull()
         if (error != null) {
-            encodeExecutor.submitFailure(error)
+            @OptIn(ExperimentalAtomicApi::class)
+            throwableReference.compareAndSet(null, error)
             return
         }
         val (
@@ -196,67 +220,69 @@ class ParallelGifEncoder(
         return buffer
     }
 
-    // Runs on caller's thread
-    private suspend fun flushCurrent() {
-        encodeExecutor.output.forEachCurrent { bufferResult ->
-            transferToSink(bufferResult.getOrThrow())
+    private suspend fun transferToSink(output: Result<Buffer>) {
+        val error = output.exceptionOrNull()
+        if (error != null) {
+            @OptIn(ExperimentalAtomicApi::class)
+            throwableReference.compareAndSet(null, error)
+            return
         }
-    }
-
-    // Runs on caller's thread
-    private suspend fun flushRemaining() {
-        encodeExecutor.output.forEach { bufferResult ->
-            transferToSink(bufferResult.getOrThrow())
-        }
-    }
-
-    // Runs on caller's thread
-    private suspend fun transferToSink(buffer: Buffer) {
-        wrapIo {
+        val buffer = output.getOrThrow()
+        withContext(ioContext) {
             buffer.transferTo(sink)
         }
-        onFrameProcessed()
+        onFrameProcessedChannel.send(Unit)
     }
 
-    // Runs on caller's thread
-    private suspend fun onFrameProcessed() {
-        onFrameProcessed(processedFrameIndex++)
+    private fun createException(cause: Throwable): IOException {
+        return IOException("Error while writing GIF frame", cause)
     }
 
-    private suspend fun wrapIo(block: () -> Unit) {
-        withContext(ioContext) {
-            block()
+    override suspend fun close() {
+        var closeThrowable: Throwable? = null
+        try {
+            baseEncoder.close(
+                quantizeAndWriteFrame = { optimizedImage, originalImage, durationCentiseconds, disposalMethod, optimizedPreviousFrame ->
+                    quantizeAndWriteFrame(
+                        optimizedImage,
+                        originalImage,
+                        durationCentiseconds,
+                        disposalMethod,
+                        optimizedPreviousFrame,
+                    )
+                },
+                encodeAndWriteImage = { imageData, durationCentiseconds, disposalMethod ->
+                    encodeAndWriteImage(imageData, durationCentiseconds, disposalMethod)
+                },
+                afterFinalWrite = {
+                    quantizeExecutor.close()
+                },
+                afterFinalQuantizedWrite = {
+                    encodeExecutor.close()
+                },
+                wrapIo = {
+                    withContext(ioContext) {
+                        it()
+                    }
+                },
+            )
+            onFrameProcessedChannel.close()
+            onFrameProcessedJob.join()
+        } catch (t: Throwable) {
+            closeThrowable = t
+            throw t
+        } finally {
+            @OptIn(ExperimentalAtomicApi::class)
+            val throwable = throwableReference.load()
+            if (throwable != null) {
+                val exception = createException(throwable)
+                if (closeThrowable == null) {
+                    throw exception
+                } else {
+                    closeThrowable.addSuppressed(exception)
+                }
+            }
         }
-    }
-
-    override suspend fun close() = coroutineScope {
-        val flushJob = launch {
-            flushRemaining()
-        }
-        baseEncoder.close(
-            quantizeAndWriteFrame = { optimizedImage, originalImage, durationCentiseconds, disposalMethod, optimizedPreviousFrame ->
-                quantizeAndWriteFrame(
-                    optimizedImage,
-                    originalImage,
-                    durationCentiseconds,
-                    disposalMethod,
-                    optimizedPreviousFrame,
-                )
-            },
-            encodeAndWriteImage = { imageData, durationCentiseconds, disposalMethod ->
-                encodeAndWriteImage(imageData, durationCentiseconds, disposalMethod)
-            },
-            afterFinalWrite = {
-                quantizeExecutor.close()
-            },
-            afterFinalQuantizedWrite = {
-                encodeExecutor.close()
-                flushJob.join()
-            },
-            wrapIo = {
-                wrapIo(it)
-            },
-        )
     }
 
     private data class QuantizeInput(

@@ -52,8 +52,8 @@ internal inline fun readGif(
     var timestamp = Duration.ZERO
 
     var bytesRead = source.bytesRead
-    var isKeyFrame = keyFrameInterval > 0
-    var block = source.readGifBlock(decodeImages || isKeyFrame)
+    val useKeyFrames = keyFrameInterval > 0
+    var block = source.readGifBlock(decodeImages || useKeyFrames)
     while (block != GifTerminator) {
         when (block) {
             is GraphicsControlExtension -> {
@@ -79,7 +79,7 @@ internal inline fun readGif(
                 val currentColorTable = block.localColorTable ?: globalColorTable
                 ?: throw InvalidGifException("Frame $frameIndex has no color table")
 
-                val keyframeArgb = if (decodeImages || isKeyFrame) {
+                val keyframeArgb = if (decodeImages || useKeyFrames) {
                     val imageFrame = readImage(
                         canvasWidth,
                         canvasHeight,
@@ -114,6 +114,7 @@ internal inline fun readGif(
                         previousImage = disposedImage
                     }
 
+                    val isKeyFrame = useKeyFrames && frameIndex % keyFrameInterval == 0
                     if (isKeyFrame) {
                         imageFrame.argb
                     } else {
@@ -139,26 +140,25 @@ internal inline fun readGif(
                 currentDelayTime = 0
                 currentTransparentColorIndex = -1
 
-                frameIndex++
                 timestamp += duration
+                frameIndex++
             }
 
             else -> Unit
         }
 
         bytesRead = source.bytesRead
-        isKeyFrame = keyFrameInterval > 0 && frameIndex % keyFrameInterval == 0
-        block = source.readGifBlock(decodeImages || isKeyFrame)
+        block = source.readGifBlock(decodeImages || useKeyFrames)
     }
 
     return GifInfo(
         canvasWidth,
         canvasHeight,
-        globalColorTable,
-        backgroundColorIndex,
         frameIndex,
         timestamp,
         loopCount,
+        globalColorTable,
+        backgroundColorIndex,
         frames,
     )
 }

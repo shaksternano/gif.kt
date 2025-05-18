@@ -78,9 +78,7 @@ internal class ByteList private constructor(
      */
     fun addAll(elements: ByteList) {
         val newSize = size + elements.size
-        if (newSize > this.elements.size) {
-            this.elements = getBiggerArray(newSize)
-        }
+        ensureCapacity(newSize)
         elements.elements.copyInto(
             destination = this.elements,
             destinationOffset = size,
@@ -94,6 +92,37 @@ internal class ByteList private constructor(
     }
 
     /**
+     * Adds all the specified [elements] to the end of this list.
+     */
+    operator fun plusAssign(elements: ByteList) {
+        addAll(elements)
+    }
+
+    /**
+     * Adds all the specified [elements] to the end of this list.
+     */
+    fun addAll(elements: ByteArray) {
+        val newSize = size + elements.size
+        ensureCapacity(newSize)
+        elements.copyInto(
+            destination = this.elements,
+            destinationOffset = size,
+        )
+        size = newSize
+        for (byte in elements) {
+            lastHashCode = hashCode
+            hashCode = getNewHashCode(hashCode, byte)
+        }
+    }
+
+    /**
+     * Adds all the specified [elements] to the end of this list.
+     */
+    operator fun plusAssign(elements: ByteArray) {
+        addAll(elements)
+    }
+
+    /**
      * Removes the last element from this mutable list.
      */
     fun removeLast() {
@@ -103,6 +132,12 @@ internal class ByteList private constructor(
         size--
         hashCode = lastHashCode ?: calculateHashCode(elements, size)
         lastHashCode = null
+    }
+
+    private fun ensureCapacity(minCapacity: Int) {
+        if (minCapacity > elements.size) {
+            elements = getBiggerArray(minCapacity)
+        }
     }
 
     private fun getBiggerArray(minCapacity: Int = 0): ByteArray {
@@ -167,13 +202,16 @@ internal class ByteList private constructor(
     fun toByteArray(): ByteArray =
         elements.copyOf(size)
 
+    /**
+     * Decodes a string from the bytes in UTF-8 encoding in this list.
+     */
     fun decodeToString(): String =
         elements.decodeToString(endIndex = size)
 
     /**
      * Returns a new [Iterator] over the elements in this list.
      */
-    operator fun iterator(): Iterator = Iterator()
+    operator fun iterator(): ByteIterator = Iterator()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -192,13 +230,13 @@ internal class ByteList private constructor(
     /**
      * An iterator over the elements in the list.
      */
-    inner class Iterator {
+    inner class Iterator : ByteIterator() {
 
         private var index = 0
 
-        operator fun hasNext(): Boolean = index < size
+        override fun hasNext(): Boolean = index < size
 
-        operator fun next(): Byte {
+        override fun nextByte(): Byte {
             if (!hasNext()) {
                 throw NoSuchElementException()
             }

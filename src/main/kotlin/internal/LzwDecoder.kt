@@ -1,12 +1,10 @@
 package io.github.shaksternano.gifcodec.internal
 
-import kotlinx.io.Source
-import kotlinx.io.readUByte
 import kotlin.properties.Delegates
 
 private const val MAX_LZW_CODE: Int = 0xFFF
 
-internal fun Source.readLzwIndexStream(): ByteList {
+internal fun MonitoredSource.readLzwIndexStream(): ByteList {
     val lzwMinCodeSize = readUByte().toInt()
     val clearCode = 2 shl (lzwMinCodeSize - 1)
     val endOfInformationCode = clearCode + 1
@@ -44,7 +42,7 @@ internal fun Source.readLzwIndexStream(): ByteList {
                 } else if (reset) {
                     initCodeTable(codeTable, clearCode)
                     val indices = codeTable[code]
-                    indexStream.addAll(indices)
+                    indexStream += indices
                     previousCode = code
                     reset = false
                 } else {
@@ -53,10 +51,10 @@ internal fun Source.readLzwIndexStream(): ByteList {
                     val nextSequence = if (indices == null) {
                         val firstIndex = previousIndices.first()
                         val nextSequence = previousIndices + firstIndex
-                        indexStream.addAll(nextSequence)
+                        indexStream += nextSequence
                         nextSequence
                     } else {
-                        indexStream.addAll(indices)
+                        indexStream += indices
                         val firstIndex = indices.first()
                         previousIndices + firstIndex
                     }

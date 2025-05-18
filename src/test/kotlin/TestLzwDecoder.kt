@@ -1,5 +1,6 @@
 package io.github.shaksternano.gifcodec
 
+import io.github.shaksternano.gifcodec.internal.MonitoredSource
 import io.github.shaksternano.gifcodec.internal.readLzwIndexStream
 import io.github.shaksternano.gifcodec.internal.writeByte
 import kotlinx.io.Buffer
@@ -27,7 +28,7 @@ class TestLzwDecoder {
         imageData.forEach {
             buffer.writeByte(it)
         }
-        val indexStream = buffer.readLzwIndexStream().toByteArray()
+        val indexStream = MonitoredSource(buffer).readLzwIndexStream().toByteArray()
         val expectedIndices = byteArrayOf(
             1, 1, 1, 1, 1,   2, 2, 2, 2, 2,
             1, 1, 1, 1, 1,   2, 2, 2, 2, 2,

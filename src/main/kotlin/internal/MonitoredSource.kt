@@ -1,22 +1,50 @@
 package io.github.shaksternano.gifcodec.internal
 
-import kotlinx.io.Buffer
-import kotlinx.io.RawSource
+import kotlinx.io.*
 
-class MonitoredSource(
-    private val source: RawSource,
-) : RawSource {
+internal class MonitoredSource(
+    private val source: Source,
+) : AutoCloseable {
 
     var bytesRead: Long = 0
         private set
 
-    override fun readAtMostTo(sink: Buffer, byteCount: Long): Long {
-        val read = source.readAtMostTo(sink, byteCount)
-        if (read > 0) {
-            bytesRead += read
-        }
-        return read
+    fun readByte(): Byte {
+        val byte = source.readByte()
+        bytesRead++
+        return byte
     }
+
+    fun readUByte(): UByte {
+        val byte = source.readUByte()
+        bytesRead++
+        return byte
+    }
+
+    fun readLittleEndianShort(): Int {
+        val short = source.readShortLe()
+        bytesRead += 2
+        return short.toInt()
+    }
+
+    fun readByteArray(byteCount: Int): ByteArray {
+        val bytes = source.readByteArray(byteCount)
+        bytesRead += byteCount.toLong()
+        return bytes
+    }
+
+    fun skip(byteCount: Long) {
+        source.skip(byteCount)
+        bytesRead += byteCount
+    }
+
+    fun readString(byteCount: Long): String {
+        val string = source.readString(byteCount)
+        bytesRead += byteCount
+        return string
+    }
+
+    fun exhausted(): Boolean = source.exhausted()
 
     override fun close() = source.close()
 }

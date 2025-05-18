@@ -36,6 +36,7 @@ internal fun Sink.writeLzwIndexStream(indexStream: ByteArray, colorTableSize: In
             return@forEach
         }
         // Next sequence
+        // Mutating the current sequence is faster than creating a new one
         indexBuffer += index
         if (!codeTable.containsKey(indexBuffer)) {
             val nextSequence = indexBuffer.copyOf()
@@ -54,7 +55,8 @@ internal fun Sink.writeLzwIndexStream(indexStream: ByteArray, colorTableSize: In
             val nextNextCode = codeTable.size + LZW_SPECIAL_CODES_COUNT
             if (nextNextCode > LZW_CODE_TABLE_MAX_CODE) {
                 // Rebuild the code table if the maximum code is reached
-                bitBuffer.writeBits(colorCount, codeSize) // Clear code
+                // Clear code
+                bitBuffer.writeBits(colorCount, codeSize)
                 tryWriteFullLzwSubBlock(bitBuffer)
                 initLzwCodeTable(codeTable, colorCount)
                 codeSize = initialCodeSize
@@ -76,7 +78,8 @@ internal fun Sink.writeLzwIndexStream(indexStream: ByteArray, colorTableSize: In
         writeByte(buffer.size.toByte())
         transferFrom(buffer)
     }
-    writeByte(0x00) // Block terminator
+    // Block terminator
+    writeByte(0x00)
 }
 
 private fun Sink.tryWriteFullLzwSubBlock(bitBuffer: BitBuffer) {

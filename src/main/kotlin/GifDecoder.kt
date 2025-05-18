@@ -1,7 +1,6 @@
 package io.github.shaksternano.gifcodec
 
 import io.github.shaksternano.gifcodec.internal.readGifFrames
-import io.github.shaksternano.gifcodec.internal.readGifIntroduction
 import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlin.time.Duration
@@ -26,12 +25,6 @@ class GifDecoder(
     private var backgroundColorIndex: Int = 0
 
     private fun init() {
-        val introduction = source.readGifIntroduction()
-        width = introduction.logicalScreenDescriptor.width
-        height = introduction.logicalScreenDescriptor.height
-        backgroundColorIndex = introduction.logicalScreenDescriptor.backgroundColorIndex
-        globalColorTable = introduction.globalColorTable
-        initialized = true
     }
 
     fun readFrame(index: Int): ImageFrame {
@@ -50,7 +43,7 @@ class GifDecoder(
 
     fun asSequence(): Sequence<ImageFrame> =
         readGifFrames {
-            data.read()
+            data.read().buffered()
         }
 
     override fun close() {

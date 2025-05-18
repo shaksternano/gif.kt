@@ -3,7 +3,7 @@ package io.github.shaksternano.gifcodec.internal
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 
-fun ByteArray.asSource(offset: Int = 0): RawSource = ByteArraySource(this, offset)
+internal fun ByteArray.asSource(offset: Int = 0): RawSource = ByteArraySource(this, offset)
 
 internal class ByteArraySource(
     private val bytes: ByteArray,

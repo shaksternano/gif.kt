@@ -1,5 +1,6 @@
 package io.github.shaksternano.gifcodec
 
+import io.github.shaksternano.gifcodec.internal.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.io.Buffer

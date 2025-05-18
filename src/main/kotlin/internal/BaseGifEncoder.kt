@@ -1,5 +1,6 @@
-package io.github.shaksternano.gifcodec
+package io.github.shaksternano.gifcodec.internal
 
+import io.github.shaksternano.gifcodec.ColorQuantizer
 import kotlinx.io.Sink
 import kotlin.time.Duration
 
@@ -17,7 +18,7 @@ internal class BaseGifEncoder(
     private val optimizeQuantizedTransparency: Boolean,
     private val cropTransparent: Boolean,
     private val alphaFill: Int,
-    private val comment: String ,
+    private val comment: String,
     private val minimumFrameDurationCentiseconds: Int,
     private val quantizer: ColorQuantizer,
 ) {

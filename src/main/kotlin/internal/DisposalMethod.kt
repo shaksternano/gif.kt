@@ -1,4 +1,4 @@
-package io.github.shaksternano.gifcodec
+package io.github.shaksternano.gifcodec.internal
 
 /**
  * Indicates the way in which a frame is to
@@ -36,7 +36,7 @@ enum class DisposalMethod(
 
     companion object {
         fun fromId(id: Int): DisposalMethod {
-            return DisposalMethod.entries.firstOrNull { it.id == id }
+            return entries.firstOrNull { it.id == id }
                 ?: throw NoSuchElementException("No DisposalMethod with id $id")
         }
     }

@@ -1,5 +1,6 @@
-package io.github.shaksternano.gifcodec
+package io.github.shaksternano.gifcodec.internal
 
+import io.github.shaksternano.gifcodec.SuspendClosable
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Semaphore

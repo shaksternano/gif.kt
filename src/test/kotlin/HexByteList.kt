@@ -1,5 +1,7 @@
 package io.github.shaksternano.gifcodec
 
+import io.github.shaksternano.gifcodec.internal.toHexByteString
+
 /**
  * For making byte lists more readable when tests fail.
  */

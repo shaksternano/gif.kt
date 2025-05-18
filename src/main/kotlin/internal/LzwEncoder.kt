@@ -1,4 +1,4 @@
-package io.github.shaksternano.gifcodec
+package io.github.shaksternano.gifcodec.internal
 
 import kotlinx.io.Sink
 

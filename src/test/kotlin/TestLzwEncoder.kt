@@ -1,5 +1,6 @@
 package io.github.shaksternano.gifcodec
 
+import io.github.shaksternano.gifcodec.internal.writeLzwIndexStream
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import kotlin.test.Test

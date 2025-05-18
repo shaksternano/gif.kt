@@ -1,5 +1,6 @@
-package io.github.shaksternano.gifcodec
+package io.github.shaksternano.gifcodec.internal
 
+import io.github.shaksternano.gifcodec.ColorQuantizer
 import kotlinx.io.Sink
 import kotlinx.io.writeShortLe
 import kotlinx.io.writeString

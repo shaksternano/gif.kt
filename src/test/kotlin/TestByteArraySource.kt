@@ -1,5 +1,6 @@
 package io.github.shaksternano.gifcodec
 
+import io.github.shaksternano.gifcodec.internal.asSource
 import kotlinx.io.buffered
 import kotlinx.io.readTo
 import kotlin.random.Random

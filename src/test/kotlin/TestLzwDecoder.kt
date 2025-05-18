@@ -1,5 +1,7 @@
 package io.github.shaksternano.gifcodec
 
+import io.github.shaksternano.gifcodec.internal.readLzwIndexStream
+import io.github.shaksternano.gifcodec.internal.writeByte
 import kotlinx.io.Buffer
 import kotlin.test.Test
 import kotlin.test.assertContentEquals

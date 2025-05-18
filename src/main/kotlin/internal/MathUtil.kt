@@ -1,4 +1,4 @@
-package io.github.shaksternano.gifcodec
+package io.github.shaksternano.gifcodec.internal
 
 import kotlin.math.ceil
 import kotlin.math.pow

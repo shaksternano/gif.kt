@@ -1,4 +1,4 @@
-package io.github.shaksternano.gifcodec
+package io.github.shaksternano.gifcodec.internal
 
 internal data class QuantizedImageData(
     val imageColorIndices: ByteArray,

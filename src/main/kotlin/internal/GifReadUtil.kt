@@ -1,5 +1,7 @@
-package io.github.shaksternano.gifcodec
+package io.github.shaksternano.gifcodec.internal
 
+import io.github.shaksternano.gifcodec.ImageFrame
+import io.github.shaksternano.gifcodec.InvalidGifException
 import kotlinx.io.*
 import kotlin.time.Duration
 

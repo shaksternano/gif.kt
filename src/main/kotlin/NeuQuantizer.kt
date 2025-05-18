@@ -1,5 +1,7 @@
 package io.github.shaksternano.gifcodec
 
+import io.github.shaksternano.gifcodec.internal.NeuQuant
+
 private const val NEU_QUANT_MAX_SAMPLING_FACTOR: Int = 30
 
 class NeuQuantizer(

@@ -1,5 +1,7 @@
 package io.github.shaksternano.gifcodec
 
+import io.github.shaksternano.gifcodec.internal.readGifFrames
+import io.github.shaksternano.gifcodec.internal.readGifIntroduction
 import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlin.time.Duration

@@ -1,5 +1,14 @@
 package io.github.shaksternano.gifcodec
 
+import io.github.shaksternano.gifcodec.internal.DisposalMethod
+import io.github.shaksternano.gifcodec.internal.writeGifApplicationExtension
+import io.github.shaksternano.gifcodec.internal.writeGifCommentExtension
+import io.github.shaksternano.gifcodec.internal.writeGifGraphicsControlExtension
+import io.github.shaksternano.gifcodec.internal.writeGifHeader
+import io.github.shaksternano.gifcodec.internal.writeGifImageData
+import io.github.shaksternano.gifcodec.internal.writeGifImageDescriptor
+import io.github.shaksternano.gifcodec.internal.writeGifLogicalScreenDescriptor
+import io.github.shaksternano.gifcodec.internal.writeGifTrailer
 import kotlinx.io.Buffer
 import kotlin.test.Test
 import kotlin.test.assertContentEquals

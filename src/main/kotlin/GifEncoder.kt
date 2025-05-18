@@ -1,5 +1,6 @@
 package io.github.shaksternano.gifcodec
 
+import io.github.shaksternano.gifcodec.internal.*
 import kotlinx.io.Sink
 import kotlin.time.Duration
 
@@ -53,7 +54,7 @@ class GifEncoder(
             frame.argb,
             frame.width,
             frame.height,
-            frame.duration
+            frame.duration,
         )
 
     private fun quantizeAndWriteFrame(

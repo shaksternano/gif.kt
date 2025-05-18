@@ -1,4 +1,7 @@
-package io.github.shaksternano.gifcodec
+package io.github.shaksternano.gifcodec.internal
+
+import io.github.shaksternano.gifcodec.ColorQuantizer
+import io.github.shaksternano.gifcodec.ColorTable
 
 internal object DirectColorQuantizer : ColorQuantizer {
 

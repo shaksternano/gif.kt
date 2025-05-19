@@ -18,11 +18,18 @@ class GifDecoder(
     val frameCount: Int
     val duration: Duration
     val loopCount: Int
+    val frameInfos: List<FrameInfo>
+        get() = frames.map {
+            FrameInfo(
+                duration = it.duration,
+                timestamp = it.timestamp,
+            )
+        }
 
     private val globalColorTable: ByteArray?
     private val globalColorTableColors: Int
     private val backgroundColorIndex: Int
-    private val frames: List<FrameInfo>
+    private val frames: List<RawImage>
 
     init {
         val gifInfo = data.read().buffered().use { source ->
@@ -73,7 +80,7 @@ class GifDecoder(
         )
     }
 
-    private fun findLastKeyframe(index: Int): FrameInfo {
+    private fun findLastKeyframe(index: Int): RawImage {
         for (i in index downTo 0) {
             val frame = frames[i]
             if (frame.isKeyFrame || frame.argb.isNotEmpty()) {
@@ -107,7 +114,7 @@ class GifDecoder(
         return readFrame(index)
     }
 
-    private fun findIndex(timestamp: Duration, frames: List<FrameInfo>): Int {
+    private fun findIndex(timestamp: Duration, frames: List<RawImage>): Int {
         var low = 0
         var high = frames.size - 1
         while (low <= high) {

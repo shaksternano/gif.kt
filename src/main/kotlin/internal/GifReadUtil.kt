@@ -41,7 +41,7 @@ private fun MonitoredSource.readGifContent(
     var loopCount = -1
     var comment = ""
 
-    val frames = mutableListOf<FrameInfo>()
+    val frames = mutableListOf<RawImage>()
 
     var currentDisposalMethod = DisposalMethod.UNSPECIFIED
     var currentDelayTime = 0
@@ -127,7 +127,7 @@ private fun MonitoredSource.readGifContent(
                     EMPTY_INT_ARRAY
                 }
 
-                val frame = FrameInfo(
+                val frame = RawImage(
                     cacheFrameArgb,
                     imageDescriptor.left,
                     imageDescriptor.top,

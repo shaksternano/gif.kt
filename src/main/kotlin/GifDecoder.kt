@@ -25,23 +25,23 @@ class GifDecoder(
     private val frames: List<FrameInfo>
 
     init {
-        data.read().buffered().use { source ->
-            val gifInfo = source.readGif(cacheFrameInterval)
+        val gifInfo = data.read().buffered().use { source ->
+            source.readGif(cacheFrameInterval)
+        }
 
-            width = gifInfo.width
-            height = gifInfo.height
-            frameCount = gifInfo.frameCount
-            duration = gifInfo.duration
-            loopCount = gifInfo.loopCount
-            globalColorTable = gifInfo.globalColorTable
-            globalColorTableColors = gifInfo.globalColorTableColors
-            backgroundColorIndex = gifInfo.backgroundColorIndex
-            frames = gifInfo.frames
+        width = gifInfo.width
+        height = gifInfo.height
+        frameCount = gifInfo.frameCount
+        duration = gifInfo.duration
+        loopCount = gifInfo.loopCount
+        globalColorTable = gifInfo.globalColorTable
+        globalColorTableColors = gifInfo.globalColorTableColors
+        backgroundColorIndex = gifInfo.backgroundColorIndex
+        frames = gifInfo.frames
 
-            val firstFrame = frames.firstOrNull()
-            if (firstFrame != null && firstFrame.timestamp < Duration.ZERO) {
-                throw IllegalStateException("First frame timestamp is negative")
-            }
+        val firstFrame = frames.firstOrNull()
+        if (firstFrame != null && firstFrame.timestamp < Duration.ZERO) {
+            throw IllegalStateException("First frame timestamp is negative")
         }
     }
 

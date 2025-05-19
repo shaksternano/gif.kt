@@ -62,7 +62,7 @@ class GifDecoder(
         for (i in keyframe.index..index) {
             val frame = frames[i]
             imageArgb = if (frame.argb.isNotEmpty()) {
-                keyframe.argb
+                frame.argb
             } else {
                 val imageData = data.read(frame.byteOffset).buffered().monitored().use { source ->
                     // Block introducer

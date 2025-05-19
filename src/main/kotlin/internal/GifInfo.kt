@@ -51,6 +51,7 @@ internal data class FrameInfo(
     val top: Int,
     val width: Int,
     val height: Int,
+    val usesLocalColorTable: Boolean,
     val transparentColorIndex: Int,
     val disposalMethod: DisposalMethod,
     val duration: Duration,

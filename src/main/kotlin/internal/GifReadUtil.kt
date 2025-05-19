@@ -133,9 +133,9 @@ private inline fun MonitoredSource.readGifContent(
                         imageDescriptor.top,
                         imageDescriptor.width,
                         imageDescriptor.height,
-                        globalColorTableColors,
+                        usesGlobalColorTable = block.localColorTable == null,
                         globalColorTable,
-                        currentColorTable,
+                        globalColorTableColors,
                         backgroundColorIndex,
                     )
                     if (disposedImage != null) {
@@ -158,6 +158,7 @@ private inline fun MonitoredSource.readGifContent(
                     imageDescriptor.top,
                     imageDescriptor.width,
                     imageDescriptor.height,
+                    usesLocalColorTable = block.localColorTable != null,
                     currentTransparentColorIndex,
                     currentDisposalMethod,
                     duration,
@@ -324,9 +325,9 @@ internal fun disposeImage(
     imageTop: Int,
     imageWidth: Int,
     imageHeight: Int,
-    globalColorTableColors: Int,
+    usesGlobalColorTable: Boolean,
     globalColorTable: ByteArray?,
-    currentColorTable: ByteArray,
+    globalColorTableColors: Int,
     backgroundColorIndex: Int,
 ): IntArray? = when (disposalMethod) {
     DisposalMethod.UNSPECIFIED -> image
@@ -336,7 +337,8 @@ internal fun disposeImage(
             null
         } else {
             val backgroundColor = if (
-                currentColorTable === globalColorTable
+                usesGlobalColorTable
+                && globalColorTable != null
                 && backgroundColorIndex in 0..<globalColorTableColors
             ) {
                 getColor(globalColorTable, backgroundColorIndex)

@@ -18,53 +18,62 @@ internal fun MonitoredSource.readLzwIndexStream(): ByteList {
 
     var reset = true
     var previousCode by Delegates.notNull<Int>()
+    var endStream = false
 
     val codeTable = mutableListOf<ByteList>()
     val indexStream = ByteList()
     while (blockSize > 0) {
-        repeat(blockSize) {
-            val byte = readUByte().toInt()
-            currentBits = currentBits or (byte shl currentBitPosition)
-            currentBitPosition += Byte.SIZE_BITS
-            while (currentBitPosition >= currentCodeSize) {
-                // Extract the required number of bits
-                val mask = (1 shl currentCodeSize) - 1
-                val code = currentBits and mask
+        if (endStream) {
+            skip(blockSize.toLong())
+        } else {
+            val block = readByteArray(blockSize)
+            for (i in 0..<blockSize) {
+                val byte = block[i].toUByte().toInt()
+                currentBits = currentBits or (byte shl currentBitPosition)
+                currentBitPosition += Byte.SIZE_BITS
+                while (currentBitPosition >= currentCodeSize) {
+                    // Extract the required number of bits
+                    val mask = (1 shl currentCodeSize) - 1
+                    val code = currentBits and mask
 
-                currentBits = currentBits ushr currentCodeSize
-                currentBitPosition -= currentCodeSize
+                    currentBits = currentBits ushr currentCodeSize
+                    currentBitPosition -= currentCodeSize
 
-                if (code == clearCode) {
-                    currentCodeSize = initialCodeSize
-                    reset = true
-                } else if (code == endOfInformationCode) {
-                    return@repeat
-                } else if (reset) {
-                    initCodeTable(codeTable, clearCode)
-                    val indices = codeTable[code]
-                    indexStream += indices
-                    previousCode = code
-                    reset = false
-                } else {
-                    val indices = codeTable.getOrNull(code)
-                    val previousIndices = codeTable[previousCode]
-                    val nextSequence = if (indices == null) {
-                        val firstIndex = previousIndices.first()
-                        val nextSequence = previousIndices + firstIndex
-                        indexStream += nextSequence
-                        nextSequence
-                    } else {
+                    if (code == clearCode) {
+                        currentCodeSize = initialCodeSize
+                        reset = true
+                    } else if (code == endOfInformationCode) {
+                        endStream = true
+                    } else if (reset) {
+                        initCodeTable(codeTable, clearCode)
+                        val indices = codeTable[code]
                         indexStream += indices
-                        val firstIndex = indices.first()
-                        previousIndices + firstIndex
-                    }
-                    if (codeTable.size < MAX_LZW_CODE) {
-                        codeTable.add(nextSequence)
-                        if (codeTable.size == 2.pow(currentCodeSize)) {
-                            currentCodeSize++
+                        previousCode = code
+                        reset = false
+                    } else {
+                        val indices = codeTable.getOrNull(code)
+                        val previousIndices = codeTable[previousCode]
+                        val nextSequence = if (indices == null) {
+                            val firstIndex = previousIndices.first()
+                            val nextSequence = previousIndices + firstIndex
+                            indexStream += nextSequence
+                            nextSequence
+                        } else {
+                            indexStream += indices
+                            val firstIndex = indices.first()
+                            previousIndices + firstIndex
                         }
+                        if (codeTable.size < MAX_LZW_CODE) {
+                            codeTable.add(nextSequence)
+                            if (codeTable.size == 2.pow(currentCodeSize)) {
+                                currentCodeSize++
+                            }
+                        }
+                        previousCode = code
                     }
-                    previousCode = code
+                }
+                if (endStream) {
+                    break
                 }
             }
         }

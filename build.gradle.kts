@@ -23,14 +23,14 @@ dependencies {
 
 val javadoc: Javadoc by tasks
 
-val javadocJar = task<Jar>("javadocJar") {
+val javadocJar = tasks.register<Jar>("javadocJar") {
     from(javadoc.destinationDir)
     archiveClassifier.set("javadoc")
 
     dependsOn(javadoc)
 }
 
-val sourcesJar = task<Jar>("sourcesJar") {
+val sourcesJar = tasks.register<Jar>("sourcesJar") {
     from(sourceSets["main"].allSource)
     archiveClassifier.set("sources")
 }

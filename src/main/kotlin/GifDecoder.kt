@@ -2,7 +2,10 @@ package io.github.shaksternano.gifcodec
 
 import io.github.shaksternano.gifcodec.internal.*
 import kotlinx.io.buffered
+import kotlinx.io.files.Path
 import kotlin.time.Duration
+
+private const val DEFAULT_CACHE_FRAME_INTERVAL: Int = 50
 
 /*
  * Reference:
@@ -10,8 +13,24 @@ import kotlin.time.Duration
  */
 class GifDecoder(
     private val data: RandomAccessData,
-    private val cacheFrameInterval: Int = 50,
+    private val cacheFrameInterval: Int = DEFAULT_CACHE_FRAME_INTERVAL,
 ) : AutoCloseable {
+
+    constructor(
+        path: Path,
+        cacheFrameInterval: Int = DEFAULT_CACHE_FRAME_INTERVAL,
+    ) : this(
+        data = FileData(path),
+        cacheFrameInterval = cacheFrameInterval,
+    )
+
+    constructor(
+        bytes: ByteArray,
+        cacheFrameInterval: Int = DEFAULT_CACHE_FRAME_INTERVAL,
+    ) : this(
+        data = ByteArrayData(bytes),
+        cacheFrameInterval = cacheFrameInterval,
+    )
 
     val width: Int
     val height: Int

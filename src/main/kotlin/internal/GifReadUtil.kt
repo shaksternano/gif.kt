@@ -9,13 +9,12 @@ internal const val BYTES_PER_COLOR: Int = 3
 private val EMPTY_INT_ARRAY: IntArray = IntArray(0)
 
 internal fun readGifFrames(
-    keyFrameInterval: Int = 0,
+    cacheFrameInterval: Int = 0,
     sourceSupplier: () -> Source,
 ): Sequence<ImageFrame> = sequence {
     sourceSupplier().use { source ->
-        readGif(
-            source,
-            keyFrameInterval,
+        source.readGif(
+            cacheFrameInterval,
             decodeImages = true,
         ) {
             yield(it)
@@ -23,13 +22,12 @@ internal fun readGifFrames(
     }
 }
 
-internal inline fun readGif(
-    source: Source,
-    keyFrameInterval: Int,
+internal inline fun Source.readGif(
+    cacheFrameInterval: Int,
     decodeImages: Boolean,
     onImageDecode: (ImageFrame) -> Unit = {},
 ): GifInfo {
-    val source = MonitoredSource(source)
+    val source = monitored()
 
     val introduction = source.readGifIntroduction()
     val canvasWidth = introduction.logicalScreenDescriptor.width
@@ -37,6 +35,31 @@ internal inline fun readGif(
     val backgroundColorIndex = introduction.logicalScreenDescriptor.backgroundColorIndex
     val globalColorTableColors = introduction.logicalScreenDescriptor.globalColorTableColors
     val globalColorTable = introduction.globalColorTable
+
+    return source.readGifContent(
+        cacheFrameInterval,
+        decodeImages,
+        canvasWidth,
+        canvasHeight,
+        globalColorTable,
+        globalColorTableColors,
+        backgroundColorIndex,
+        onImageDecode,
+    )
+}
+
+private inline fun MonitoredSource.readGifContent(
+    cacheFrameInterval: Int,
+    decodeImages: Boolean,
+    canvasWidth: Int,
+    canvasHeight: Int,
+    globalColorTable: ByteArray?,
+    globalColorTableColors: Int,
+    backgroundColorIndex: Int,
+    onImageDecode: (ImageFrame) -> Unit,
+): GifInfo {
+    val cacheFrames = cacheFrameInterval > 0
+    val decodeOrCache = decodeImages || cacheFrames
 
     var loopCount = -1
     var comment = ""
@@ -51,10 +74,9 @@ internal inline fun readGif(
     var previousImage: IntArray? = null
     var timestamp = Duration.ZERO
 
-    var bytesRead = source.bytesRead
-    val useKeyFrames = keyFrameInterval > 0
-    var block = source.readGifBlock(decodeImages || useKeyFrames)
-    while (block != GifTerminator) {
+    var nextIsKeyFrame = true
+
+    readGifBlocks(decodeOrCache) { byteOffset, block ->
         when (block) {
             is GraphicsControlExtension -> {
                 currentDisposalMethod = block.disposalMethod
@@ -77,16 +99,19 @@ internal inline fun readGif(
             is GifImage -> {
                 val duration = currentDelayTime.centiseconds
                 val currentColorTable = block.localColorTable ?: globalColorTable
-                ?: throw InvalidGifException("Frame $frameIndex has no color table")
+                ?: throw InvalidGifException(
+                    "Frame $frameIndex has no color table, byte offset $byteOffset"
+                )
 
-                val keyframeArgb = if (decodeImages || useKeyFrames) {
+                val imageDescriptor = block.descriptor
+                val cacheFrameArgb = if (decodeOrCache) {
                     val imageFrame = readImage(
                         canvasWidth,
                         canvasHeight,
-                        block.descriptor,
+                        imageDescriptor,
                         block.colorIndices,
-                        globalColorTableColors,
                         globalColorTable,
+                        globalColorTableColors,
                         currentColorTable,
                         backgroundColorIndex,
                         currentTransparentColorIndex,
@@ -104,7 +129,10 @@ internal inline fun readGif(
                         currentDisposalMethod,
                         canvasWidth,
                         canvasHeight,
-                        block.descriptor,
+                        imageDescriptor.left,
+                        imageDescriptor.top,
+                        imageDescriptor.width,
+                        imageDescriptor.height,
                         globalColorTableColors,
                         globalColorTable,
                         currentColorTable,
@@ -114,8 +142,8 @@ internal inline fun readGif(
                         previousImage = disposedImage
                     }
 
-                    val isKeyFrame = useKeyFrames && frameIndex % keyFrameInterval == 0
-                    if (isKeyFrame) {
+                    val isCacheFrame = cacheFrames && frameIndex % cacheFrameInterval == 0
+                    if (isCacheFrame) {
                         imageFrame.argb
                     } else {
                         EMPTY_INT_ARRAY
@@ -125,15 +153,26 @@ internal inline fun readGif(
                 }
 
                 val frame = FrameInfo(
-                    keyframeArgb,
-                    canvasWidth,
-                    canvasHeight,
+                    cacheFrameArgb,
+                    imageDescriptor.left,
+                    imageDescriptor.top,
+                    imageDescriptor.width,
+                    imageDescriptor.height,
+                    currentTransparentColorIndex,
+                    currentDisposalMethod,
                     duration,
                     timestamp,
                     frameIndex,
-                    bytesRead,
+                    byteOffset = byteOffset,
+                    isKeyFrame = nextIsKeyFrame,
                 )
                 frames.add(frame)
+
+                nextIsKeyFrame = currentDisposalMethod == DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
+                    && imageDescriptor.left == 0
+                    && imageDescriptor.top == 0
+                    && imageDescriptor.width == canvasWidth
+                    && imageDescriptor.height == canvasHeight
 
                 // Reset values for next frame
                 currentDisposalMethod = DisposalMethod.UNSPECIFIED
@@ -146,9 +185,6 @@ internal inline fun readGif(
 
             else -> Unit
         }
-
-        bytesRead = source.bytesRead
-        block = source.readGifBlock(decodeImages || useKeyFrames)
     }
 
     return GifInfo(
@@ -158,18 +194,32 @@ internal inline fun readGif(
         timestamp,
         loopCount,
         globalColorTable,
+        globalColorTableColors,
         backgroundColorIndex,
         frames,
     )
 }
 
-internal fun readImage(
+private inline fun MonitoredSource.readGifBlocks(
+    decodeImages: Boolean,
+    action: (byteOffset: Long, block: GifBlock) -> Unit,
+) {
+    var byteOffset = this.bytesRead
+    var block = readGifBlock(decodeImages)
+    while (block != GifTerminator) {
+        action(byteOffset, block)
+        byteOffset = this.bytesRead
+        block = readGifBlock(decodeImages)
+    }
+}
+
+private fun readImage(
     canvasWidth: Int,
     canvasHeight: Int,
     imageDescriptor: ImageDescriptor,
     colorIndices: ByteList,
-    globalColorTableColors: Int,
     globalColorTable: ByteArray?,
+    globalColorTableColors: Int,
     currentColorTable: ByteArray,
     backgroundColorIndex: Int,
     currentTransparentColorIndex: Int,
@@ -178,22 +228,63 @@ internal fun readImage(
     timestamp: Duration,
     frameIndex: Int,
 ): ImageFrame {
-    val left = imageDescriptor.left
-    val top = imageDescriptor.top
-    val width = imageDescriptor.width
-    val height = imageDescriptor.height
+    val imageLeft = imageDescriptor.left
+    val imageTop = imageDescriptor.top
+    val imageWidth = imageDescriptor.width
+    val imageHeight = imageDescriptor.height
 
+    val image = getImageArgb(
+        canvasWidth,
+        canvasHeight,
+        imageLeft,
+        imageTop,
+        imageWidth,
+        imageHeight,
+        colorIndices,
+        globalColorTable,
+        globalColorTableColors,
+        currentColorTable,
+        backgroundColorIndex,
+        currentTransparentColorIndex,
+        previousImage,
+    )
+
+    return ImageFrame(
+        image,
+        canvasWidth,
+        canvasHeight,
+        duration,
+        timestamp,
+        frameIndex,
+    )
+}
+
+internal fun getImageArgb(
+    canvasWidth: Int,
+    canvasHeight: Int,
+    imageLeft: Int,
+    imageTop: Int,
+    imageWidth: Int,
+    imageHeight: Int,
+    colorIndices: ByteList,
+    globalColorTable: ByteArray?,
+    globalColorTableColors: Int,
+    currentColorTable: ByteArray,
+    backgroundColorIndex: Int,
+    currentTransparentColorIndex: Int,
+    previousImage: IntArray?,
+): IntArray {
     val canvasSize = canvasWidth * canvasHeight
-    val image = IntArray(canvasSize) { i ->
+    return IntArray(canvasSize) { i ->
         val absoluteX = i % canvasWidth
         val absoluteY = i / canvasWidth
 
-        val relativeX = absoluteX - left
-        val relativeY = absoluteY - top
+        val relativeX = absoluteX - imageLeft
+        val relativeY = absoluteY - imageTop
 
         val colorIndex = run {
-            if (relativeX in 0..<width && relativeY in 0..<height) {
-                val index = relativeY * width + relativeX
+            if (relativeX in 0..<imageWidth && relativeY in 0..<imageHeight) {
+                val index = relativeY * imageWidth + relativeX
                 if (index in colorIndices.indices) {
                     return@run colorIndices[index].toUByte().toInt()
                 }
@@ -221,15 +312,6 @@ internal fun readImage(
             getColor(currentColorTable, colorIndex)
         }
     }
-
-    return ImageFrame(
-        image,
-        canvasWidth,
-        canvasHeight,
-        duration,
-        timestamp,
-        frameIndex,
-    )
 }
 
 internal fun disposeImage(
@@ -238,7 +320,10 @@ internal fun disposeImage(
     disposalMethod: DisposalMethod,
     canvasWidth: Int,
     canvasHeight: Int,
-    imageDescriptor: ImageDescriptor,
+    imageLeft: Int,
+    imageTop: Int,
+    imageWidth: Int,
+    imageHeight: Int,
     globalColorTableColors: Int,
     globalColorTable: ByteArray?,
     currentColorTable: ByteArray,
@@ -247,13 +332,9 @@ internal fun disposeImage(
     DisposalMethod.UNSPECIFIED -> image
     DisposalMethod.DO_NOT_DISPOSE -> image
     DisposalMethod.RESTORE_TO_BACKGROUND_COLOR -> {
-        if (previousImage == null) null
-        else {
-            val left = imageDescriptor.left
-            val top = imageDescriptor.top
-            val width = imageDescriptor.width
-            val height = imageDescriptor.height
-
+        if (previousImage == null) {
+            null
+        } else {
             val backgroundColor = if (
                 currentColorTable === globalColorTable
                 && backgroundColorIndex in 0..<globalColorTableColors
@@ -265,10 +346,10 @@ internal fun disposeImage(
             }
 
             val newPreviousImage = previousImage.copyOf()
-            for (y in left..<height) {
-                for (x in 0..<width) {
-                    val absoluteX = left + x
-                    val absoluteY = top + y
+            for (y in imageLeft..<imageHeight) {
+                for (x in 0..<imageWidth) {
+                    val absoluteX = imageLeft + x
+                    val absoluteY = imageTop + y
                     if (absoluteX >= canvasWidth || absoluteY >= canvasHeight) {
                         continue
                     }
@@ -286,13 +367,19 @@ internal fun disposeImage(
 /**
  * Used to identify which part of the GIF file caused an exception.
  */
-internal inline fun <T> readGifSection(name: String, block: () -> T): T {
+internal inline fun <T> MonitoredSource.readGifSection(name: String, block: () -> T): T {
+    val sectionStart = bytesRead
     try {
         return block()
     } catch (e: InvalidGifException) {
         throw e
     } catch (t: Throwable) {
-        throw InvalidGifException("Failed to read GIF $name", t)
+        throw InvalidGifException(
+            "Failed to read GIF $name" +
+                ", starting at byte offset $sectionStart" +
+                ", ending at byte offset $bytesRead",
+            t,
+        )
     }
 }
 
@@ -389,12 +476,15 @@ internal fun MonitoredSource.readGifBlock(
     decodeImage: Boolean,
 ): GifBlock = readGifSection("content") {
     if (exhausted()) return GifTerminator
+    val blockStart = bytesRead
     val blockIntroducer = readUByte().toInt()
     when (blockIntroducer) {
         0x21 -> readGifExtension()
         0x2C -> readGifImage(decodeImage)
         0x3B -> GifTerminator
-        else -> throw InvalidGifException("Unknown block introducer: ${blockIntroducer.toHexByteString()}")
+        else -> throw InvalidGifException(
+            "Unknown block introducer at byte offset $blockStart: ${blockIntroducer.toHexByteString()}"
+        )
     }
 }
 
@@ -446,13 +536,13 @@ private fun MonitoredSource.readGifGraphicsControlExtension(): GraphicsControlEx
 
 private fun MonitoredSource.readGifApplicationExtension(): ApplicationExtension =
     readGifSection("application extension") {
-    val identifierSize = readUByte().toLong()
-    val identifier = readString(identifierSize)
-    when (identifier) {
-        "NETSCAPE2.0" -> readGifNetscapeApplicationExtension()
-        else -> readGifUnknownApplicationExtension(identifier)
+        val identifierSize = readUByte().toLong()
+        val identifier = readString(identifierSize)
+        when (identifier) {
+            "NETSCAPE2.0" -> readGifNetscapeApplicationExtension()
+            else -> readGifUnknownApplicationExtension(identifier)
+        }
     }
-}
 
 private fun MonitoredSource.readGifNetscapeApplicationExtension(): NetscapeApplicationExtension =
     readGifSection("Netscape application extension") {
@@ -469,10 +559,11 @@ private fun MonitoredSource.readGifUnknownApplicationExtension(identifier: Strin
         UnknownApplicationExtension
     }
 
-private fun MonitoredSource.readGifCommentExtension(): CommentExtension = readGifSection("comment extension") {
-    val comment = readGifSubBlocks().decodeToString()
-    CommentExtension(comment)
-}
+private fun MonitoredSource.readGifCommentExtension(): CommentExtension =
+    readGifSection("comment extension") {
+        val comment = readGifSubBlocks().decodeToString()
+        CommentExtension(comment)
+    }
 
 private fun MonitoredSource.readGifUnknownExtension(label: Int): UnknownExtension =
     readGifSection("unknown extension: ${label.toHexByteString()}") {
@@ -480,7 +571,7 @@ private fun MonitoredSource.readGifUnknownExtension(label: Int): UnknownExtensio
         UnknownExtension
     }
 
-private fun MonitoredSource.readGifImage(
+internal fun MonitoredSource.readGifImage(
     decodeImage: Boolean,
 ): GifImage = readGifSection("image") {
     val imageDescriptor = readGifImageDescriptor()

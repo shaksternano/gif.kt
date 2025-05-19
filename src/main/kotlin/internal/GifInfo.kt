@@ -9,6 +9,7 @@ internal data class GifInfo(
     val duration: Duration,
     val loopCount: Int,
     val globalColorTable: ByteArray?,
+    val globalColorTableColors: Int,
     val backgroundColorIndex: Int,
     val frames: List<FrameInfo>,
 ) {
@@ -46,12 +47,17 @@ internal data class GifInfo(
 
 internal data class FrameInfo(
     val argb: IntArray,
+    val left: Int,
+    val top: Int,
     val width: Int,
     val height: Int,
+    val transparentColorIndex: Int,
+    val disposalMethod: DisposalMethod,
     val duration: Duration,
     val timestamp: Duration,
     val index: Int,
     val byteOffset: Long,
+    val isKeyFrame: Boolean,
 ) {
 
     override fun equals(other: Any?): Boolean {

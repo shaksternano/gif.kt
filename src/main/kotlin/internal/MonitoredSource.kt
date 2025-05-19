@@ -2,6 +2,8 @@ package io.github.shaksternano.gifcodec.internal
 
 import kotlinx.io.*
 
+internal fun Source.monitored(): MonitoredSource = MonitoredSource(this)
+
 internal class MonitoredSource(
     private val source: Source,
 ) : AutoCloseable {

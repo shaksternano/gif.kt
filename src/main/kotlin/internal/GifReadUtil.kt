@@ -8,58 +8,35 @@ import kotlin.time.Duration
 internal const val BYTES_PER_COLOR: Int = 3
 private val EMPTY_INT_ARRAY: IntArray = IntArray(0)
 
-internal fun readGifFrames(
-    cacheFrameInterval: Int = 0,
-    sourceSupplier: () -> Source,
-): Sequence<ImageFrame> = sequence {
-    sourceSupplier().use { source ->
-        source.readGif(
-            cacheFrameInterval,
-            decodeImages = true,
-        ) {
-            yield(it)
-        }
-    }
-}
+internal fun Source.readGif(cacheFrameInterval: Int): GifInfo {
+    val monitoredSource = monitored()
 
-internal inline fun Source.readGif(
-    cacheFrameInterval: Int,
-    decodeImages: Boolean,
-    onImageDecode: (ImageFrame) -> Unit = {},
-): GifInfo {
-    val source = monitored()
-
-    val introduction = source.readGifIntroduction()
+    val introduction = monitoredSource.readGifIntroduction()
     val canvasWidth = introduction.logicalScreenDescriptor.width
     val canvasHeight = introduction.logicalScreenDescriptor.height
     val backgroundColorIndex = introduction.logicalScreenDescriptor.backgroundColorIndex
     val globalColorTableColors = introduction.logicalScreenDescriptor.globalColorTableColors
     val globalColorTable = introduction.globalColorTable
 
-    return source.readGifContent(
+    return monitoredSource.readGifContent(
         cacheFrameInterval,
-        decodeImages,
         canvasWidth,
         canvasHeight,
         globalColorTable,
         globalColorTableColors,
         backgroundColorIndex,
-        onImageDecode,
     )
 }
 
-private inline fun MonitoredSource.readGifContent(
+private fun MonitoredSource.readGifContent(
     cacheFrameInterval: Int,
-    decodeImages: Boolean,
     canvasWidth: Int,
     canvasHeight: Int,
     globalColorTable: ByteArray?,
     globalColorTableColors: Int,
     backgroundColorIndex: Int,
-    onImageDecode: (ImageFrame) -> Unit,
 ): GifInfo {
     val cacheFrames = cacheFrameInterval > 0
-    val decodeOrCache = decodeImages || cacheFrames
 
     var loopCount = -1
     var comment = ""
@@ -76,7 +53,7 @@ private inline fun MonitoredSource.readGifContent(
 
     var nextIsKeyFrame = true
 
-    readGifBlocks(decodeOrCache) { byteOffset, block ->
+    readGifBlocks(cacheFrames) { byteOffset, block ->
         when (block) {
             is GraphicsControlExtension -> {
                 currentDisposalMethod = block.disposalMethod
@@ -104,7 +81,7 @@ private inline fun MonitoredSource.readGifContent(
                 )
 
                 val imageDescriptor = block.descriptor
-                val cacheFrameArgb = if (decodeOrCache) {
+                val cacheFrameArgb = if (cacheFrames) {
                     val imageFrame = readImage(
                         canvasWidth,
                         canvasHeight,
@@ -120,8 +97,6 @@ private inline fun MonitoredSource.readGifContent(
                         timestamp,
                         frameIndex,
                     )
-
-                    onImageDecode(imageFrame)
 
                     val disposedImage = disposeImage(
                         imageFrame.argb,
@@ -142,7 +117,7 @@ private inline fun MonitoredSource.readGifContent(
                         previousImage = disposedImage
                     }
 
-                    val isCacheFrame = cacheFrames && frameIndex % cacheFrameInterval == 0
+                    val isCacheFrame = frameIndex % cacheFrameInterval == 0
                     if (isCacheFrame) {
                         imageFrame.argb
                     } else {
@@ -648,9 +623,7 @@ private fun MonitoredSource.readGifSubBlocks(): ByteList {
     val data = ByteList()
     var blockSize = readUByte().toInt()
     while (blockSize != 0) {
-        repeat(blockSize) {
-            data += readByte()
-        }
+        data += readByteArray(blockSize)
         blockSize = readUByte().toInt()
     }
     return data

@@ -1,8 +1,5 @@
 package io.github.shaksternano.gifcodec
 
-import io.github.shaksternano.gifcodec.internal.readGifFrames
-import kotlinx.io.asSource
-import kotlinx.io.buffered
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -13,9 +10,7 @@ class TestGifDecoder {
 
     @Test
     fun testReadStaticGif() {
-        val gifFrames = readGifFrames {
-            getResource("media/square/square.gif").asSource().buffered()
-        }.toList()
+        val gifFrames = readGifFrames("media/square/square.gif")
         assertEquals(1, gifFrames.size)
         val frame = gifFrames.first()
         val expectedRgb = loadImage("media/square/square.png").rgb
@@ -29,9 +24,7 @@ class TestGifDecoder {
 
     @Test
     fun testReadLargeStaticGif() {
-        val gifFrames = readGifFrames {
-            getResource("media/dancing/dancing.gif").asSource().buffered()
-        }.toList()
+        val gifFrames = readGifFrames("media/dancing/dancing.gif")
         assertEquals(1, gifFrames.size)
         val frame = gifFrames.first()
         val expectedRgb = loadImage("media/dancing/dancing.png").rgb
@@ -45,9 +38,7 @@ class TestGifDecoder {
 
     @Test
     fun testReadAnimatedGif() {
-        val gifFrames = readGifFrames {
-            getResource("media/trafficlight/traffic-light.gif").asSource().buffered()
-        }.toList()
+        val gifFrames = readGifFrames("media/trafficlight/traffic-light.gif")
         assertEquals(3, gifFrames.size)
         val expectedFrameDurations = listOf(1.seconds, 0.5.seconds, 1.seconds)
         var expectedTimestamp = Duration.ZERO

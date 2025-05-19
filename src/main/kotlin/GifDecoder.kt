@@ -26,10 +26,7 @@ class GifDecoder(
 
     init {
         data.read().buffered().use { source ->
-            val gifInfo = source.readGif(
-                cacheFrameInterval,
-                decodeImages = false,
-            )
+            val gifInfo = source.readGif(cacheFrameInterval)
 
             width = gifInfo.width
             height = gifInfo.height
@@ -56,62 +53,15 @@ class GifDecoder(
             throw IndexOutOfBoundsException("Index out of bounds: $index, size: ${frames.size}")
         }
 
-        var imageArgb: IntArray? = null
-        var previousImageArgb: IntArray? = null
         val keyframe = findLastKeyframe(index)
-        for (i in keyframe.index..index) {
-            val frame = frames[i]
-            imageArgb = if (frame.argb.isNotEmpty()) {
-                frame.argb
-            } else {
-                val imageData = data.read(frame.byteOffset).buffered().monitored().use { source ->
-                    // Block introducer
-                    source.skip(1)
-                    source.readGifImage(decodeImage = true)
-                }
-                val currentColorTable = imageData.localColorTable ?: globalColorTable
-                ?: throw InvalidGifException("Frame $i has no color table")
-
-                getImageArgb(
-                    width,
-                    height,
-                    imageData.descriptor.left,
-                    imageData.descriptor.top,
-                    imageData.descriptor.width,
-                    imageData.descriptor.height,
-                    imageData.colorIndices,
-                    globalColorTable,
-                    globalColorTableColors,
-                    currentColorTable,
-                    backgroundColorIndex,
-                    frame.transparentColorIndex,
-                    previousImageArgb,
-                )
-            }
-
-            val disposedImage = disposeImage(
-                imageArgb,
-                previousImageArgb,
-                frame.disposalMethod,
-                width,
-                height,
-                frame.left,
-                frame.top,
-                frame.width,
-                frame.height,
-                usesGlobalColorTable = !frame.usesLocalColorTable,
-                globalColorTable,
-                globalColorTableColors,
-                backgroundColorIndex,
-            )
-            if (disposedImage != null) {
-                previousImageArgb = disposedImage
-            }
+        var imageArgb: IntArray? = null
+        decodeImages(startIndex = keyframe.index, endIndex = index) { argb, _, _, _ ->
+            imageArgb = argb
         }
-
         if (imageArgb == null) {
             throw IllegalStateException("Seeked image is null, this shouldn't happen")
         }
+
         val targetFrame = frames[index]
         return ImageFrame(
             imageArgb,
@@ -179,10 +129,89 @@ class GifDecoder(
     operator fun get(timestamp: Duration): ImageFrame =
         readFrame(timestamp)
 
-    fun asSequence(): Sequence<ImageFrame> =
-        readGifFrames {
-            data.read().buffered()
+    fun asSequence(): Sequence<ImageFrame> = sequence {
+        decodeImages(startIndex = 0, endIndex = frameCount - 1) { argb, duration, timestamp, index ->
+            yield(
+                ImageFrame(
+                    argb,
+                    width,
+                    height,
+                    duration,
+                    timestamp,
+                    index,
+                )
+            )
         }
+    }
+
+    private inline fun decodeImages(
+        startIndex: Int,
+        endIndex: Int,
+        onImageDecode: (
+            argb: IntArray,
+            duration: Duration,
+            timestamp: Duration,
+            index: Int,
+        ) -> Unit,
+    ) {
+        var previousImageArgb: IntArray? = null
+        for (i in startIndex..endIndex) {
+            val frame = frames[i]
+            val imageArgb = if (frame.argb.isNotEmpty()) {
+                frame.argb
+            } else {
+                val imageData = data.read(frame.byteOffset).buffered().monitored().use { source ->
+                    // Block introducer
+                    source.skip(1)
+                    source.readGifImage(decodeImage = true)
+                }
+                val currentColorTable = imageData.localColorTable ?: globalColorTable
+                ?: throw InvalidGifException("Frame $i has no color table")
+
+                getImageArgb(
+                    width,
+                    height,
+                    imageData.descriptor.left,
+                    imageData.descriptor.top,
+                    imageData.descriptor.width,
+                    imageData.descriptor.height,
+                    imageData.colorIndices,
+                    globalColorTable,
+                    globalColorTableColors,
+                    currentColorTable,
+                    backgroundColorIndex,
+                    frame.transparentColorIndex,
+                    previousImageArgb,
+                )
+            }
+
+            onImageDecode(
+                imageArgb,
+                frame.duration,
+                frame.timestamp,
+                frame.index,
+            )
+
+            val disposedImage = disposeImage(
+                imageArgb,
+                previousImageArgb,
+                frame.disposalMethod,
+                width,
+                height,
+                frame.left,
+                frame.top,
+                frame.width,
+                frame.height,
+                usesGlobalColorTable = !frame.usesLocalColorTable,
+                globalColorTable,
+                globalColorTableColors,
+                backgroundColorIndex,
+            )
+            if (disposedImage != null) {
+                previousImageArgb = disposedImage
+            }
+        }
+    }
 
     override fun close() {
         data.close()

@@ -106,7 +106,7 @@ internal fun getImageData(
         colorTable = ByteArray(colorTableBytes)
         quantizedColors.copyInto(
             colorTable,
-            // First three bytes are reserved for transparent color
+            // The first three bytes are reserved for transparent color
             destinationOffset = 3,
         )
         transparentColorIndex = 0
@@ -122,7 +122,7 @@ internal fun getImageData(
 
     // Get color indices
     val imageColorIndices = ByteArray(argb.size)
-    // First index is reserved for transparent color
+    // The first index is reserved for transparent color
     val indexOffset = if (hasTransparent) 1 else 0
     argb.forEachIndexed { i, pixel ->
         val index = if (colorCount == 1) {
@@ -292,7 +292,7 @@ internal fun Sink.writeGifApplicationExtension(loopCount: Int) {
     writeByte(0xFF)            // Application extension label
     writeByte(0x0B)            // Length of Application block, 11 bytes
     writeString("NETSCAPE2.0") // Application identifier
-    writeByte(0x03)            // Length of data sub-block, 3 bytes
+    writeByte(0x03)            // Length of data subblock, 3 bytes
     writeByte(0x01)            // Constant
     writeLittleEndianShort(loopCount)
     writeByte(0x00)            // Block Terminator
@@ -395,7 +395,7 @@ private fun Sink.writeGifSubBlocks(bytes: ByteArray) {
     bytes.asList()
         .chunked(GIF_MAX_BLOCK_SIZE)
         .forEach {
-            writeByte(it.size)      // Number of bytes of data in sub-block
+            writeByte(it.size)      // Number of bytes of data in subblock
             write(it.toByteArray()) // Sub-block data
         }
 }

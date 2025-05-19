@@ -1,7 +1,5 @@
 package io.github.shaksternano.gifcodec.internal
 
-import kotlin.properties.Delegates
-
 private const val MAX_LZW_CODE: Int = 0xFFF
 
 internal fun MonitoredSource.readLzwIndexStream(): ByteList {
@@ -17,7 +15,7 @@ internal fun MonitoredSource.readLzwIndexStream(): ByteList {
     var currentBitPosition = 0
 
     var reset = true
-    var previousCode by Delegates.notNull<Int>()
+    var previousCode = -1
     var endStream = false
 
     val codeTable = mutableListOf<ByteList>()

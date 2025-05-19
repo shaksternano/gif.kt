@@ -70,7 +70,7 @@ class GifDecoder(
                     source.readGifImage(decodeImage = true)
                 }
                 val currentColorTable = imageData.localColorTable ?: globalColorTable
-                ?: throw InvalidGifException("Frame $index has no color table")
+                ?: throw InvalidGifException("Frame $i has no color table")
 
                 getImageArgb(
                     width,

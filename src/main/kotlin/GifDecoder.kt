@@ -56,12 +56,13 @@ class GifDecoder(
             throw IndexOutOfBoundsException("Index out of bounds: $index, size: ${frames.size}")
         }
 
-        var image: IntArray? = null
+        var imageArgb: IntArray? = null
+        var previousImageArgb: IntArray? = null
         val keyframe = findLastKeyframe(index)
         for (i in keyframe.index..index) {
             val frame = frames[i]
             if (frame.argb.isNotEmpty()) {
-                image = keyframe.argb
+                imageArgb = keyframe.argb
             } else {
                 data.read(frame.byteOffset).buffered().monitored().use { source ->
                     // Block introducer
@@ -70,7 +71,7 @@ class GifDecoder(
                     val currentColorTable = imageData.localColorTable ?: globalColorTable
                     ?: throw InvalidGifException("Frame $index has no color table")
 
-                    val imageArgb = getImageArgb(
+                    imageArgb = getImageArgb(
                         width,
                         height,
                         imageData.descriptor.left,
@@ -83,12 +84,12 @@ class GifDecoder(
                         currentColorTable,
                         backgroundColorIndex,
                         frame.transparentColorIndex,
-                        image,
+                        previousImageArgb,
                     )
 
                     val disposedImage = disposeImage(
                         imageArgb,
-                        image,
+                        previousImageArgb,
                         frame.disposalMethod,
                         width,
                         height,
@@ -102,18 +103,18 @@ class GifDecoder(
                         backgroundColorIndex,
                     )
                     if (disposedImage != null) {
-                        image = disposedImage
+                        previousImageArgb = disposedImage
                     }
                 }
             }
         }
 
-        if (image == null) {
+        if (imageArgb == null) {
             throw IllegalStateException("Seeked image is null, this shouldn't happen")
         }
         val targetFrame = frames[index]
         return ImageFrame(
-            image,
+            imageArgb,
             width,
             height,
             targetFrame.duration,

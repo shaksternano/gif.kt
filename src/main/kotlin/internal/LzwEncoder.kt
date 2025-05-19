@@ -95,7 +95,7 @@ private fun initLzwCodeTable(
     colorTableSize: Int,
 ) {
     codeTable.clear()
-    repeat(colorTableSize) { i ->
+    for (i in 0..<colorTableSize) {
         codeTable[ByteList(i.toByte())] = i
     }
 }

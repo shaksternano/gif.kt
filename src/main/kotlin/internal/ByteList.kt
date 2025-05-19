@@ -232,7 +232,7 @@ internal class ByteList private constructor(
 
     private fun calculateHashCode(elements: ByteArray, size: Int): Int {
         var newHashCode = 1
-        repeat(size) { i ->
+        for (i in 0..<size) {
             newHashCode = 31 * newHashCode + elements[i]
         }
         return newHashCode
@@ -246,7 +246,7 @@ internal class ByteList private constructor(
      */
     private fun ByteArray.contentEquals(other: ByteArray, size: Int): Boolean {
         if (this === other) return true
-        repeat(size) { i ->
+        for (i in 0..<size) {
             if (this[i] != other[i]) return false
         }
         return true

@@ -84,7 +84,7 @@ internal fun MonitoredSource.readLzwIndexStream(): ByteList {
 
 private fun initCodeTable(codeTable: MutableList<ByteList>, clearCode: Int) {
     codeTable.clear()
-    repeat(clearCode) { i ->
+    for (i in 0..<clearCode) {
         codeTable.add(ByteList(i.toByte()))
     }
     codeTable.add(ByteList()) // Clear code

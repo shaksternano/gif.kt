@@ -261,7 +261,7 @@ internal class NeuQuant(
         var alpha = INIT_ALPHA
         var radius = initRadius
         var rad = radius shr RADIUS_BIAS_SHIFT
-        repeat(rad) { i ->
+        for (i in 0..<rad) {
             radPower[i] = alpha * (((rad * rad - i * i) * RAD_BIAS) / (rad * rad))
         }
 
@@ -276,7 +276,7 @@ internal class NeuQuant(
         var pix = 0
         val samplePixels = lengthCount / (3 * samplingFactor)
         var delta = samplePixels / CYCLES
-        repeat(samplePixels) { i ->
+        for (i in 0..<samplePixels) {
             val red = (image[pix].toInt() and 0xFF) shl NETWORK_BIAS_SHIFT
             val green = (image[pix + 1].toInt() and 0xFF) shl NETWORK_BIAS_SHIFT
             val blue = (image[pix + 2].toInt() and 0xFF) shl NETWORK_BIAS_SHIFT
@@ -302,7 +302,7 @@ internal class NeuQuant(
                 if (rad <= 1) {
                     rad = 0
                 }
-                repeat(rad) { k ->
+                for (k in 0..<rad) {
                     radPower[k] = alpha * (((rad * rad - k * k) * RAD_BIAS) / (rad * rad))
                 }
             }

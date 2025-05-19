@@ -10,7 +10,7 @@ internal class ByteList private constructor(
     private var elements: ByteArray,
     size: Int,
     private var hashCode: Int,
-    private var lastHashCode: Int? = null,
+    private var lastHashCode: Int = 0,
 ) {
 
     /**
@@ -36,22 +36,12 @@ internal class ByteList private constructor(
     /**
      * Returns the element at the specified [index] in the list.
      */
-    operator fun get(index: Int): Byte {
-        if (index < 0 || index >= size) {
-            throw IndexOutOfBoundsException("Index: $index, Size: $size")
-        }
-        return elements[index]
-    }
+    operator fun get(index: Int): Byte = elements[index]
 
     /**
      * Returns the first element in the list.
      */
-    fun first(): Byte {
-        if (size == 0) {
-            throw NoSuchElementException("List is empty.")
-        }
-        return elements[0]
-    }
+    fun first(): Byte = elements[0]
 
     /**
      * Adds the specified [element] to the end of this list.
@@ -69,9 +59,7 @@ internal class ByteList private constructor(
     /**
      * Adds the specified [element] to the end of this list.
      */
-    operator fun plusAssign(element: Byte) {
-        add(element)
-    }
+    operator fun plusAssign(element: Byte) = add(element)
 
     /**
      * Adds all the specified [elements] to the end of this list.
@@ -85,7 +73,8 @@ internal class ByteList private constructor(
             endIndex = elements.size,
         )
         size = newSize
-        for (byte in elements) {
+        for (i in 0..<elements.size) {
+            val byte = elements[i]
             lastHashCode = hashCode
             hashCode = getNewHashCode(hashCode, byte)
         }
@@ -94,9 +83,7 @@ internal class ByteList private constructor(
     /**
      * Adds all the specified [elements] to the end of this list.
      */
-    operator fun plusAssign(elements: ByteList) {
-        addAll(elements)
-    }
+    operator fun plusAssign(elements: ByteList) = addAll(elements)
 
     /**
      * Adds all the specified [elements] to the end of this list.
@@ -118,20 +105,19 @@ internal class ByteList private constructor(
     /**
      * Adds all the specified [elements] to the end of this list.
      */
-    operator fun plusAssign(elements: ByteArray) {
-        addAll(elements)
-    }
+    operator fun plusAssign(elements: ByteArray) = addAll(elements)
 
     /**
      * Removes the last element from this mutable list.
      */
     fun removeLast() {
-        if (size == 0) {
-            throw NoSuchElementException("List is empty.")
-        }
         size--
-        hashCode = lastHashCode ?: calculateHashCode(elements, size)
-        lastHashCode = null
+        hashCode = if (lastHashCode == 0) {
+            calculateHashCode(elements, size)
+        } else {
+            lastHashCode
+        }
+        lastHashCode = 0
     }
 
     private fun ensureCapacity(minCapacity: Int) {
@@ -164,7 +150,7 @@ internal class ByteList private constructor(
     fun clear() {
         size = 0
         hashCode = 1
-        lastHashCode = null
+        lastHashCode = 0
     }
 
     /**

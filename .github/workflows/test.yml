@@ -11,7 +11,7 @@ jobs:
             -   name: Setup Java
                 uses: actions/setup-java@v4
                 with:
-                    distribution: "graalvm"
+                    distribution: "temurin"
                     java-version: 8
 
             -   name: Setup Gradle

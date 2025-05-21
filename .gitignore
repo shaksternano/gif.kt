@@ -30,4 +30,5 @@ bin/
 .kotlin/
 *.log
 .env
+notebooks/
 Main.kt

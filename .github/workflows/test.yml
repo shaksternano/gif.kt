@@ -1,0 +1,29 @@
+name: Test
+on: [ push, pull_request ]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout sources
+                uses: actions/checkout@v4
+
+            -   name: Setup Java
+                uses: actions/setup-java@v4
+                with:
+                    distribution: "temurin"
+                    java-version: 21
+
+            -   name: Setup Gradle
+                uses: gradle/actions/setup-gradle@v4
+
+            -   name: Run tests
+                run: ./gradlew test --stacktrace --parallel
+
+            -   name: Upload test report
+                if: success() || failure()
+                uses: actions/upload-artifact@v4
+                with:
+                    name: Test report
+                    path: |
+                        build/reports/tests/test/

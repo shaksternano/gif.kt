@@ -44,7 +44,7 @@ fun readGifFrames(resourcePath: String): List<ImageFrame> {
     val bytes = getResource(resourcePath).use {
         it.readBytes()
     }
-    return GifDecoder(ByteArrayData(bytes))
+    return GifDecoder(bytes)
         .asSequence()
         .toList()
 }

@@ -76,14 +76,12 @@ class ParallelGifEncoder(
         var processedFrameIndex = 0
         @Suppress("unused")
         for (unused in onFrameProcessedChannel) {
-            launch {
-                try {
-                    onFrameProcessed(processedFrameIndex)
-                } catch (t: Throwable) {
-                    val exception = Exception("Error running onFrameProcessed callback", t)
-                    @OptIn(ExperimentalAtomicApi::class)
-                    throwableReference.compareAndSet(null, exception)
-                }
+            try {
+                onFrameProcessed(processedFrameIndex)
+            } catch (t: Throwable) {
+                val exception = Exception("Error running onFrameProcessed callback", t)
+                @OptIn(ExperimentalAtomicApi::class)
+                throwableReference.compareAndSet(null, exception)
             }
             processedFrameIndex++
         }

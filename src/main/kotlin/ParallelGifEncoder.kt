@@ -27,7 +27,7 @@ class ParallelGifEncoder(
     quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
     maxConcurrency: Int = 2,
     scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
-    private val ioContext: CoroutineContext = Dispatchers.IO,
+    private val ioContext: CoroutineContext? = Dispatchers.IO,
     private val onFrameProcessed: suspend (index: Int) -> Unit = {},
 ) : SuspendClosable {
 
@@ -114,9 +114,7 @@ class ParallelGifEncoder(
                 )
             },
             wrapIo = {
-                withContext(ioContext) {
-                    it()
-                }
+                wrapIo(it)
             },
         )
     }
@@ -227,14 +225,10 @@ class ParallelGifEncoder(
             return
         }
         val buffer = output.getOrThrow()
-        withContext(ioContext) {
+        wrapIo {
             buffer.transferTo(sink)
         }
         onFrameProcessedChannel.send(Unit)
-    }
-
-    private fun createException(cause: Throwable): IOException {
-        return IOException("Error while writing GIF frame", cause)
     }
 
     override suspend fun close() {
@@ -260,9 +254,7 @@ class ParallelGifEncoder(
                     encodeExecutor.close()
                 },
                 wrapIo = {
-                    withContext(ioContext) {
-                        it()
-                    }
+                    wrapIo(it)
                 },
             )
             onFrameProcessedChannel.close()
@@ -282,6 +274,20 @@ class ParallelGifEncoder(
                 }
             }
         }
+    }
+
+    private suspend inline fun wrapIo(crossinline block: () -> Unit) {
+        if (ioContext == null) {
+            block()
+        } else {
+            withContext(ioContext) {
+                block()
+            }
+        }
+    }
+
+    private fun createException(cause: Throwable): IOException {
+        return IOException("Error while writing GIF frame", cause)
     }
 
     private data class QuantizeInput(

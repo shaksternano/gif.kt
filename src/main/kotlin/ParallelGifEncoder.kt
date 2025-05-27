@@ -1,8 +1,11 @@
 package io.github.shaksternano.gifcodec
 
 import io.github.shaksternano.gifcodec.internal.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
 import kotlinx.io.Sink
@@ -26,8 +29,8 @@ class ParallelGifEncoder(
     minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS,
     quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
     maxConcurrency: Int = 2,
-    scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
-    private val ioContext: CoroutineContext? = Dispatchers.IO,
+    coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
+    private val ioContext: CoroutineContext = EmptyCoroutineContext,
     private val onFrameProcessed: suspend (index: Int) -> Unit = {},
 ) : SuspendClosable {
 
@@ -58,7 +61,7 @@ class ParallelGifEncoder(
     private val quantizeExecutor: AsyncExecutor<QuantizeInput, QuantizeOutput> =
         AsyncExecutor(
             maxConcurrency = maxConcurrency,
-            scope = scope,
+            scope = coroutineScope,
             task = ::quantizeImage,
             onOutput = ::writeOrOptimizeGifImage,
         )
@@ -66,13 +69,13 @@ class ParallelGifEncoder(
     private val encodeExecutor: AsyncExecutor<EncodeInput, Buffer> =
         AsyncExecutor(
             maxConcurrency = maxConcurrency,
-            scope = scope,
+            scope = coroutineScope,
             task = ::encodeGifImage,
             onOutput = ::transferToSink,
         )
 
     private val onFrameProcessedChannel: Channel<Unit> = Channel(capacity = Channel.UNLIMITED)
-    private val onFrameProcessedJob: Job = scope.launch {
+    private val onFrameProcessedJob: Job = coroutineScope.launch {
         var processedFrameIndex = 0
         @Suppress("unused")
         for (unused in onFrameProcessedChannel) {
@@ -114,7 +117,9 @@ class ParallelGifEncoder(
                 )
             },
             wrapIo = {
-                wrapIo(it)
+                withContext(ioContext) {
+                    it()
+                }
             },
         )
     }
@@ -225,7 +230,7 @@ class ParallelGifEncoder(
             return
         }
         val buffer = output.getOrThrow()
-        wrapIo {
+        withContext(ioContext) {
             buffer.transferTo(sink)
         }
         onFrameProcessedChannel.send(Unit)
@@ -254,7 +259,9 @@ class ParallelGifEncoder(
                     encodeExecutor.close()
                 },
                 wrapIo = {
-                    wrapIo(it)
+                    withContext(ioContext) {
+                        it()
+                    }
                 },
             )
             onFrameProcessedChannel.close()
@@ -272,16 +279,6 @@ class ParallelGifEncoder(
                 } else {
                     closeThrowable.addSuppressed(exception)
                 }
-            }
-        }
-    }
-
-    private suspend inline fun wrapIo(crossinline block: () -> Unit) {
-        if (ioContext == null) {
-            block()
-        } else {
-            withContext(ioContext) {
-                block()
             }
         }
     }

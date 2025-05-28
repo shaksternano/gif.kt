@@ -90,7 +90,12 @@ android {
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
-    signAllPublications()
+    val signPublications = gradle.startParameter.taskNames.none {
+        it.contains("publishToMavenLocal", ignoreCase = true)
+    }
+    if (signPublications) {
+        signAllPublications()
+    }
 
     coordinates(group.toString(), "gifkt", version.toString())
 

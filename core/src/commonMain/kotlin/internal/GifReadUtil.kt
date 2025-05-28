@@ -173,6 +173,7 @@ private fun MonitoredSource.readGifContent(
         globalColorTableColors,
         backgroundColorIndex,
         frames,
+        comment,
     )
 }
 

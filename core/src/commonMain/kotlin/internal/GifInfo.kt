@@ -12,6 +12,7 @@ internal data class GifInfo(
     val globalColorTableColors: Int,
     val backgroundColorIndex: Int,
     val frames: List<RawImage>,
+    val comment: String,
 ) {
 
     override fun equals(other: Any?): Boolean {
@@ -26,6 +27,7 @@ internal data class GifInfo(
         if (duration != other.duration) return false
         if (loopCount != other.loopCount) return false
         if (backgroundColorIndex != other.backgroundColorIndex) return false
+        if (comment != other.comment) return false
         if (!globalColorTable.contentEquals(other.globalColorTable)) return false
         if (frames != other.frames) return false
 
@@ -41,6 +43,7 @@ internal data class GifInfo(
         result = 31 * result + globalColorTable.contentHashCode()
         result = 31 * result + backgroundColorIndex
         result = 31 * result + frames.hashCode()
+        result = 31 * result + comment.hashCode()
         return result
     }
 }

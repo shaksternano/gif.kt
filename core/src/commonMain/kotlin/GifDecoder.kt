@@ -46,6 +46,7 @@ class GifDecoder(
                 timestamp = it.timestamp,
             )
         }
+    val comment: String
 
     private val globalColorTable: ByteArray?
     private val globalColorTableColors: Int
@@ -66,6 +67,7 @@ class GifDecoder(
         globalColorTableColors = gifInfo.globalColorTableColors
         backgroundColorIndex = gifInfo.backgroundColorIndex
         frames = gifInfo.frames
+        comment = gifInfo.comment
 
         val firstFrame = frames.firstOrNull()
         if (firstFrame != null && firstFrame.timestamp < Duration.ZERO) {

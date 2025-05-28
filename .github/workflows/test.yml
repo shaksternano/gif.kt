@@ -26,4 +26,4 @@ jobs:
                 uses: actions/upload-artifact@v4
                 with:
                     name: Test report
-                    path: build/reports/tests/allTests/
+                    path: core/build/reports/tests/allTests/

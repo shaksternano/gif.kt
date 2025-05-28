@@ -1,1 +1,1 @@
-# GIF Codec
+# gif.kt

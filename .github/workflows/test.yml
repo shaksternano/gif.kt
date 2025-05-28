@@ -2,8 +2,9 @@ name: Test
 on: [ push, pull_request ]
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+    test:
+        name: Run tests
+        runs-on: macOS-latest
         steps:
             -   name: Checkout sources
                 uses: actions/checkout@v4
@@ -11,19 +12,18 @@ jobs:
             -   name: Setup Java
                 uses: actions/setup-java@v4
                 with:
-                    distribution: "temurin"
-                    java-version: 8
+                    distribution: "graalvm"
+                    java-version: 21
 
             -   name: Setup Gradle
                 uses: gradle/actions/setup-gradle@v4
 
             -   name: Run tests
-                run: ./gradlew test --stacktrace --parallel
+                run: ./gradlew cleanAllTests allTests --stacktrace --parallel
 
             -   name: Upload test report
                 if: success() || failure()
                 uses: actions/upload-artifact@v4
                 with:
                     name: Test report
-                    path: |
-                        build/reports/tests/test/
+                    path: build/reports/tests/allTests/

@@ -4,6 +4,9 @@ build/
 out/
 classes/
 
+### Kotlin ###
+.kotlin/
+
 ### Eclipse ###
 *.launch
 
@@ -27,8 +30,11 @@ bin/
 .fleet/
 
 ### Other ###
-.kotlin/
+captures
+.externalNativeBuild
+.cxx
+local.properties
+xcuserdata
+*.gpg
+*.env
 *.log
-.env
-notebooks/
-Main.kt

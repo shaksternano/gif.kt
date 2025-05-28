@@ -1,0 +1,121 @@
+import com.vanniktech.maven.publish.SonatypeHost
+import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
+plugins {
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.vanniktech.mavenPublish)
+}
+
+group = "com.shakster"
+version = "0.1.0"
+
+kotlin {
+    jvm {
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_1_8
+        }
+    }
+
+    androidTarget {
+        publishLibraryVariants("release")
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_1_8
+        }
+    }
+
+    iosX64()
+    iosArm64()
+    iosSimulatorArm64()
+    tvosX64()
+    tvosArm64()
+    tvosSimulatorArm64()
+    watchosArm32()
+    watchosArm64()
+    watchosDeviceArm64()
+    watchosX64()
+    watchosSimulatorArm64()
+    macosX64()
+    macosArm64()
+    linuxX64()
+    linuxArm64()
+    mingwX64()
+
+    js {
+        browser()
+        nodejs()
+    }
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        browser()
+        nodejs()
+    }
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmWasi {
+        nodejs()
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+            api(libs.kotlinx.coroutines.core)
+            implementation(libs.kotlinx.coroutines.test)
+            api(libs.kotlinx.io.core)
+            implementation(libs.kotlinx.io.okio)
+            api(libs.okio)
+        }
+
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
+        }
+
+        androidMain.dependencies {
+            implementation(libs.kotlinx.coroutines.android)
+        }
+    }
+}
+
+android {
+    namespace = "com.shakster.gifkt"
+    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    defaultConfig {
+        minSdk = libs.versions.android.minSdk.get().toInt()
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+}
+
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
+
+    signAllPublications()
+
+    coordinates(group.toString(), "gifkt", version.toString())
+
+    pom {
+        name = "gif.kt"
+        description = "A Kotlin GIF encoding and decoding library"
+        inceptionYear = "2024"
+        url = "https://github.com/shaksternano/gifkt"
+        licenses {
+            license {
+                name = "MIT"
+                url = "https://opensource.org/license/mit"
+            }
+        }
+        developers {
+            developer {
+                id = "shaksternano"
+                name = "ShaksterNano"
+                url = "https://shakster.com"
+            }
+        }
+        scm {
+            url = "https://github.com/shaksternano/gifkt"
+            connection = "scm:git:git://github.com/shaksternano/gifkt.git"
+            developerConnection = "scm:git:ssh://github.com/shaksternano/gifkt.git"
+        }
+    }
+}

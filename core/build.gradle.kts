@@ -11,6 +11,9 @@ plugins {
 group = "com.shakster"
 version = "0.1.0"
 
+val artifactId = "gif-kt"
+base.archivesName = artifactId
+
 kotlin {
     jvm {
         compilerOptions {
@@ -97,10 +100,10 @@ mavenPublishing {
         signAllPublications()
     }
 
-    coordinates(group.toString(), "gifkt", version.toString())
+    coordinates(group.toString(), artifactId, version.toString())
 
     pom {
-        name = "gif.kt"
+        name = rootProject.name
         description = "A Kotlin GIF encoding and decoding library"
         inceptionYear = "2024"
         url = "https://github.com/shaksternano/gifkt"

@@ -1,0 +1,28 @@
+name: Publish
+on:
+    push:
+        branches:
+            - main
+
+jobs:
+    publish_snapshot:
+        name: Publish snapshot build
+        runs-on: macOS-latest
+        steps:
+            -   name: Checkout sources
+                uses: actions/checkout@v4
+
+            -   name: Setup Java
+                uses: actions/setup-java@v4
+                with:
+                    distribution: "graalvm"
+                    java-version: 21
+
+            -   name: Publish to Maven Central
+                run: ./gradlew publishAllPublicationsToMavenCentralRepository
+                env:
+                    ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+                    ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+                    ORG_GRADLE_PROJECT_signingInMemoryKeyId: ${{ secrets.SIGNING_KEY_ID }}
+                    ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+                    ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_KEY_CONTENTS }}

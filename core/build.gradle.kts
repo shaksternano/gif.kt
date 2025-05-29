@@ -11,6 +11,10 @@ plugins {
 group = "com.shakster"
 version = "0.1.0"
 
+if (isRunningTask("publishAllPublicationsToMavenCentralRepository")) {
+    version = "${version}-SNAPSHOT"
+}
+
 val artifactId = "gifkt"
 base.archivesName = artifactId
 
@@ -93,10 +97,7 @@ android {
 mavenPublishing {
     publishToMavenCentral(SonatypeHost.CENTRAL_PORTAL)
 
-    val signPublications = gradle.startParameter.taskNames.none {
-        it.contains("publishToMavenLocal", ignoreCase = true)
-    }
-    if (signPublications) {
+    if (!isRunningTask("publishToMavenLocal")) {
         signAllPublications()
     }
 
@@ -125,5 +126,11 @@ mavenPublishing {
             connection = "scm:git:git://github.com/shaksternano/gifkt.git"
             developerConnection = "scm:git:ssh://github.com/shaksternano/gifkt.git"
         }
+    }
+}
+
+fun isRunningTask(taskName: String): Boolean {
+    return gradle.startParameter.taskNames.any {
+        it.equals(taskName, ignoreCase = true)
     }
 }

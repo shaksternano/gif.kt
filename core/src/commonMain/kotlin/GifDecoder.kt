@@ -215,7 +215,7 @@ class GifDecoder(
                     frame.transparentColorIndex,
                     previousImageArgb,
                 )
-                if (cacheFrameInterval != 0 && i % cacheFrameInterval == 0) {
+                if (cacheFrameInterval > 0 && i % cacheFrameInterval == 0) {
                     frame.argb = argb
                 }
                 argb
@@ -228,7 +228,7 @@ class GifDecoder(
                 frame.index,
             )
 
-            if (i != endIndex) {
+            if (i < endIndex) {
                 val disposedImage = disposeImage(
                     imageArgb,
                     previousImageArgb,

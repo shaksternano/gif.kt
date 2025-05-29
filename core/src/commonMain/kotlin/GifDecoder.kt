@@ -258,7 +258,10 @@ class GifDecoder(
 fun Source.readGif(): Sequence<ImageFrame> {
     return sequence {
         readGif(decodeImages = true) { image ->
-            yield(image)
+            val imageCopy = image.copy(
+                argb = image.argb.copyOf(),
+            )
+            yield(imageCopy)
         }
     }.constrainOnce()
 }

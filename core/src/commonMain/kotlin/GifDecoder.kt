@@ -111,7 +111,8 @@ class GifDecoder(
                 return frame
             }
         }
-        throw IllegalStateException("No keyframe found, this should never be reached")
+        // This should never be reached, but return the first frame just in case.
+        return frames.first()
     }
 
     operator fun get(index: Int): ImageFrame =

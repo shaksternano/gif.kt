@@ -8,7 +8,10 @@ import kotlin.time.Duration
 internal const val BYTES_PER_COLOR: Int = 3
 private val EMPTY_INT_ARRAY: IntArray = IntArray(0)
 
-internal fun Source.readGif(cacheFrameInterval: Int): GifInfo {
+internal inline fun Source.readGif(
+    decodeImages: Boolean,
+    onImageDecode: (image: ImageFrame) -> Unit = {},
+): GifInfo {
     val monitoredSource = monitored()
 
     val introduction = monitoredSource.readGifIntroduction()
@@ -19,25 +22,25 @@ internal fun Source.readGif(cacheFrameInterval: Int): GifInfo {
     val globalColorTable = introduction.globalColorTable
 
     return monitoredSource.readGifContent(
-        cacheFrameInterval,
+        decodeImages,
         canvasWidth,
         canvasHeight,
         globalColorTable,
         globalColorTableColors,
         backgroundColorIndex,
+        onImageDecode,
     )
 }
 
-private fun MonitoredSource.readGifContent(
-    cacheFrameInterval: Int,
+private inline fun MonitoredSource.readGifContent(
+    decodeImages: Boolean,
     canvasWidth: Int,
     canvasHeight: Int,
     globalColorTable: ByteArray?,
     globalColorTableColors: Int,
     backgroundColorIndex: Int,
+    onImageDecode: (image: ImageFrame) -> Unit,
 ): GifInfo {
-    val cacheFrames = cacheFrameInterval > 0
-
     var loopCount = -1
     var comment = ""
 
@@ -53,7 +56,7 @@ private fun MonitoredSource.readGifContent(
 
     var nextIsKeyFrame = true
 
-    readGifBlocks(cacheFrames) { byteOffset, block ->
+    readGifBlocks(decodeImages) { byteOffset, block ->
         when (block) {
             is GraphicsControlExtension -> {
                 currentDisposalMethod = block.disposalMethod
@@ -81,7 +84,7 @@ private fun MonitoredSource.readGifContent(
                 )
 
                 val imageDescriptor = block.descriptor
-                val cacheFrameArgb = if (cacheFrames) {
+                if (decodeImages) {
                     val imageFrame = readImage(
                         canvasWidth,
                         canvasHeight,
@@ -97,6 +100,8 @@ private fun MonitoredSource.readGifContent(
                         timestamp,
                         frameIndex,
                     )
+
+                    onImageDecode(imageFrame)
 
                     val disposedImage = disposeImage(
                         imageFrame.argb,
@@ -116,19 +121,10 @@ private fun MonitoredSource.readGifContent(
                     if (disposedImage != null) {
                         previousImage = disposedImage
                     }
-
-                    val isCacheFrame = frameIndex % cacheFrameInterval == 0
-                    if (isCacheFrame) {
-                        imageFrame.argb
-                    } else {
-                        EMPTY_INT_ARRAY
-                    }
-                } else {
-                    EMPTY_INT_ARRAY
                 }
 
                 val frame = RawImage(
-                    cacheFrameArgb,
+                    EMPTY_INT_ARRAY,
                     imageDescriptor.left,
                     imageDescriptor.top,
                     imageDescriptor.width,

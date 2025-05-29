@@ -3,7 +3,7 @@ package com.shakster.gifkt.internal
 import kotlin.time.Duration
 
 internal data class RawImage(
-    val argb: IntArray,
+    var argb: IntArray,
     val left: Int,
     val top: Int,
     val width: Int,

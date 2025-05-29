@@ -55,7 +55,7 @@ class GifDecoder(
 
     init {
         val gifInfo = data.read().buffered().use { source ->
-            source.readGif(cacheFrameInterval)
+            source.readGif(decodeImages = false)
         }
 
         width = gifInfo.width
@@ -94,7 +94,7 @@ class GifDecoder(
 
         val targetFrame = frames[index]
         return ImageFrame(
-            imageArgb,
+            imageArgb.copyOf(),
             width,
             height,
             targetFrame.duration,
@@ -198,7 +198,7 @@ class GifDecoder(
                 val currentColorTable = imageData.localColorTable ?: globalColorTable
                 ?: throw InvalidGifException("Frame $i has no color table")
 
-                getImageArgb(
+                val argb = getImageArgb(
                     width,
                     height,
                     imageData.descriptor.left,
@@ -213,6 +213,10 @@ class GifDecoder(
                     frame.transparentColorIndex,
                     previousImageArgb,
                 )
+                if (cacheFrameInterval != 0 && i % cacheFrameInterval == 0) {
+                    frame.argb = argb
+                }
+                argb
             }
 
             onImageDecode(
@@ -222,23 +226,25 @@ class GifDecoder(
                 frame.index,
             )
 
-            val disposedImage = disposeImage(
-                imageArgb,
-                previousImageArgb,
-                frame.disposalMethod,
-                width,
-                height,
-                frame.left,
-                frame.top,
-                frame.width,
-                frame.height,
-                usesGlobalColorTable = !frame.usesLocalColorTable,
-                globalColorTable,
-                globalColorTableColors,
-                backgroundColorIndex,
-            )
-            if (disposedImage != null) {
-                previousImageArgb = disposedImage
+            if (i != endIndex) {
+                val disposedImage = disposeImage(
+                    imageArgb,
+                    previousImageArgb,
+                    frame.disposalMethod,
+                    width,
+                    height,
+                    frame.left,
+                    frame.top,
+                    frame.width,
+                    frame.height,
+                    usesGlobalColorTable = !frame.usesLocalColorTable,
+                    globalColorTable,
+                    globalColorTableColors,
+                    backgroundColorIndex,
+                )
+                if (disposedImage != null) {
+                    previousImageArgb = disposedImage
+                }
             }
         }
     }

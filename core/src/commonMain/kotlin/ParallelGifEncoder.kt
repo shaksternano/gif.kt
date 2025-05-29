@@ -31,7 +31,10 @@ class ParallelGifEncoder(
     maxConcurrency: Int = 2,
     coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     private val ioContext: CoroutineContext = EmptyCoroutineContext,
-    private val onFrameWritten: suspend (index: Int) -> Unit = {},
+    private val onFrameWritten: suspend (
+        framesWritten: Int,
+        writtenDuration: Duration,
+    ) -> Unit = { _, _ -> },
 ) : SuspendClosable {
 
     init {
@@ -66,7 +69,7 @@ class ParallelGifEncoder(
             onOutput = ::writeOrOptimizeGifImage,
         )
 
-    private val encodeExecutor: AsyncExecutor<EncodeInput, Buffer> =
+    private val encodeExecutor: AsyncExecutor<EncodeInput, EncodeOutput> =
         AsyncExecutor(
             maxConcurrency = maxConcurrency,
             scope = coroutineScope,
@@ -74,19 +77,20 @@ class ParallelGifEncoder(
             onOutput = ::transferToSink,
         )
 
-    private val writtenFrameNotifications: Channel<Unit> = Channel(capacity = Channel.UNLIMITED)
+    private val writtenFrameNotifications: Channel<Duration> = Channel(capacity = Channel.UNLIMITED)
     private val writtenFrameListener: Job = coroutineScope.launch {
-        var writtenFrameIndex = 0
-        @Suppress("unused")
-        for (unused in writtenFrameNotifications) {
+        var framesWritten = 0
+        var writtenDuration = Duration.ZERO
+        for (duration in writtenFrameNotifications) {
+            framesWritten++
+            writtenDuration += duration
             try {
-                onFrameWritten(writtenFrameIndex)
+                onFrameWritten(framesWritten, writtenDuration)
             } catch (t: Throwable) {
                 val exception = Exception("Error running onFrameWritten callback", t)
                 @OptIn(ExperimentalAtomicApi::class)
                 throwableReference.compareAndSet(null, exception)
             }
-            writtenFrameIndex++
         }
     }
 
@@ -125,7 +129,7 @@ class ParallelGifEncoder(
 
         // Account for frames that have been merged due to similarity.
         if (!written) {
-            writtenFrameNotifications.send(Unit)
+            writtenFrameNotifications.send(Duration.ZERO)
         }
     }
 
@@ -228,7 +232,7 @@ class ParallelGifEncoder(
         )
     }
 
-    private fun encodeGifImage(input: EncodeInput): Buffer {
+    private fun encodeGifImage(input: EncodeInput): EncodeOutput {
         val (
             imageData,
             durationCentiseconds,
@@ -240,21 +244,21 @@ class ParallelGifEncoder(
             durationCentiseconds,
             disposalMethod,
         )
-        return buffer
+        return EncodeOutput(buffer, input.durationCentiseconds.centiseconds)
     }
 
-    private suspend fun transferToSink(output: Result<Buffer>) {
-        val error = output.exceptionOrNull()
+    private suspend fun transferToSink(result: Result<EncodeOutput>) {
+        val error = result.exceptionOrNull()
         if (error != null) {
             @OptIn(ExperimentalAtomicApi::class)
             throwableReference.compareAndSet(null, error)
             return
         }
-        val buffer = output.getOrThrow()
+        val output = result.getOrThrow()
         withContext(ioContext) {
-            buffer.transferTo(sink)
+            output.buffer.transferTo(sink)
         }
-        writtenFrameNotifications.send(Unit)
+        writtenFrameNotifications.send(output.duration)
     }
 
     override suspend fun close() {
@@ -326,5 +330,10 @@ class ParallelGifEncoder(
         val imageData: QuantizedImageData,
         val durationCentiseconds: Int,
         val disposalMethod: DisposalMethod,
+    )
+
+    private data class EncodeOutput(
+        val buffer: Buffer,
+        val duration: Duration,
     )
 }

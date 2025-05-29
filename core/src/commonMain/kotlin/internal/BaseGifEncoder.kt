@@ -55,6 +55,12 @@ internal class BaseGifEncoder(
     private var frameCount: Int = 0
     private var nextCrop: Rectangle? = null
 
+    /**
+     * Writes a frame to the GIF.
+     *
+     * @return `true` if the frame was written, `false` if it was not written
+     * because it was merged with the previous frame due to being similar.
+     */
     inline fun writeFrame(
         image: IntArray,
         width: Int,
@@ -62,14 +68,14 @@ internal class BaseGifEncoder(
         duration: Duration,
         quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod, Boolean) -> Unit,
         wrapIo: (() -> Unit) -> Unit = { it() },
-    ) {
+    ): Boolean {
         /*
          * Handle the minimum frame duration.
          */
         val newPendingDuration = pendingDuration + duration
         if (writtenAny && newPendingDuration <= minimumFrameDuration) {
             pendingDuration = newPendingDuration
-            return
+            return false
         }
 
         /*
@@ -89,7 +95,7 @@ internal class BaseGifEncoder(
         ) {
             // Merge similar sequential frames into one
             pendingDuration += duration
-            return
+            return false
         }
 
         // Optimise transparency
@@ -168,7 +174,7 @@ internal class BaseGifEncoder(
         previousFrame = currentFrame
         pendingWrite = toWrite
         optimizedPreviousFrame = optimizedTransparency
-        return
+        return true
     }
 
     private inline fun init(

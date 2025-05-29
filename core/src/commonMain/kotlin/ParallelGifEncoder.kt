@@ -102,7 +102,7 @@ class ParallelGifEncoder(
             throw createException(throwable)
         }
 
-        baseEncoder.writeFrame(
+        val written = baseEncoder.writeFrame(
             image,
             width,
             height,
@@ -122,6 +122,11 @@ class ParallelGifEncoder(
                 }
             },
         )
+
+        // Account for frames that have been merged due to similarity.
+        if (!written) {
+            onFrameProcessedChannel.send(Unit)
+        }
     }
 
     suspend fun writeFrame(frame: ImageFrame) =

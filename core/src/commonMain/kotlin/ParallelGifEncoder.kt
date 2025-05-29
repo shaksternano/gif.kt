@@ -31,7 +31,7 @@ class ParallelGifEncoder(
     maxConcurrency: Int = 2,
     coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     private val ioContext: CoroutineContext = EmptyCoroutineContext,
-    private val onFrameProcessed: suspend (index: Int) -> Unit = {},
+    private val onFrameWritten: suspend (index: Int) -> Unit = {},
 ) : SuspendClosable {
 
     init {
@@ -74,19 +74,19 @@ class ParallelGifEncoder(
             onOutput = ::transferToSink,
         )
 
-    private val onFrameProcessedChannel: Channel<Unit> = Channel(capacity = Channel.UNLIMITED)
-    private val onFrameProcessedJob: Job = coroutineScope.launch {
-        var processedFrameIndex = 0
+    private val writtenFrameNotifications: Channel<Unit> = Channel(capacity = Channel.UNLIMITED)
+    private val writtenFrameListener: Job = coroutineScope.launch {
+        var writtenFrameIndex = 0
         @Suppress("unused")
-        for (unused in onFrameProcessedChannel) {
+        for (unused in writtenFrameNotifications) {
             try {
-                onFrameProcessed(processedFrameIndex)
+                onFrameWritten(writtenFrameIndex)
             } catch (t: Throwable) {
-                val exception = Exception("Error running onFrameProcessed callback", t)
+                val exception = Exception("Error running onFrameWritten callback", t)
                 @OptIn(ExperimentalAtomicApi::class)
                 throwableReference.compareAndSet(null, exception)
             }
-            processedFrameIndex++
+            writtenFrameIndex++
         }
     }
 
@@ -125,7 +125,7 @@ class ParallelGifEncoder(
 
         // Account for frames that have been merged due to similarity.
         if (!written) {
-            onFrameProcessedChannel.send(Unit)
+            writtenFrameNotifications.send(Unit)
         }
     }
 
@@ -238,7 +238,7 @@ class ParallelGifEncoder(
         withContext(ioContext) {
             buffer.transferTo(sink)
         }
-        onFrameProcessedChannel.send(Unit)
+        writtenFrameNotifications.send(Unit)
     }
 
     override suspend fun close() {
@@ -269,8 +269,8 @@ class ParallelGifEncoder(
                     }
                 },
             )
-            onFrameProcessedChannel.close()
-            onFrameProcessedJob.join()
+            writtenFrameNotifications.close()
+            writtenFrameListener.join()
         } catch (t: Throwable) {
             closeThrowable = t
             throw t

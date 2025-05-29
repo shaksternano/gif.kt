@@ -11,7 +11,7 @@ plugins {
 group = "com.shakster"
 version = "0.1.0"
 
-val artifactId = "gif-kt"
+val artifactId = "gifkt"
 base.archivesName = artifactId
 
 kotlin {

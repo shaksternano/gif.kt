@@ -90,7 +90,7 @@ class GifDecoder(
             imageArgb = argb
         }
         if (imageArgb == null) {
-            throw IllegalStateException("Seeked image is null, this shouldn't happen")
+            throw IllegalStateException("No images found, this shouldn't happen")
         }
 
         val targetFrame = frames[index]

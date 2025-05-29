@@ -66,7 +66,13 @@ internal class BaseGifEncoder(
         width: Int,
         height: Int,
         duration: Duration,
-        quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod, Boolean) -> Unit,
+        quantizeAndWriteFrame: (
+            optimizedImage: Image,
+            originalImage: Image,
+            durationCentiseconds: Int,
+            disposalMethod: DisposalMethod,
+            optimizedPreviousFrame: Boolean,
+        ) -> Unit,
         wrapIo: (() -> Unit) -> Unit = { it() },
     ): Boolean {
         /*
@@ -203,7 +209,13 @@ internal class BaseGifEncoder(
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
         loopCount: Int,
-        quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod, Boolean) -> Unit,
+        quantizeAndWriteFrame: (
+            optimizedImage: Image,
+            originalImage: Image,
+            durationCentiseconds: Int,
+            disposalMethod: DisposalMethod,
+            optimizedPreviousFrame: Boolean,
+        ) -> Unit,
         wrapIo: (() -> Unit) -> Unit,
     ) {
         init(image.width, image.height, loopCount, wrapIo)
@@ -224,7 +236,11 @@ internal class BaseGifEncoder(
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
         optimizedPreviousFrame: Boolean,
-        encodeAndWriteImage: (QuantizedImageData, Int, DisposalMethod) -> Unit,
+        encodeAndWriteImage: (
+            imageData: QuantizedImageData,
+            durationCentiseconds: Int,
+            disposalMethod: DisposalMethod,
+        ) -> Unit,
     ) {
         if (optimizeQuantizedTransparency) {
             writeOptimizedGifImage(
@@ -249,7 +265,11 @@ internal class BaseGifEncoder(
         originalImage: Image,
         durationCentiseconds: Int,
         optimizedPreviousFrame: Boolean,
-        encodeAndWriteImage: (QuantizedImageData, Int, DisposalMethod) -> Unit,
+        encodeAndWriteImage: (
+            imageData: QuantizedImageData,
+            durationCentiseconds: Int,
+            disposalMethod: DisposalMethod,
+        ) -> Unit,
     ) {
         val quantizedImage = imageData.toImage()
         if (writtenAnyQuantized
@@ -325,7 +345,11 @@ internal class BaseGifEncoder(
         imageData: QuantizedImageData,
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
-        encodeAndWriteImage: (QuantizedImageData, Int, DisposalMethod) -> Unit,
+        encodeAndWriteImage: (
+            imageData: QuantizedImageData,
+            durationCentiseconds: Int,
+            disposalMethod: DisposalMethod,
+        ) -> Unit,
     ) {
         val nextCrop = nextCrop
         val toWrite = if (nextCrop != null) {
@@ -349,8 +373,18 @@ internal class BaseGifEncoder(
     }
 
     inline fun close(
-        quantizeAndWriteFrame: (Image, Image, Int, DisposalMethod, Boolean) -> Unit,
-        encodeAndWriteImage: (QuantizedImageData, Int, DisposalMethod) -> Unit,
+        quantizeAndWriteFrame: (
+            optimizedImage: Image,
+            originalImage: Image,
+            durationCentiseconds: Int,
+            disposalMethod: DisposalMethod,
+            optimizedPreviousFrame: Boolean,
+        ) -> Unit,
+        encodeAndWriteImage: (
+            imageData: QuantizedImageData,
+            durationCentiseconds: Int,
+            disposalMethod: DisposalMethod,
+        ) -> Unit,
         afterFinalWrite: () -> Unit = {},
         afterFinalQuantizedWrite: () -> Unit = {},
         wrapIo: (() -> Unit) -> Unit = { it() },

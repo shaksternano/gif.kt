@@ -107,7 +107,7 @@ class GifDecoder(
     private fun findLastKeyframe(index: Int): RawImage {
         for (i in index downTo 0) {
             val frame = frames[i]
-            if (frame.isKeyFrame || frame.argb.isNotEmpty()) {
+            if (frame.isKeyFrame || frame.argb != null) {
                 return frame
             }
         }
@@ -189,9 +189,8 @@ class GifDecoder(
         var previousImageArgb: IntArray? = null
         for (i in startIndex..endIndex) {
             val frame = frames[i]
-            val imageArgb = if (frame.argb.isNotEmpty()) {
-                frame.argb
-            } else {
+            val cachedArgb = frame.argb
+            val imageArgb = if (cachedArgb == null) {
                 val imageData = data.read(frame.byteOffset).buffered().monitored().use { source ->
                     // Block introducer
                     source.skip(1)
@@ -219,6 +218,8 @@ class GifDecoder(
                     frame.argb = argb
                 }
                 argb
+            } else {
+                cachedArgb
             }
 
             onImageDecode(

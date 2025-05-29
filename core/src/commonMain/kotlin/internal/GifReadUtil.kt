@@ -6,7 +6,6 @@ import kotlinx.io.Source
 import kotlin.time.Duration
 
 internal const val BYTES_PER_COLOR: Int = 3
-private val EMPTY_INT_ARRAY: IntArray = IntArray(0)
 
 internal inline fun Source.readGif(
     decodeImages: Boolean,
@@ -124,7 +123,7 @@ private inline fun MonitoredSource.readGifContent(
                 }
 
                 val frame = RawImage(
-                    EMPTY_INT_ARRAY,
+                    null,
                     imageDescriptor.left,
                     imageDescriptor.top,
                     imageDescriptor.width,

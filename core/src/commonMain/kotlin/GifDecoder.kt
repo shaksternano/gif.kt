@@ -1,6 +1,7 @@
 package com.shakster.gifkt
 
 import com.shakster.gifkt.internal.*
+import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import okio.FileSystem
@@ -252,4 +253,12 @@ class GifDecoder(
     override fun close() {
         data.close()
     }
+}
+
+fun Source.readGif(): Sequence<ImageFrame> {
+    return sequence {
+        readGif(decodeImages = true) { image ->
+            yield(image)
+        }
+    }.constrainOnce()
 }

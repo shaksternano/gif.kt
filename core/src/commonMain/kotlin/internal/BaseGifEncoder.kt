@@ -386,7 +386,6 @@ internal class BaseGifEncoder(
             disposalMethod: DisposalMethod,
         ) -> Unit,
         afterFinalWrite: () -> Unit = {},
-        afterFinalQuantizedWrite: () -> Unit = {},
         wrapIo: (() -> Unit) -> Unit = { it() },
     ) {
         var closeThrowable: Throwable? = null
@@ -413,7 +412,6 @@ internal class BaseGifEncoder(
                     wrapIo,
                 )
             }
-            afterFinalWrite()
             val pendingQuantizedData = pendingQuantizedData
             if (pendingQuantizedData != null) {
                 writeGifImage(
@@ -423,7 +421,7 @@ internal class BaseGifEncoder(
                     encodeAndWriteImage,
                 )
             }
-            afterFinalQuantizedWrite()
+            afterFinalWrite()
             wrapIo {
                 sink.writeGifTrailer()
             }

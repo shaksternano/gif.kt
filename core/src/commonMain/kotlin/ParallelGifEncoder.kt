@@ -186,6 +186,22 @@ class ParallelGifEncoder(
             disposalMethod,
             optimizedPreviousFrame,
         ) = output.getOrThrow()
+        writeOrOptimizeGifImage(
+            imageData,
+            originalImage,
+            durationCentiseconds,
+            disposalMethod,
+            optimizedPreviousFrame,
+        )
+    }
+
+    private suspend fun writeOrOptimizeGifImage(
+        imageData: QuantizedImageData,
+        originalImage: Image,
+        durationCentiseconds: Int,
+        disposalMethod: DisposalMethod,
+        optimizedPreviousFrame: Boolean,
+    ) {
         baseEncoder.writeOrOptimizeGifImage(
             imageData,
             originalImage,
@@ -244,10 +260,11 @@ class ParallelGifEncoder(
     override suspend fun close() {
         var closeThrowable: Throwable? = null
         try {
+            quantizeExecutor.close()
             baseEncoder.close(
                 quantizeAndWriteFrame = { optimizedImage, originalImage, durationCentiseconds, disposalMethod, optimizedPreviousFrame ->
-                    quantizeAndWriteFrame(
-                        optimizedImage,
+                    writeOrOptimizeGifImage(
+                        baseEncoder.getImageData(optimizedImage),
                         originalImage,
                         durationCentiseconds,
                         disposalMethod,
@@ -258,9 +275,6 @@ class ParallelGifEncoder(
                     encodeAndWriteImage(imageData, durationCentiseconds, disposalMethod)
                 },
                 afterFinalWrite = {
-                    quantizeExecutor.close()
-                },
-                afterFinalQuantizedWrite = {
                     encodeExecutor.close()
                 },
                 wrapIo = {

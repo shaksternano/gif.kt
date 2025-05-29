@@ -245,9 +245,7 @@ class GifDecoder(
                     globalColorTableColors,
                     backgroundColorIndex,
                 )
-                if (disposedImage != null) {
-                    previousImageArgb = disposedImage
-                }
+                previousImageArgb = disposedImage
             }
         }
     }

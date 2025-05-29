@@ -117,9 +117,7 @@ private inline fun MonitoredSource.readGifContent(
                         globalColorTableColors,
                         backgroundColorIndex,
                     )
-                    if (disposedImage != null) {
-                        previousImage = disposedImage
-                    }
+                    previousImage = disposedImage
                 }
 
                 val frame = RawImage(
@@ -303,7 +301,13 @@ internal fun disposeImage(
     DisposalMethod.UNSPECIFIED -> image
     DisposalMethod.DO_NOT_DISPOSE -> image
     DisposalMethod.RESTORE_TO_BACKGROUND_COLOR -> {
-        if (previousImage == null) {
+        val disposeAll = previousImage == null || (
+            imageLeft <= 0
+                && imageTop <= 0
+                && imageLeft + imageWidth >= canvasWidth
+                && imageTop + imageHeight >= canvasHeight
+            )
+        if (disposeAll) {
             null
         } else {
             val backgroundColor = if (
@@ -318,14 +322,12 @@ internal fun disposeImage(
             }
 
             val newPreviousImage = previousImage.copyOf()
-            for (y in imageLeft..<imageHeight) {
-                for (x in 0..<imageWidth) {
-                    val absoluteX = imageLeft + x
-                    val absoluteY = imageTop + y
-                    if (absoluteX >= canvasWidth || absoluteY >= canvasHeight) {
+            for (y in imageTop..<imageTop + imageHeight) {
+                for (x in imageLeft..<imageLeft + imageWidth) {
+                    if (x >= canvasWidth || y >= canvasHeight) {
                         continue
                     }
-                    val i = absoluteY * canvasWidth + absoluteX
+                    val i = y * canvasWidth + x
                     newPreviousImage[i] = backgroundColor
                 }
             }
@@ -333,7 +335,7 @@ internal fun disposeImage(
         }
     }
 
-    DisposalMethod.RESTORE_TO_PREVIOUS -> null
+    DisposalMethod.RESTORE_TO_PREVIOUS -> previousImage
 }
 
 /**

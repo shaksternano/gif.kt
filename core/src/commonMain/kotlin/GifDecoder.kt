@@ -165,7 +165,7 @@ class GifDecoder(
         decodeImages(startIndex = 0, endIndex = frameCount - 1) { argb, duration, timestamp, index ->
             yield(
                 ImageFrame(
-                    argb,
+                    argb.copyOf(),
                     width,
                     height,
                     duration,

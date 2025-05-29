@@ -17,6 +17,7 @@ class GifEncoder(
     comment: String = "",
     minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS,
     quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
+    private val onFrameWritten: (index: Int) -> Unit = {},
 ) : AutoCloseable {
 
     private val baseEncoder: BaseGifEncoder = BaseGifEncoder(
@@ -34,19 +35,26 @@ class GifEncoder(
         quantizer,
     )
 
+    private var writtenFrameIndex: Int = 0
+
     fun writeFrame(
         image: IntArray,
         width: Int,
         height: Int,
         duration: Duration,
     ) {
-        baseEncoder.writeFrame(
+        val written = baseEncoder.writeFrame(
             image,
             width,
             height,
             duration,
             ::quantizeAndWriteFrame,
         )
+
+        // Account for frames that have been merged due to similarity.
+        if (!written) {
+            handleWrittenFrame()
+        }
     }
 
     fun writeFrame(frame: ImageFrame) =
@@ -70,14 +78,31 @@ class GifEncoder(
             durationCentiseconds,
             disposalMethod,
             optimizedPreviousFrame,
-            sink::writeGifImage,
+            ::writeImage,
         )
+    }
+
+    private fun writeImage(
+        imageData: QuantizedImageData,
+        durationCentiseconds: Int,
+        disposalMethod: DisposalMethod,
+    ) {
+        sink.writeGifImage(imageData, durationCentiseconds, disposalMethod)
+        handleWrittenFrame()
+    }
+
+    private fun handleWrittenFrame() {
+        try {
+            onFrameWritten(writtenFrameIndex++)
+        } catch (t: Throwable) {
+            throw Exception("Error running onFrameWritten callback", t)
+        }
     }
 
     override fun close() {
         baseEncoder.close(
             ::quantizeAndWriteFrame,
-            sink::writeGifImage,
+            ::writeImage,
         )
     }
 }

@@ -7,7 +7,7 @@ internal class ByteArrayData(
     private val data: ByteArray,
 ) : RandomAccessData {
 
-    override fun read(offset: Long): RawSource {
+    override fun source(offset: Long): RawSource {
         return ByteArraySource(data, offset.toInt())
     }
 

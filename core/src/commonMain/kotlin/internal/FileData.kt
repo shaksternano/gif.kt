@@ -9,15 +9,21 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 
 internal class FileData(
-    path: Path,
+    path: String,
     fileSystem: FileSystem,
 ) : RandomAccessData {
 
-    private val fileHandle: FileHandle = fileSystem.openReadOnly(
-        path.toString().toPath(),
+    constructor(
+        path: Path,
+        fileSystem: FileSystem,
+    ) : this(
+        path.toString(),
+        fileSystem,
     )
 
-    override fun read(offset: Long): RawSource {
+    private val fileHandle: FileHandle = fileSystem.openReadOnly(path.toPath())
+
+    override fun source(offset: Long): RawSource {
         require(offset >= 0) {
             "offset ($offset) < 0"
         }

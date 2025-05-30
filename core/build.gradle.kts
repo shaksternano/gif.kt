@@ -19,6 +19,8 @@ val artifactId = "gifkt"
 base.archivesName = artifactId
 
 kotlin {
+    jvmToolchain(8)
+
     jvm {
         compilerOptions {
             jvmTarget = JvmTarget.JVM_1_8
@@ -69,7 +71,7 @@ kotlin {
             implementation(libs.kotlinx.coroutines.test)
             api(libs.kotlinx.io.core)
             implementation(libs.kotlinx.io.okio)
-            api(libs.okio)
+            implementation(libs.okio)
         }
 
         commonTest.dependencies {
@@ -78,6 +80,24 @@ kotlin {
 
         androidMain.dependencies {
             implementation(libs.kotlinx.coroutines.android)
+        }
+
+        jsMain.dependencies {
+            implementation(libs.okio.nodefilesystem)
+        }
+
+        wasmWasiMain.dependencies {
+            implementation(libs.okio.wasifilesystem)
+        }
+    }
+
+    targets.all {
+        compilations.all {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xexpect-actual-classes")
+                }
+            }
         }
     }
 }

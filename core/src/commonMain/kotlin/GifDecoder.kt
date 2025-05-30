@@ -3,37 +3,19 @@ package com.shakster.gifkt
 import com.shakster.gifkt.internal.*
 import kotlinx.io.Source
 import kotlinx.io.buffered
-import kotlinx.io.files.Path
-import okio.FileSystem
+import kotlin.jvm.JvmOverloads
 import kotlin.time.Duration
-
-private const val DEFAULT_CACHE_FRAME_INTERVAL: Int = 50
 
 /*
  * Reference:
  * https://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp
  */
-class GifDecoder(
+class GifDecoder
+@JvmOverloads
+constructor(
     private val data: RandomAccessData,
-    private val cacheFrameInterval: Int = DEFAULT_CACHE_FRAME_INTERVAL,
+    private val cacheFrameInterval: Int = 50,
 ) : AutoCloseable {
-
-    constructor(
-        path: Path,
-        fileSystem: FileSystem,
-        cacheFrameInterval: Int = DEFAULT_CACHE_FRAME_INTERVAL,
-    ) : this(
-        data = FileData(path, fileSystem),
-        cacheFrameInterval = cacheFrameInterval,
-    )
-
-    constructor(
-        bytes: ByteArray,
-        cacheFrameInterval: Int = DEFAULT_CACHE_FRAME_INTERVAL,
-    ) : this(
-        data = ByteArrayData(bytes),
-        cacheFrameInterval = cacheFrameInterval,
-    )
 
     val width: Int
     val height: Int
@@ -55,7 +37,7 @@ class GifDecoder(
     private val frames: List<RawImage>
 
     init {
-        val gifInfo = data.read().buffered().use { source ->
+        val gifInfo = data.source().buffered().use { source ->
             source.readGif(decodeImages = false)
         }
 
@@ -104,17 +86,6 @@ class GifDecoder(
         )
     }
 
-    private fun findLastKeyframe(index: Int): RawImage {
-        for (i in index downTo 0) {
-            val frame = frames[i]
-            if (frame.isKeyFrame || frame.argb != null) {
-                return frame
-            }
-        }
-        // This should never be reached, but return the first frame just in case.
-        return frames.first()
-    }
-
     operator fun get(index: Int): ImageFrame =
         readFrame(index)
 
@@ -139,6 +110,20 @@ class GifDecoder(
         return readFrame(index)
     }
 
+    operator fun get(timestamp: Duration): ImageFrame =
+        readFrame(timestamp)
+
+    private fun findLastKeyframe(index: Int): RawImage {
+        for (i in index downTo 0) {
+            val frame = frames[i]
+            if (frame.isKeyFrame || frame.argb != null) {
+                return frame
+            }
+        }
+        // This should never be reached, but return the first frame just in case.
+        return frames.first()
+    }
+
     private fun findIndex(timestamp: Duration, frames: List<RawImage>): Int {
         var low = 0
         var high = frames.size - 1
@@ -157,9 +142,6 @@ class GifDecoder(
         }
         throw IllegalStateException("This should never be reached. Timestamp: $timestamp, frames: $frames")
     }
-
-    operator fun get(timestamp: Duration): ImageFrame =
-        readFrame(timestamp)
 
     fun asSequence(): Sequence<ImageFrame> = sequence {
         decodeImages(startIndex = 0, endIndex = frameCount - 1) { argb, duration, timestamp, index ->
@@ -191,7 +173,7 @@ class GifDecoder(
             val frame = frames[i]
             val cachedArgb = frame.argb
             val imageArgb = if (cachedArgb == null) {
-                val imageData = data.read(frame.byteOffset).buffered().monitored().use { source ->
+                val imageData = data.source(frame.byteOffset).buffered().monitored().use { source ->
                     // Block introducer
                     source.skip(1)
                     source.readGifImage(decodeImage = true)

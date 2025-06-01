@@ -1,11 +1,8 @@
-@file:JvmName("ImageFrameJvm")
-
 package com.shakster.gifkt
 
 import com.shakster.gifkt.internal.equalsImpl
 import com.shakster.gifkt.internal.hashCodeImpl
 import com.shakster.gifkt.internal.toStringImpl
-import java.awt.image.BufferedImage
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 import kotlin.time.toKotlinDuration
@@ -36,44 +33,10 @@ actual data class ImageFrame actual constructor(
         index = index,
     )
 
-    constructor(
-        image: BufferedImage,
-        duration: Duration,
-        timestamp: Duration,
-        index: Int,
-    ) : this(
-        argb = image.rgb,
-        width = image.width,
-        height = image.height,
-        duration = duration,
-        timestamp = timestamp,
-        index = index,
-    )
-
-    constructor(
-        image: BufferedImage,
-        duration: JavaDuration,
-        timestamp: JavaDuration,
-        index: Int,
-    ) : this(
-        argb = image.rgb,
-        width = image.width,
-        height = image.height,
-        duration = duration.toKotlinDuration(),
-        timestamp = timestamp.toKotlinDuration(),
-        index = index,
-    )
-
     val javaDuration: JavaDuration
         get() = duration.toJavaDuration()
     val javaTimestamp: JavaDuration
         get() = timestamp.toJavaDuration()
-
-    fun toBufferedImage(): BufferedImage {
-        val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-        image.rgb = argb
-        return image
-    }
 
     override fun equals(other: Any?): Boolean = equalsImpl(other)
 
@@ -81,7 +44,3 @@ actual data class ImageFrame actual constructor(
 
     override fun toString(): String = toStringImpl()
 }
-
-var BufferedImage.rgb: IntArray
-    get() = getRGB(0, 0, width, height, null, 0, width)
-    set(rgb) = setRGB(0, 0, width, height, rgb, 0, width)

@@ -2,49 +2,42 @@ package com.shakster.gifkt
 
 import kotlin.time.Duration
 
-data class ImageFrame(
-    val argb: IntArray,
-    val width: Int,
-    val height: Int,
-    val duration: Duration,
-    val timestamp: Duration,
-    val index: Int,
+expect class ImageFrame(
+    argb: IntArray,
+    width: Int,
+    height: Int,
+    duration: Duration,
+    timestamp: Duration,
+    index: Int,
 ) {
+    val argb: IntArray
+    val width: Int
+    val height: Int
+    val duration: Duration
+    val timestamp: Duration
+    val index: Int
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
+    operator fun component1(): IntArray
+    operator fun component2(): Int
+    operator fun component3(): Int
+    operator fun component4(): Duration
+    operator fun component5(): Duration
+    operator fun component6(): Int
+}
 
-        other as ImageFrame
-
-        if (width != other.width) return false
-        if (height != other.height) return false
-        if (duration != other.duration) return false
-        if (timestamp != other.timestamp) return false
-        if (index != other.index) return false
-        if (!argb.contentEquals(other.argb)) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = argb.contentHashCode()
-        result = 31 * result + width
-        result = 31 * result + height
-        result = 31 * result + duration.hashCode()
-        result = 31 * result + timestamp.hashCode()
-        result = 31 * result + index
-        return result
-    }
-
-    override fun toString(): String {
-        return "ImageFrame(" +
-            "argb=${argb.contentToString()}" +
-            ", width=$width" +
-            ", height=$height" +
-            ", duration=$duration" +
-            ", timestamp=$timestamp" +
-            ", index=$index" +
-            ")"
-    }
+/*
+ * This can't be an expect class method because the
+ * implementing data class's `copy` method has default
+ * arguments, which is not allowed in actual methods.
+ */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+fun ImageFrame.copy(
+    argb: IntArray = this.argb,
+    width: Int = this.width,
+    height: Int = this.height,
+    duration: Duration = this.duration,
+    timestamp: Duration = this.timestamp,
+    index: Int = this.index,
+): ImageFrame {
+    return ImageFrame(argb, width, height, duration, timestamp, index)
 }

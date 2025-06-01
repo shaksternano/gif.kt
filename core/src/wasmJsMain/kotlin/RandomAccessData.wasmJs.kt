@@ -1,6 +1,16 @@
 package com.shakster.gifkt
 
-import okio.FileSystem
+import com.shakster.gifkt.internal.ByteArrayData
+import kotlinx.io.RawSource
 
-internal actual val SYSTEM_FILE_SYSTEM: FileSystem
-    get() = throw UnsupportedOperationException("FileSystem is not supported on WASM JS target")
+actual interface RandomAccessData : AutoCloseable {
+
+    @Suppress("ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT")
+    actual fun source(offset: Long): RawSource
+
+    actual companion object {
+        actual fun of(byteArray: ByteArray): RandomAccessData {
+            return ByteArrayData(byteArray)
+        }
+    }
+}

@@ -1,6 +1,7 @@
 import com.vanniktech.maven.publish.SonatypeHost
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -65,6 +66,8 @@ kotlin {
         nodejs()
     }
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
         commonMain.dependencies {
             api(libs.kotlinx.coroutines.core)
@@ -89,6 +92,22 @@ kotlin {
         wasmWasiMain.dependencies {
             implementation(libs.okio.wasifilesystem)
         }
+
+        val nonJvmMain by creating {
+            dependsOn(commonMain.get())
+        }
+        nonJvmMain.registerChildSourceSets(nativeMain, jsMain, wasmJsMain, wasmWasiMain)
+
+        val androidAndJvmMain by creating {
+            dependsOn(commonMain.get())
+        }
+        androidAndJvmMain.registerChildSourceSets(androidMain, jvmMain)
+
+        val fileSystemMain by creating {
+            dependsOn(commonMain.get())
+        }
+        fileSystemMain.registerChildSourceSets(androidAndJvmMain)
+        fileSystemMain.registerChildSourceSets(nativeMain, jsMain, wasmWasiMain)
     }
 
     targets.all {
@@ -152,5 +171,17 @@ mavenPublishing {
 fun isRunningTask(taskName: String): Boolean {
     return gradle.startParameter.taskNames.any {
         it.equals(taskName, ignoreCase = true)
+    }
+}
+
+fun KotlinSourceSet.registerChildSourceSets(vararg sourceSets: KotlinSourceSet) {
+    sourceSets.forEach {
+        it.dependsOn(this)
+    }
+}
+
+fun KotlinSourceSet.registerChildSourceSets(vararg sourceSetProviders: Provider<KotlinSourceSet>) {
+    sourceSetProviders.forEach { provider ->
+        provider.get().dependsOn(this)
     }
 }

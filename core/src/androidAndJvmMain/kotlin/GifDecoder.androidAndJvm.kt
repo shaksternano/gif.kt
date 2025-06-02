@@ -1,7 +1,6 @@
 package com.shakster.gifkt
 
 import com.shakster.gifkt.internal.BaseGifDecoder
-import com.shakster.gifkt.internal.DEFAULT_CACHE_FRAME_INTERVAL
 import kotlinx.io.IOException
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
@@ -9,17 +8,12 @@ import kotlin.time.toKotlinDuration
 import java.time.Duration as JavaDuration
 
 actual class GifDecoder
+@JvmOverloads
 @Throws(IOException::class)
 actual constructor(
     data: RandomAccessData,
     cacheFrameInterval: Int,
 ) : AutoCloseable {
-
-    @Throws(IOException::class)
-    constructor(data: RandomAccessData) : this(
-        data,
-        cacheFrameInterval = DEFAULT_CACHE_FRAME_INTERVAL,
-    )
 
     private val baseDecoder: BaseGifDecoder = BaseGifDecoder(data, cacheFrameInterval)
 

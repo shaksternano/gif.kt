@@ -35,6 +35,8 @@ class BaseGifDecoder(
     private val backgroundColorIndex: Int
     private val frames: List<RawImage>
 
+    private var lastFrame: RawImage? = null
+
     init {
         val gifInfo = data.source().buffered().use { source ->
             source.readGif(decodeImages = false)
@@ -67,7 +69,11 @@ class BaseGifDecoder(
 
         val keyframe = findLastKeyframe(index)
         var imageArgb: IntArray? = null
-        decodeImages(startIndex = keyframe.index, endIndex = index) { argb, _, _, _ ->
+        decodeImages(
+            startIndex = keyframe.index,
+            endIndex = index,
+            keyframe,
+        ) { argb, _, _, _ ->
             imageArgb = argb
         }
         if (imageArgb == null) {
@@ -75,6 +81,9 @@ class BaseGifDecoder(
         }
 
         val targetFrame = frames[index]
+        lastFrame = targetFrame.copy(
+            argb = imageArgb,
+        )
         return ImageFrame(
             imageArgb.copyOf(),
             width,
@@ -107,8 +116,13 @@ class BaseGifDecoder(
     }
 
     private fun findLastKeyframe(index: Int): RawImage {
+        val lastFrame = lastFrame
         for (i in index downTo 0) {
-            val frame = frames[i]
+            val frame = if (i == lastFrame?.index) {
+                lastFrame
+            } else {
+                frames[i]
+            }
             if (frame.isKeyFrame || frame.argb != null) {
                 return frame
             }
@@ -138,7 +152,11 @@ class BaseGifDecoder(
 
     fun asSequence(): Sequence<ImageFrame> {
         return sequence {
-            decodeImages(startIndex = 0, endIndex = frameCount - 1) { argb, duration, timestamp, index ->
+            decodeImages(
+                startIndex = 0,
+                endIndex = frameCount - 1,
+                keyFrame = null,
+            ) { argb, duration, timestamp, index ->
                 yield(
                     ImageFrame(
                         argb.copyOf(),
@@ -156,6 +174,7 @@ class BaseGifDecoder(
     private inline fun decodeImages(
         startIndex: Int,
         endIndex: Int,
+        keyFrame: RawImage?,
         onImageDecode: (
             argb: IntArray,
             duration: Duration,
@@ -165,7 +184,11 @@ class BaseGifDecoder(
     ) {
         var previousImageArgb: IntArray? = null
         for (i in startIndex..endIndex) {
-            val frame = frames[i]
+            val frame = if (i == keyFrame?.index) {
+                keyFrame
+            } else {
+                frames[i]
+            }
             val cachedArgb = frame.argb
             val imageArgb = if (cachedArgb == null) {
                 val imageData = data.source(frame.byteOffset).buffered().monitored().use { source ->

@@ -1,8 +1,7 @@
 package com.shakster.gifkt.internal
 
 import com.shakster.gifkt.ImageFrame
-import java.util.Comparator
-import java.util.Spliterator
+import java.util.*
 import java.util.function.Consumer
 
 internal class GifDecoderSpliterator(
@@ -36,6 +35,7 @@ internal class GifDecoderSpliterator(
     }
 
     override fun trySplit(): Spliterator<ImageFrame>? {
+        val remaining = remaining
         if (remaining <= 1) {
             return null
         }

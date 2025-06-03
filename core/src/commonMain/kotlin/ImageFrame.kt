@@ -9,13 +9,16 @@ expect class ImageFrame(
     duration: Duration,
     timestamp: Duration,
     index: Int,
-) {
+) : Comparable<ImageFrame> {
+
     val argb: IntArray
     val width: Int
     val height: Int
     val duration: Duration
     val timestamp: Duration
     val index: Int
+
+    override fun compareTo(other: ImageFrame): Int
 
     operator fun component1(): IntArray
     operator fun component2(): Int

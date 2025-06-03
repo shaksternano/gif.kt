@@ -12,7 +12,12 @@ actual data class ImageFrame actual constructor(
     actual val duration: Duration,
     actual val timestamp: Duration,
     actual val index: Int,
-) {
+) : Comparable<ImageFrame> {
+
+    actual override fun compareTo(other: ImageFrame): Int {
+        return index.compareTo(other.index)
+    }
+
     override fun equals(other: Any?): Boolean = equalsImpl(other)
 
     override fun hashCode(): Int = hashCodeImpl()

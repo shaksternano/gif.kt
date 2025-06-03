@@ -5,9 +5,12 @@ import kotlin.time.Duration
 expect class FrameInfo(
     duration: Duration,
     timestamp: Duration,
-) {
+) : Comparable<FrameInfo> {
+
     val duration: Duration
     val timestamp: Duration
+
+    override fun compareTo(other: FrameInfo): Int
 
     operator fun component1(): Duration
     operator fun component2(): Duration

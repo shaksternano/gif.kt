@@ -5,6 +5,7 @@ import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
 fun interface SuspendClosable {
+
     suspend fun close()
 }
 

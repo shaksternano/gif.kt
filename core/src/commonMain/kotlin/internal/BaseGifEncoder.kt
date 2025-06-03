@@ -10,15 +10,15 @@ import kotlin.time.Duration
  */
 internal class BaseGifEncoder(
     private val sink: Sink,
-    private val loopCount: Int,
-    maxColors: Int,
     private val transparencyColorTolerance: Double,
     private val quantizedTransparencyColorTolerance: Double,
-    private val cropTransparent: Boolean,
-    private val alphaFill: Int,
-    private val comment: String,
-    private val minimumFrameDurationCentiseconds: Int,
+    private val loopCount: Int,
+    maxColors: Int,
     private val quantizer: ColorQuantizer,
+    private val comment: String,
+    private val alphaFill: Int,
+    private val cropTransparent: Boolean,
+    private val minimumFrameDurationCentiseconds: Int,
 ) {
 
     init {
@@ -27,9 +27,9 @@ internal class BaseGifEncoder(
         }
     }
 
-    private val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
     private val optimizeTransparency: Boolean = transparencyColorTolerance >= 0
     private val optimizeQuantizedTransparency: Boolean = quantizedTransparencyColorTolerance >= 0
+    private val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
     private val minimumFrameDuration: Duration = minimumFrameDurationCentiseconds.centiseconds
 
     private var initialized: Boolean = false

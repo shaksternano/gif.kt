@@ -13,6 +13,7 @@ actual interface RandomAccessData : AutoCloseable {
     actual fun source(offset: Long): RawSource
 
     actual companion object {
+        @Throws(IOException::class)
         fun of(path: Path): RandomAccessData {
             return FileData(path, FileSystem.SYSTEM)
         }

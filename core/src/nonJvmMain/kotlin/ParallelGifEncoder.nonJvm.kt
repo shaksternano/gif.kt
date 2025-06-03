@@ -5,6 +5,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.io.IOException
 import kotlinx.io.Sink
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 
 actual class ParallelGifEncoder actual constructor(
@@ -14,6 +15,7 @@ actual class ParallelGifEncoder actual constructor(
     loopCount: Int,
     maxColors: Int,
     quantizer: ColorQuantizer,
+    colorDistanceCalculator: ColorDistanceCalculator,
     comment: String,
     alphaFill: Int,
     cropTransparent: Boolean,
@@ -34,6 +36,7 @@ actual class ParallelGifEncoder actual constructor(
         loopCount,
         maxColors,
         quantizer,
+        colorDistanceCalculator,
         comment,
         alphaFill,
         cropTransparent,
@@ -44,7 +47,7 @@ actual class ParallelGifEncoder actual constructor(
         onFrameWritten,
     )
 
-    @Throws(IOException::class)
+    @Throws(CancellationException::class, IOException::class)
     actual suspend fun writeFrame(
         image: IntArray,
         width: Int,
@@ -54,12 +57,11 @@ actual class ParallelGifEncoder actual constructor(
         baseEncoder.writeFrame(image, width, height, duration)
     }
 
-    @Throws(IOException::class)
+    @Throws(CancellationException::class, IOException::class)
     actual suspend fun writeFrame(frame: ImageFrame) {
         baseEncoder.writeFrame(frame)
     }
 
-    @Throws(IOException::class)
     actual override suspend fun close() {
         baseEncoder.close()
     }

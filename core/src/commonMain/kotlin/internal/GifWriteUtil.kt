@@ -1,5 +1,6 @@
 package com.shakster.gifkt.internal
 
+import com.shakster.gifkt.ColorDistanceCalculator
 import com.shakster.gifkt.ColorQuantizer
 import kotlinx.io.Sink
 import kotlinx.io.writeShortLe
@@ -16,6 +17,7 @@ internal fun optimizeTransparency(
     previousImage: Image,
     currentImage: Image,
     colorTolerance: Double,
+    colorDistanceCalculator: ColorDistanceCalculator,
     safeTransparent: Boolean,
 ): Image? {
     if (previousImage.width != currentImage.width
@@ -47,7 +49,7 @@ internal fun optimizeTransparency(
         if (previousAlpha == 0 && currentAlpha != 0) {
             return@IntArray currentArgb
         }
-        val colorDistance = colorDistance(previousArgb, currentArgb)
+        val colorDistance = colorDistanceCalculator.colorDistance(previousArgb, currentArgb)
         if (colorDistance > colorTolerance) {
             currentArgb
         } else {

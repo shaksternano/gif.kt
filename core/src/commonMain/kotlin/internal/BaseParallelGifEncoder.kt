@@ -1,5 +1,6 @@
 package com.shakster.gifkt.internal
 
+import com.shakster.gifkt.ColorDistanceCalculator
 import com.shakster.gifkt.ColorQuantizer
 import com.shakster.gifkt.ImageFrame
 import com.shakster.gifkt.SuspendClosable
@@ -23,6 +24,7 @@ class BaseParallelGifEncoder(
     loopCount: Int,
     maxColors: Int,
     quantizer: ColorQuantizer,
+    colorDistanceCalculator: ColorDistanceCalculator,
     comment: String,
     alphaFill: Int,
     cropTransparent: Boolean,
@@ -49,6 +51,7 @@ class BaseParallelGifEncoder(
         loopCount,
         maxColors,
         quantizer,
+        colorDistanceCalculator,
         comment,
         alphaFill,
         cropTransparent,

@@ -12,6 +12,7 @@ actual class GifEncoder actual constructor(
     loopCount: Int,
     maxColors: Int,
     quantizer: ColorQuantizer,
+    colorDistanceCalculator: ColorDistanceCalculator,
     comment: String,
     alphaFill: Int,
     cropTransparent: Boolean,
@@ -29,6 +30,7 @@ actual class GifEncoder actual constructor(
         loopCount,
         maxColors,
         quantizer,
+        colorDistanceCalculator,
         comment,
         alphaFill,
         cropTransparent,
@@ -56,7 +58,6 @@ actual class GifEncoder actual constructor(
         baseEncoder.writeFrame(frame)
     }
 
-    @Throws(IOException::class)
     actual override fun close() {
         baseEncoder.close()
     }

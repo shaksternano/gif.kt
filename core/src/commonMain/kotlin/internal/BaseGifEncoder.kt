@@ -1,5 +1,6 @@
 package com.shakster.gifkt.internal
 
+import com.shakster.gifkt.ColorDistanceCalculator
 import com.shakster.gifkt.ColorQuantizer
 import kotlinx.io.Sink
 import kotlin.time.Duration
@@ -15,6 +16,7 @@ internal class BaseGifEncoder(
     private val loopCount: Int,
     maxColors: Int,
     private val quantizer: ColorQuantizer,
+    private val colorDistanceCalculator: ColorDistanceCalculator,
     private val comment: String,
     private val alphaFill: Int,
     private val cropTransparent: Boolean,
@@ -97,7 +99,11 @@ internal class BaseGifEncoder(
             .fillPartialAlpha(alphaFill)
         if (optimizeTransparency
             && writtenAny
-            && previousFrame.isSimilar(currentFrame, transparencyColorTolerance)
+            && previousFrame.isSimilar(
+                currentFrame,
+                transparencyColorTolerance,
+                colorDistanceCalculator,
+            )
         ) {
             // Merge similar sequential frames into one
             pendingDuration += duration
@@ -118,6 +124,7 @@ internal class BaseGifEncoder(
                     previousFrame,
                     currentFrame,
                     transparencyColorTolerance,
+                    colorDistanceCalculator,
                     safeTransparent = false,
                 )
             } else {
@@ -273,7 +280,11 @@ internal class BaseGifEncoder(
     ) {
         val quantizedImage = imageData.toImage()
         if (writtenAnyQuantized
-            && previousQuantizedFrame.isSimilar(quantizedImage, quantizedTransparencyColorTolerance)
+            && previousQuantizedFrame.isSimilar(
+                quantizedImage,
+                quantizedTransparencyColorTolerance,
+                colorDistanceCalculator,
+            )
         ) {
             // Merge similar sequential frames into one
             pendingQuantizedDurationCentiseconds += durationCentiseconds
@@ -291,6 +302,7 @@ internal class BaseGifEncoder(
                     previousQuantizedFrame,
                     quantizedImage,
                     quantizedTransparencyColorTolerance,
+                    colorDistanceCalculator,
                     safeTransparent = true,
                 )
             } else {

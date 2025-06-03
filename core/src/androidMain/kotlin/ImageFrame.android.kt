@@ -15,7 +15,7 @@ actual data class ImageFrame actual constructor(
     actual val duration: Duration,
     actual val timestamp: Duration,
     actual val index: Int,
-) {
+) : Comparable<ImageFrame> {
 
     constructor(
         argb: IntArray,
@@ -37,6 +37,10 @@ actual data class ImageFrame actual constructor(
         get() = duration.toJavaDuration()
     val javaTimestamp: JavaDuration
         get() = timestamp.toJavaDuration()
+
+    actual override fun compareTo(other: ImageFrame): Int {
+        return index.compareTo(other.index)
+    }
 
     override fun equals(other: Any?): Boolean = equalsImpl(other)
 

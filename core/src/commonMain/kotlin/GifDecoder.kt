@@ -27,6 +27,8 @@ expect class GifDecoder(
 
     fun asList(): List<ImageFrame>
 
+    fun asIterable(): Iterable<ImageFrame>
+
     fun asSequence(): Sequence<ImageFrame>
 
     override fun close()

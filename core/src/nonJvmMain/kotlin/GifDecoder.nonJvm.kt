@@ -52,6 +52,10 @@ actual constructor(
         }
     }
 
+    actual fun asIterable(): Iterable<ImageFrame> {
+        return asList()
+    }
+
     actual fun asSequence(): Sequence<ImageFrame> {
         return baseDecoder.asSequence()
     }

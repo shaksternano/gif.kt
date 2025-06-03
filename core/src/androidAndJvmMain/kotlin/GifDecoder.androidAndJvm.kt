@@ -1,6 +1,8 @@
 package com.shakster.gifkt
 
 import com.shakster.gifkt.internal.BaseGifDecoder
+import com.shakster.gifkt.internal.JvmGifDecoderList
+import com.shakster.gifkt.internal.JvmRandomAccessGifDecoderList
 import kotlinx.io.IOException
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
@@ -11,8 +13,8 @@ actual class GifDecoder
 @JvmOverloads
 @Throws(IOException::class)
 actual constructor(
-    data: RandomAccessData,
-    cacheFrameInterval: Int,
+    private val data: RandomAccessData,
+    private val cacheFrameInterval: Int,
 ) : AutoCloseable {
 
     private val baseDecoder: BaseGifDecoder = BaseGifDecoder(data, cacheFrameInterval)
@@ -58,6 +60,14 @@ actual constructor(
         return baseDecoder.readFrame(timestamp.toKotlinDuration())
     }
 
+    actual fun asList(): List<ImageFrame> {
+        return if (cacheFrameInterval == 1) {
+            JvmRandomAccessGifDecoderList(this, baseDecoder)
+        } else {
+            JvmGifDecoderList(this, baseDecoder)
+        }
+    }
+
     actual fun asSequence(): Sequence<ImageFrame> {
         return baseDecoder.asSequence()
     }
@@ -65,5 +75,18 @@ actual constructor(
     @Throws(IOException::class)
     actual override fun close() {
         baseDecoder.close()
+    }
+
+    override fun toString(): String {
+        return "GifDecoder(" +
+            "data=$data" +
+            ", cacheFrameInterval=$cacheFrameInterval" +
+            ", width=$width" +
+            ", height=$height" +
+            ", frameCount=$frameCount" +
+            ", duration=$duration" +
+            ", loopCount=$loopCount" +
+            ", comment=\"$comment\"" +
+            ")"
     }
 }

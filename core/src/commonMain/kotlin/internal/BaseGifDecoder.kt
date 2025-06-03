@@ -151,10 +151,17 @@ internal class BaseGifDecoder(
     }
 
     fun asSequence(): Sequence<ImageFrame> {
-        return sequence {
+        return Sequence(::iterator)
+    }
+
+    fun iterator(
+        startIndex: Int = 0,
+        endIndex: Int = frameCount - 1,
+    ): Iterator<ImageFrame> {
+        return iterator {
             decodeImages(
-                startIndex = 0,
-                endIndex = frameCount - 1,
+                startIndex,
+                endIndex,
                 keyFrame = null,
             ) { argb, duration, timestamp, index ->
                 yield(

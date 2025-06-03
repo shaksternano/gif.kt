@@ -25,6 +25,8 @@ expect class GifDecoder(
 
     operator fun get(timestamp: Duration): ImageFrame
 
+    fun asList(): List<ImageFrame>
+
     fun asSequence(): Sequence<ImageFrame>
 
     override fun close()

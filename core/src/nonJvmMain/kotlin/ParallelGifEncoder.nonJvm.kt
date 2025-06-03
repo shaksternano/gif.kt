@@ -2,6 +2,7 @@ package com.shakster.gifkt
 
 import com.shakster.gifkt.internal.BaseParallelGifEncoder
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.io.IOException
 import kotlinx.io.Sink
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
@@ -43,6 +44,7 @@ actual class ParallelGifEncoder actual constructor(
         onFrameWritten,
     )
 
+    @Throws(IOException::class)
     actual suspend fun writeFrame(
         image: IntArray,
         width: Int,
@@ -52,10 +54,12 @@ actual class ParallelGifEncoder actual constructor(
         baseEncoder.writeFrame(image, width, height, duration)
     }
 
+    @Throws(IOException::class)
     actual suspend fun writeFrame(frame: ImageFrame) {
         baseEncoder.writeFrame(frame)
     }
 
+    @Throws(IOException::class)
     actual override suspend fun close() {
         baseEncoder.close()
     }

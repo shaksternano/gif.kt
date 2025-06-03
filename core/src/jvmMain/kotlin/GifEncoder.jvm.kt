@@ -3,6 +3,7 @@ package com.shakster.gifkt
 import com.shakster.gifkt.internal.BaseSequentialGifEncoder
 import com.shakster.gifkt.internal.GIF_MAX_COLORS
 import com.shakster.gifkt.internal.GIF_MINIMUM_FRAME_DURATION_CENTISECONDS
+import kotlinx.io.IOException
 import kotlinx.io.Sink
 import kotlinx.io.asSink
 import kotlinx.io.buffered
@@ -75,6 +76,7 @@ actual constructor(
         onFrameWritten,
     )
 
+    @Throws(IOException::class)
     actual fun writeFrame(
         image: IntArray,
         width: Int,
@@ -89,6 +91,7 @@ actual constructor(
         )
     }
 
+    @Throws(IOException::class)
     fun writeFrame(
         image: IntArray,
         width: Int,
@@ -103,6 +106,7 @@ actual constructor(
         )
     }
 
+    @Throws(IOException::class)
     fun writeFrame(image: BufferedImage, duration: Duration) {
         baseEncoder.writeFrame(
             image.rgb,
@@ -112,6 +116,7 @@ actual constructor(
         )
     }
 
+    @Throws(IOException::class)
     fun writeFrame(image: BufferedImage, duration: JavaDuration) {
         baseEncoder.writeFrame(
             image.rgb,
@@ -121,10 +126,12 @@ actual constructor(
         )
     }
 
+    @Throws(IOException::class)
     actual fun writeFrame(frame: ImageFrame) {
         baseEncoder.writeFrame(frame)
     }
 
+    @Throws(IOException::class)
     actual override fun close() {
         baseEncoder.close()
     }

@@ -1,6 +1,7 @@
 package com.shakster.gifkt
 
 import com.shakster.gifkt.internal.BaseSequentialGifEncoder
+import kotlinx.io.IOException
 import kotlinx.io.Sink
 import kotlin.time.Duration
 
@@ -35,6 +36,7 @@ actual class GifEncoder actual constructor(
         onFrameWritten,
     )
 
+    @Throws(IOException::class)
     actual fun writeFrame(
         image: IntArray,
         width: Int,
@@ -49,10 +51,12 @@ actual class GifEncoder actual constructor(
         )
     }
 
+    @Throws(IOException::class)
     actual fun writeFrame(frame: ImageFrame) {
         baseEncoder.writeFrame(frame)
     }
 
+    @Throws(IOException::class)
     actual override fun close() {
         baseEncoder.close()
     }

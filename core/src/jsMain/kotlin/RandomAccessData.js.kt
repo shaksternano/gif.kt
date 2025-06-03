@@ -10,7 +10,6 @@ private val IS_NODE_JS: Boolean = js("typeof process !== 'undefined' && process.
 
 actual interface RandomAccessData : AutoCloseable {
 
-    @Suppress("ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT")
     actual fun source(offset: Long): RawSource
 
     actual companion object {
@@ -28,7 +27,11 @@ actual interface RandomAccessData : AutoCloseable {
     }
 }
 
-@Suppress("ACTUAL_ANNOTATIONS_NOT_MATCH_EXPECT", "EXTENSION_SHADOWED_BY_MEMBER")
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 actual fun RandomAccessData.Companion.of(path: Path): RandomAccessData {
     return of(path)
+}
+
+actual fun Path.asRandomAccess(): RandomAccessData {
+    return RandomAccessData.of(this)
 }

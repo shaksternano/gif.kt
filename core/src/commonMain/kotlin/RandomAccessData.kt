@@ -1,11 +1,9 @@
 package com.shakster.gifkt
 
-import kotlinx.io.IOException
 import kotlinx.io.RawSource
 
 expect interface RandomAccessData : AutoCloseable {
 
-    @Throws(IOException::class)
     fun source(offset: Long = 0): RawSource
 
     companion object {

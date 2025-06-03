@@ -11,7 +11,7 @@ import kotlin.time.Duration
  * Reference:
  * https://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp
  */
-class BaseGifDecoder(
+internal class BaseGifDecoder(
     private val data: RandomAccessData,
     private val cacheFrameInterval: Int,
 ) : AutoCloseable {

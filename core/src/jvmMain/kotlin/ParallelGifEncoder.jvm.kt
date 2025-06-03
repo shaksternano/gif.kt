@@ -1,12 +1,18 @@
 package com.shakster.gifkt
 
 import com.shakster.gifkt.internal.BaseParallelGifEncoder
+import com.shakster.gifkt.internal.GIF_MAX_COLORS
+import com.shakster.gifkt.internal.GIF_MINIMUM_FRAME_DURATION_CENTISECONDS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.future.future
 import kotlinx.io.Sink
+import kotlinx.io.asSink
+import kotlinx.io.buffered
 import java.awt.image.BufferedImage
+import java.io.OutputStream
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 import kotlin.time.toKotlinDuration
 import java.time.Duration as JavaDuration
@@ -32,6 +38,42 @@ actual constructor(
         writtenDuration: Duration,
     ) -> Unit,
 ) : SuspendClosable {
+
+    @JvmOverloads
+    constructor(
+        outputStream: OutputStream,
+        transparencyColorTolerance: Double = 0.0,
+        quantizedTransparencyColorTolerance: Double = -1.0,
+        loopCount: Int = 0,
+        maxColors: Int = GIF_MAX_COLORS,
+        quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
+        comment: String = "",
+        alphaFill: Int = -1,
+        cropTransparent: Boolean = true,
+        minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS,
+        maxConcurrency: Int = 2,
+        coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
+        ioContext: CoroutineContext = EmptyCoroutineContext,
+        onFrameWritten: suspend (
+            framesWritten: Int,
+            writtenDuration: Duration,
+        ) -> Unit = { _, _ -> },
+    ) : this(
+        outputStream.asSink().buffered(),
+        transparencyColorTolerance,
+        quantizedTransparencyColorTolerance,
+        loopCount,
+        maxColors,
+        quantizer,
+        comment,
+        alphaFill,
+        cropTransparent,
+        minimumFrameDurationCentiseconds,
+        maxConcurrency,
+        coroutineScope,
+        ioContext,
+        onFrameWritten,
+    )
 
     private val baseEncoder: BaseParallelGifEncoder = BaseParallelGifEncoder(
         sink,

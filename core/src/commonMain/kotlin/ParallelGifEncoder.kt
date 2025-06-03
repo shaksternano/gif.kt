@@ -20,7 +20,7 @@ class ParallelGifEncoder(
     loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
     transparencyColorTolerance: Double = 0.0,
-    quantizedTransparencyColorTolerance: Double = 0.0,
+    quantizedTransparencyColorTolerance: Double = -1.0,
     cropTransparent: Boolean = true,
     alphaFill: Int = -1,
     comment: String = "",

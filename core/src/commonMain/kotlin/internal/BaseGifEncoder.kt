@@ -13,9 +13,7 @@ internal class BaseGifEncoder(
     private val loopCount: Int,
     maxColors: Int,
     private val transparencyColorTolerance: Double,
-    private val optimizeTransparency: Boolean,
     private val quantizedTransparencyColorTolerance: Double,
-    private val optimizeQuantizedTransparency: Boolean,
     private val cropTransparent: Boolean,
     private val alphaFill: Int,
     private val comment: String,
@@ -30,6 +28,8 @@ internal class BaseGifEncoder(
     }
 
     private val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
+    private val optimizeTransparency: Boolean = transparencyColorTolerance >= 0
+    private val optimizeQuantizedTransparency: Boolean = quantizedTransparencyColorTolerance >= 0
     private val minimumFrameDuration: Duration = minimumFrameDurationCentiseconds.centiseconds
 
     private var initialized: Boolean = false

@@ -12,4 +12,8 @@ internal class ByteArrayData(
     }
 
     override fun close() = Unit
+
+    override fun toString(): String {
+        return "ByteArrayData(data=ByteArray(size=${data.size}))"
+    }
 }

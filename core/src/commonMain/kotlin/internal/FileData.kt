@@ -9,8 +9,8 @@ import okio.FileSystem
 import okio.Path.Companion.toPath
 
 internal class FileData(
-    path: String,
-    fileSystem: FileSystem,
+    private val path: String,
+    private val fileSystem: FileSystem,
 ) : RandomAccessData {
 
     constructor(
@@ -32,5 +32,9 @@ internal class FileData(
 
     override fun close() {
         fileHandle.close()
+    }
+
+    override fun toString(): String {
+        return "FileData(path=$path, fileSystem=$fileSystem)"
     }
 }

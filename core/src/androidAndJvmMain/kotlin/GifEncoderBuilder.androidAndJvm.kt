@@ -9,6 +9,8 @@ import java.util.concurrent.CompletionStage
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
+import kotlin.time.toJavaDuration
+import java.time.Duration as JavaDuration
 
 actual class GifEncoderBuilder actual constructor(
     private val sink: Sink,
@@ -188,22 +190,27 @@ actual class GifEncoderBuilder actual constructor(
     }
 
     fun buildParallelSyncCallback(
-        onFrameWritten: (
-            framesWritten: Int,
-            writtenDuration: Duration,
-        ) -> Unit,
+        callback: OnFrameWrittenCallback,
     ): ParallelGifEncoder {
-        return buildParallel(onFrameWritten)
+        return buildParallel { framesWritten, writtenDuration ->
+            callback.onFrameWritten(
+                framesWritten,
+                writtenDuration.toJavaDuration(),
+            )
+        }
     }
 
     fun buildParallelFutureCallback(
         onFrameWritten: (
             framesWritten: Int,
-            writtenDuration: Duration,
+            writtenDuration: JavaDuration,
         ) -> CompletionStage<Void>,
     ): ParallelGifEncoder {
         return buildParallel { framesWritten, writtenDuration ->
-            onFrameWritten(framesWritten, writtenDuration).await()
+            onFrameWritten(
+                framesWritten,
+                writtenDuration.toJavaDuration(),
+            ).await()
         }
     }
 }

@@ -25,7 +25,7 @@ internal class BaseGifEncoder(
 
     init {
         require(minimumFrameDurationCentiseconds > 0) {
-            "Minimum frame duration must be positive: $minimumFrameDurationCentiseconds"
+            "minimumFrameDurationCentiseconds must be positive: $minimumFrameDurationCentiseconds"
         }
     }
 

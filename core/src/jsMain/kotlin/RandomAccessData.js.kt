@@ -5,6 +5,8 @@ import com.shakster.gifkt.internal.FileData
 import kotlinx.io.RawSource
 import kotlinx.io.files.Path
 import okio.NodeJsFileSystem
+import org.khronos.webgl.ArrayBuffer
+import org.khronos.webgl.Int8Array
 
 private val IS_NODE_JS: Boolean = js("typeof process !== 'undefined' && process.versions && !!process.versions.node")
 
@@ -24,6 +26,14 @@ actual interface RandomAccessData : AutoCloseable {
         actual fun of(bytes: ByteArray): RandomAccessData {
             return ByteArrayData(bytes)
         }
+
+        fun of(buffer: ArrayBuffer): RandomAccessData {
+            return ByteArrayData(Int8Array(buffer).unsafeCast<ByteArray>())
+        }
+
+        fun of(bytes: Int8Array): RandomAccessData {
+            return ByteArrayData(bytes.unsafeCast<ByteArray>())
+        }
     }
 }
 
@@ -33,5 +43,13 @@ actual fun RandomAccessData.Companion.of(path: Path): RandomAccessData {
 }
 
 actual fun Path.asRandomAccess(): RandomAccessData {
+    return RandomAccessData.of(this)
+}
+
+fun ArrayBuffer.asRandomAccess(): RandomAccessData {
+    return RandomAccessData.of(this)
+}
+
+fun Int8Array.asRandomAccess(): RandomAccessData {
     return RandomAccessData.of(this)
 }

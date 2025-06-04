@@ -6,7 +6,7 @@ import com.shakster.gifkt.ImageFrame
 import kotlinx.io.Sink
 import kotlin.time.Duration
 
-class BaseSequentialGifEncoder(
+class BaseSyncGifEncoder(
     private val sink: Sink,
     transparencyColorTolerance: Double,
     quantizedTransparencyColorTolerance: Double,

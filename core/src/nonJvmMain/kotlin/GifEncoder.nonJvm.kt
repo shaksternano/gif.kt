@@ -1,6 +1,6 @@
 package com.shakster.gifkt
 
-import com.shakster.gifkt.internal.BaseSequentialGifEncoder
+import com.shakster.gifkt.internal.BaseSyncGifEncoder
 import kotlinx.io.IOException
 import kotlinx.io.Sink
 import kotlin.time.Duration
@@ -23,7 +23,7 @@ actual class GifEncoder actual constructor(
     ) -> Unit,
 ) : AutoCloseable {
 
-    private val baseEncoder: BaseSequentialGifEncoder = BaseSequentialGifEncoder(
+    private val baseEncoder: BaseSyncGifEncoder = BaseSyncGifEncoder(
         sink,
         transparencyColorTolerance,
         quantizedTransparencyColorTolerance,

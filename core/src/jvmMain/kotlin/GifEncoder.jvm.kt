@@ -1,6 +1,6 @@
 package com.shakster.gifkt
 
-import com.shakster.gifkt.internal.BaseSequentialGifEncoder
+import com.shakster.gifkt.internal.BaseSyncGifEncoder
 import com.shakster.gifkt.internal.GIF_MAX_COLORS
 import com.shakster.gifkt.internal.GIF_MINIMUM_FRAME_DURATION_CENTISECONDS
 import kotlinx.io.IOException
@@ -65,7 +65,7 @@ actual constructor(
         onFrameWritten,
     )
 
-    private val baseEncoder: BaseSequentialGifEncoder = BaseSequentialGifEncoder(
+    private val baseEncoder: BaseSyncGifEncoder = BaseSyncGifEncoder(
         sink,
         transparencyColorTolerance,
         quantizedTransparencyColorTolerance,

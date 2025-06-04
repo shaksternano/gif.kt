@@ -71,7 +71,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(libs.kotlinx.coroutines.core)
-            implementation(libs.kotlinx.coroutines.test)
             api(libs.kotlinx.io.core)
             implementation(libs.kotlinx.io.okio)
             implementation(libs.okio)
@@ -79,6 +78,7 @@ kotlin {
 
         commonTest.dependencies {
             implementation(libs.kotlin.test)
+            implementation(libs.kotlinx.coroutines.test)
         }
 
         androidMain.dependencies {

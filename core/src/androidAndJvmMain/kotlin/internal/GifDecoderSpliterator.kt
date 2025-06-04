@@ -29,6 +29,9 @@ internal class GifDecoderSpliterator(
     }
 
     override fun forEachRemaining(action: Consumer<in ImageFrame>) {
+        if (index > endIndex) {
+            return
+        }
         iterator.forEach {
             index++
             action.accept(it)

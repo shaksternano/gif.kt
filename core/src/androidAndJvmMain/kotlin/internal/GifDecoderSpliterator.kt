@@ -12,6 +12,7 @@ internal class GifDecoderSpliterator(
 
     private val remaining: Int
         get() = endIndex - index + 1
+
     private val iterator: Iterator<ImageFrame> = baseGifDecoder.iterator(
         startIndex = index,
         endIndex = endIndex,

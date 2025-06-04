@@ -85,10 +85,6 @@ kotlin {
             implementation(libs.kotlinx.coroutines.android)
         }
 
-        jsMain.dependencies {
-            implementation(libs.okio.nodefilesystem)
-        }
-
         wasmWasiMain.dependencies {
             implementation(libs.okio.wasifilesystem)
         }
@@ -107,7 +103,7 @@ kotlin {
             dependsOn(commonMain.get())
         }
         fileSystemMain.registerChildSourceSets(androidAndJvmMain)
-        fileSystemMain.registerChildSourceSets(nativeMain, jsMain, wasmWasiMain)
+        fileSystemMain.registerChildSourceSets(nativeMain, wasmWasiMain)
     }
 
     targets.all {

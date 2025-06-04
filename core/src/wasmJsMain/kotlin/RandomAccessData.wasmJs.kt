@@ -8,8 +8,8 @@ actual interface RandomAccessData : AutoCloseable {
     actual fun source(offset: Long): RawSource
 
     actual companion object {
-        actual fun of(byteArray: ByteArray): RandomAccessData {
-            return ByteArrayData(byteArray)
+        actual fun of(bytes: ByteArray): RandomAccessData {
+            return ByteArrayData(bytes)
         }
     }
 }

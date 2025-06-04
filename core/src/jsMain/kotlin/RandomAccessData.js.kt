@@ -21,8 +21,8 @@ actual interface RandomAccessData : AutoCloseable {
             }
         }
 
-        actual fun of(byteArray: ByteArray): RandomAccessData {
-            return ByteArrayData(byteArray)
+        actual fun of(bytes: ByteArray): RandomAccessData {
+            return ByteArrayData(bytes)
         }
     }
 }

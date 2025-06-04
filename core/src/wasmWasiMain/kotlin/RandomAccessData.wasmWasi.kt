@@ -15,8 +15,8 @@ actual interface RandomAccessData : AutoCloseable {
             return FileData(path, WasiFileSystem)
         }
 
-        actual fun of(byteArray: ByteArray): RandomAccessData {
-            return ByteArrayData(byteArray)
+        actual fun of(bytes: ByteArray): RandomAccessData {
+            return ByteArrayData(bytes)
         }
     }
 }

@@ -4,16 +4,16 @@ import com.shakster.gifkt.RandomAccessData
 import kotlinx.io.RawSource
 
 internal class ByteArrayData(
-    private val data: ByteArray,
+    private val bytes: ByteArray,
 ) : RandomAccessData {
 
     override fun source(offset: Long): RawSource {
-        return ByteArraySource(data, offset.toInt())
+        return ByteArraySource(bytes, offset.toInt())
     }
 
     override fun close() = Unit
 
     override fun toString(): String {
-        return "ByteArrayData(data=ByteArray(size=${data.size}))"
+        return "ByteArrayData(data=ByteArray(size=${bytes.size}))"
     }
 }

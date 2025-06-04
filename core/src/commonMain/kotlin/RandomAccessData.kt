@@ -7,7 +7,7 @@ expect interface RandomAccessData : AutoCloseable {
     fun source(offset: Long = 0): RawSource
 
     companion object {
-        fun of(byteArray: ByteArray): RandomAccessData
+        fun of(bytes: ByteArray): RandomAccessData
     }
 
     override fun close()

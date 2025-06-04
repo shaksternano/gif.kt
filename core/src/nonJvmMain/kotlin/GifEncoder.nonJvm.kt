@@ -11,7 +11,7 @@ actual class GifEncoder actual constructor(
     quantizedTransparencyColorTolerance: Double,
     loopCount: Int,
     maxColors: Int,
-    quantizer: ColorQuantizer,
+    colorQuantizer: ColorQuantizer,
     colorDistanceCalculator: ColorDistanceCalculator,
     comment: String,
     alphaFill: Int,
@@ -23,13 +23,19 @@ actual class GifEncoder actual constructor(
     ) -> Unit,
 ) : AutoCloseable {
 
+    actual companion object {
+        actual fun builder(sink: Sink): GifEncoderBuilder {
+            return GifEncoderBuilder(sink)
+        }
+    }
+
     private val baseEncoder: BaseSyncGifEncoder = BaseSyncGifEncoder(
         sink,
         transparencyColorTolerance,
         quantizedTransparencyColorTolerance,
         loopCount,
         maxColors,
-        quantizer,
+        colorQuantizer,
         colorDistanceCalculator,
         comment,
         alphaFill,

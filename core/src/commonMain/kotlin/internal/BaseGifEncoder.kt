@@ -15,7 +15,7 @@ internal class BaseGifEncoder(
     private val quantizedTransparencyColorTolerance: Double,
     private val loopCount: Int,
     maxColors: Int,
-    private val quantizer: ColorQuantizer,
+    private val colorQuantizer: ColorQuantizer,
     private val colorDistanceCalculator: ColorDistanceCalculator,
     private val comment: String,
     private val alphaFill: Int,
@@ -233,7 +233,7 @@ internal class BaseGifEncoder(
         getImageData(
             image,
             maxColors,
-            quantizer,
+            colorQuantizer,
             optimizeQuantizedTransparency,
         )
 

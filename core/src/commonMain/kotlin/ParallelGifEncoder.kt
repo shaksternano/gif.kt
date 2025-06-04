@@ -14,7 +14,7 @@ expect class ParallelGifEncoder(
     quantizedTransparencyColorTolerance: Double = -1.0,
     loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
-    quantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
+    colorQuantizer: ColorQuantizer = NeuQuantizer.DEFAULT,
     colorDistanceCalculator: ColorDistanceCalculator = CieLabDistanceCalculator,
     comment: String = "",
     alphaFill: Int = -1,

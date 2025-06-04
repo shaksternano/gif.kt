@@ -7,6 +7,8 @@ import com.shakster.gifkt.RandomAccessData
 import kotlinx.io.buffered
 import kotlin.time.Duration
 
+internal const val DEFAULT_GIF_CACHE_FRAME_INTERVAL: Int = 50
+
 /*
  * Reference:
  * https://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp

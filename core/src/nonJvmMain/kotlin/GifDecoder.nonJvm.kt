@@ -13,6 +13,14 @@ actual constructor(
     private val cacheFrameInterval: Int,
 ) : AutoCloseable {
 
+    actual constructor(
+        bytes: ByteArray,
+        cacheFrameInterval: Int,
+    ) : this(
+        RandomAccessData.of(bytes),
+        cacheFrameInterval,
+    )
+
     private val baseDecoder: BaseGifDecoder = BaseGifDecoder(data, cacheFrameInterval)
 
     actual val width: Int = baseDecoder.width

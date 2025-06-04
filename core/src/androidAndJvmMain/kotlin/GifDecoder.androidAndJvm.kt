@@ -1,12 +1,15 @@
 package com.shakster.gifkt
 
 import com.shakster.gifkt.internal.BaseGifDecoder
+import com.shakster.gifkt.internal.DEFAULT_GIF_CACHE_FRAME_INTERVAL
 import com.shakster.gifkt.internal.JvmGifDecoderList
 import com.shakster.gifkt.internal.JvmRandomAccessGifDecoderList
 import kotlinx.io.IOException
+import java.io.File
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 import kotlin.time.toKotlinDuration
+import java.nio.file.Path as JavaPath
 import java.time.Duration as JavaDuration
 
 actual class GifDecoder
@@ -16,6 +19,24 @@ actual constructor(
     private val data: RandomAccessData,
     private val cacheFrameInterval: Int,
 ) : AutoCloseable {
+
+    @JvmOverloads
+    constructor(
+        path: JavaPath,
+        cacheFrameInterval: Int = DEFAULT_GIF_CACHE_FRAME_INTERVAL,
+    ) : this(RandomAccessData.of(path), cacheFrameInterval)
+
+    @JvmOverloads
+    constructor(
+        file: File,
+        cacheFrameInterval: Int = DEFAULT_GIF_CACHE_FRAME_INTERVAL,
+    ) : this(RandomAccessData.of(file), cacheFrameInterval)
+
+    @JvmOverloads
+    actual constructor(
+        bytes: ByteArray,
+        cacheFrameInterval: Int,
+    ) : this(RandomAccessData.of(bytes), cacheFrameInterval)
 
     private val baseDecoder: BaseGifDecoder = BaseGifDecoder(data, cacheFrameInterval)
 

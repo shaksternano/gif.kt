@@ -1,13 +1,19 @@
 package com.shakster.gifkt
 
+import com.shakster.gifkt.internal.DEFAULT_GIF_CACHE_FRAME_INTERVAL
 import com.shakster.gifkt.internal.readGif
 import kotlinx.io.Source
 import kotlin.time.Duration
 
 expect class GifDecoder(
     data: RandomAccessData,
-    cacheFrameInterval: Int = 50,
+    cacheFrameInterval: Int = DEFAULT_GIF_CACHE_FRAME_INTERVAL,
 ) : AutoCloseable {
+
+    constructor(
+        bytes: ByteArray,
+        cacheFrameInterval: Int = DEFAULT_GIF_CACHE_FRAME_INTERVAL,
+    )
 
     val width: Int
     val height: Int

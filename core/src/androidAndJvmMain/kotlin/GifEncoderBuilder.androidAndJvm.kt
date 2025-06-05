@@ -164,11 +164,11 @@ actual class GifEncoderBuilder actual constructor(
     }
 
     @JvmOverloads
-    actual fun buildParallel(
+    fun buildParallel(
         onFrameWritten: suspend (
             framesWritten: Int,
             writtenDuration: Duration,
-        ) -> Unit,
+        ) -> Unit = { _, _ -> },
     ): ParallelGifEncoder {
         return ParallelGifEncoder(
             sink,
@@ -213,4 +213,14 @@ actual class GifEncoderBuilder actual constructor(
             ).await()
         }
     }
+}
+
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
+actual fun GifEncoderBuilder.buildParallel(
+    onFrameWritten: suspend (
+        framesWritten: Int,
+        writtenDuration: Duration,
+    ) -> Unit,
+): ParallelGifEncoder {
+    return buildParallel(onFrameWritten)
 }

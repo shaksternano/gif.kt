@@ -9,7 +9,7 @@ import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 
 actual class GifEncoderBuilder actual constructor(
-    private val sink: Sink,
+    internal val sink: Sink,
 ) {
 
     actual var transparencyColorTolerance: Double = 0.0
@@ -127,31 +127,6 @@ actual class GifEncoderBuilder actual constructor(
             alphaFill,
             cropTransparent,
             minimumFrameDurationCentiseconds,
-            onFrameWritten,
-        )
-    }
-
-    actual fun buildParallel(
-        onFrameWritten: suspend (
-            framesWritten: Int,
-            writtenDuration: Duration,
-        ) -> Unit,
-    ): ParallelGifEncoder {
-        return ParallelGifEncoder(
-            sink,
-            transparencyColorTolerance,
-            quantizedTransparencyColorTolerance,
-            loopCount,
-            maxColors,
-            colorQuantizer,
-            colorDistanceCalculator,
-            comment,
-            alphaFill,
-            cropTransparent,
-            minimumFrameDurationCentiseconds,
-            maxConcurrency,
-            coroutineScope,
-            ioContext,
             onFrameWritten,
         )
     }

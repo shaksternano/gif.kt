@@ -99,11 +99,15 @@ kotlin {
         }
         androidAndJvmMain.registerChildSourceSets(androidMain, jvmMain)
 
+        val parallelMain by creating {
+            dependsOn(commonMain.get())
+        }
+        parallelMain.registerChildSourceSets(androidAndJvmMain, nativeMain)
+
         val fileSystemMain by creating {
             dependsOn(commonMain.get())
         }
-        fileSystemMain.registerChildSourceSets(androidAndJvmMain)
-        fileSystemMain.registerChildSourceSets(nativeMain, wasmWasiMain)
+        fileSystemMain.registerChildSourceSets(androidAndJvmMain, nativeMain, wasmWasiMain)
     }
 
     targets.all {
@@ -170,14 +174,23 @@ fun isRunningTask(taskName: String): Boolean {
     }
 }
 
-fun KotlinSourceSet.registerChildSourceSets(vararg sourceSets: KotlinSourceSet) {
+fun KotlinSourceSet.registerChildSourceSets(vararg sourceSets: Any) {
     sourceSets.forEach {
-        it.dependsOn(this)
-    }
-}
-
-fun KotlinSourceSet.registerChildSourceSets(vararg sourceSetProviders: Provider<KotlinSourceSet>) {
-    sourceSetProviders.forEach { provider ->
-        provider.get().dependsOn(this)
+        if (it is KotlinSourceSet) {
+            it.dependsOn(this)
+        } else if (it is Provider<*>) {
+            val sourceSet = it.get()
+            if (sourceSet is KotlinSourceSet) {
+                sourceSet.dependsOn(this)
+            } else {
+                throw IllegalArgumentException(
+                    "Expected Provider<KotlinSourceSet>, got: Provider<${sourceSet::class.qualifiedName ?: "Any"}>"
+                )
+            }
+        } else {
+            throw IllegalArgumentException(
+                "Expected KotlinSourceSet or Provider<KotlinSourceSet>, got: ${it::class.qualifiedName ?: "Any"}"
+            )
+        }
     }
 }

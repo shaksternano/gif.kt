@@ -55,11 +55,4 @@ expect class GifEncoderBuilder(
             writtenDuration: Duration,
         ) -> Unit = { _, _ -> },
     ): GifEncoder
-
-    fun buildParallel(
-        onFrameWritten: suspend (
-            framesWritten: Int,
-            writtenDuration: Duration,
-        ) -> Unit = { _, _ -> },
-    ): ParallelGifEncoder
 }

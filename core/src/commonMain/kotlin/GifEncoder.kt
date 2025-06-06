@@ -23,10 +23,6 @@ expect class GifEncoder(
     ) -> Unit = { _, _ -> },
 ) : AutoCloseable {
 
-    companion object {
-        fun builder(sink: Sink): GifEncoderBuilder
-    }
-
     fun writeFrame(
         image: IntArray,
         width: Int,
@@ -37,4 +33,8 @@ expect class GifEncoder(
     fun writeFrame(frame: ImageFrame)
 
     override fun close()
+
+    companion object {
+        fun builder(sink: Sink): GifEncoderBuilder
+    }
 }

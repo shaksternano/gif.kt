@@ -23,12 +23,6 @@ actual class GifEncoder actual constructor(
     ) -> Unit,
 ) : AutoCloseable {
 
-    actual companion object {
-        actual fun builder(sink: Sink): GifEncoderBuilder {
-            return GifEncoderBuilder(sink)
-        }
-    }
-
     private val baseEncoder: BaseSyncGifEncoder = BaseSyncGifEncoder(
         sink,
         transparencyColorTolerance,
@@ -66,5 +60,11 @@ actual class GifEncoder actual constructor(
 
     actual override fun close() {
         baseEncoder.close()
+    }
+
+    actual companion object {
+        actual fun builder(sink: Sink): GifEncoderBuilder {
+            return GifEncoderBuilder(sink)
+        }
     }
 }

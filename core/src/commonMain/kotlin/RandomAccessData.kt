@@ -6,11 +6,11 @@ expect interface RandomAccessData : AutoCloseable {
 
     fun source(offset: Long = 0): RawSource
 
+    override fun close()
+
     companion object {
         fun of(bytes: ByteArray): RandomAccessData
     }
-
-    override fun close()
 }
 
 fun ByteArray.asRandomAccess(): RandomAccessData {

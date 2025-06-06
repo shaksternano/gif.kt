@@ -36,33 +36,6 @@ actual constructor(
     ) -> Unit,
 ) : AutoCloseable {
 
-    actual companion object {
-        @JvmStatic
-        actual fun builder(sink: Sink): GifEncoderBuilder {
-            return GifEncoderBuilder(sink)
-        }
-
-        @JvmStatic
-        fun builder(outputStream: OutputStream): GifEncoderBuilder {
-            return GifEncoderBuilder(outputStream.asSink().buffered())
-        }
-
-        @JvmStatic
-        fun builder(path: Path): GifEncoderBuilder {
-            return GifEncoderBuilder(SystemFileSystem.sink(path).buffered())
-        }
-
-        @JvmStatic
-        fun builder(path: JavaPath): GifEncoderBuilder {
-            return GifEncoderBuilder(path.outputStream().asSink().buffered())
-        }
-
-        @JvmStatic
-        fun builder(file: File): GifEncoderBuilder {
-            return GifEncoderBuilder(file.outputStream().asSink().buffered())
-        }
-    }
-
     private val baseEncoder: BaseSyncGifEncoder = BaseSyncGifEncoder(
         sink,
         transparencyColorTolerance,
@@ -136,5 +109,32 @@ actual constructor(
     @Throws(IOException::class)
     actual override fun close() {
         baseEncoder.close()
+    }
+
+    actual companion object {
+        @JvmStatic
+        actual fun builder(sink: Sink): GifEncoderBuilder {
+            return GifEncoderBuilder(sink)
+        }
+
+        @JvmStatic
+        fun builder(outputStream: OutputStream): GifEncoderBuilder {
+            return GifEncoderBuilder(outputStream.asSink().buffered())
+        }
+
+        @JvmStatic
+        fun builder(path: Path): GifEncoderBuilder {
+            return GifEncoderBuilder(SystemFileSystem.sink(path).buffered())
+        }
+
+        @JvmStatic
+        fun builder(path: JavaPath): GifEncoderBuilder {
+            return GifEncoderBuilder(path.outputStream().asSink().buffered())
+        }
+
+        @JvmStatic
+        fun builder(file: File): GifEncoderBuilder {
+            return GifEncoderBuilder(file.outputStream().asSink().buffered())
+        }
     }
 }

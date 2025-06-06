@@ -8,6 +8,7 @@ import kotlinx.io.IOException
 import kotlinx.io.RawSource
 import kotlinx.io.files.Path
 import okio.FileSystem
+import okio.Path.Companion.toOkioPath
 import java.io.File
 import java.nio.file.Path as JavaPath
 
@@ -26,13 +27,13 @@ actual interface RandomAccessData : AutoCloseable {
         @JvmStatic
         @Throws(IOException::class)
         fun of(path: JavaPath): RandomAccessData {
-            return FileData(path.toString(), FileSystem.SYSTEM)
+            return FileData(path.toOkioPath(), FileSystem.SYSTEM)
         }
 
         @JvmStatic
         @Throws(IOException::class)
         fun of(file: File): RandomAccessData {
-            return FileData(file.toString(), FileSystem.SYSTEM)
+            return FileData(file.toOkioPath(), FileSystem.SYSTEM)
         }
 
         @JvmStatic

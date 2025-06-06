@@ -12,6 +12,8 @@ actual interface RandomAccessData : AutoCloseable {
     @Throws(IOException::class)
     actual fun source(offset: Long): RawSource
 
+    actual override fun close()
+
     actual companion object {
         @Throws(IOException::class)
         fun of(path: Path): RandomAccessData {

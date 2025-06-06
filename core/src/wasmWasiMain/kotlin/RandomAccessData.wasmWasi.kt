@@ -10,6 +10,8 @@ actual interface RandomAccessData : AutoCloseable {
 
     actual fun source(offset: Long): RawSource
 
+    actual override fun close()
+
     actual companion object {
         fun of(path: Path): RandomAccessData {
             return FileData(path, WasiFileSystem)

@@ -17,6 +17,9 @@ actual interface RandomAccessData : AutoCloseable {
     @Throws(IOException::class)
     actual fun source(offset: Long): RawSource
 
+    @Throws(IOException::class)
+    actual override fun close()
+
     actual companion object {
         @JvmStatic
         @Throws(IOException::class)

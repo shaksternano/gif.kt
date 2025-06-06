@@ -42,7 +42,6 @@ actual interface RandomAccessData : AutoCloseable {
     }
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 @JvmSynthetic
 @Throws(IOException::class)
 actual fun RandomAccessData.Companion.of(path: Path): RandomAccessData {

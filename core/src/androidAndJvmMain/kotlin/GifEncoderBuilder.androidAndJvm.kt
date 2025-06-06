@@ -215,7 +215,6 @@ actual class GifEncoderBuilder actual constructor(
     }
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 actual fun GifEncoderBuilder.buildParallel(
     onFrameWritten: suspend (
         framesWritten: Int,

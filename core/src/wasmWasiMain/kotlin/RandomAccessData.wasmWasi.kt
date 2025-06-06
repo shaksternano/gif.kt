@@ -21,7 +21,6 @@ actual interface RandomAccessData : AutoCloseable {
     }
 }
 
-@Suppress("EXTENSION_SHADOWED_BY_MEMBER")
 actual fun RandomAccessData.Companion.of(path: Path): RandomAccessData {
     return of(path)
 }

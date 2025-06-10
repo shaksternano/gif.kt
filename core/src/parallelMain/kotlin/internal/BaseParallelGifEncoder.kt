@@ -17,7 +17,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 
-class BaseParallelGifEncoder(
+internal class BaseParallelGifEncoder(
     private val sink: Sink,
     transparencyColorTolerance: Double,
     quantizedTransparencyColorTolerance: Double,

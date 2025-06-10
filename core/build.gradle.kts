@@ -56,11 +56,13 @@ kotlin {
         browser()
         nodejs()
     }
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         browser()
         nodejs()
     }
+
     @OptIn(ExperimentalWasmDsl::class)
     wasmWasi {
         nodejs()

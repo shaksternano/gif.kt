@@ -78,6 +78,7 @@ internal class BaseParallelGifEncoder(
         )
 
     private val writtenFrameNotifications: Channel<Duration> = Channel(capacity = Channel.UNLIMITED)
+
     private val writtenFrameListener: Job = coroutineScope.launch {
         var framesWritten = 0
         var writtenDuration = Duration.ZERO

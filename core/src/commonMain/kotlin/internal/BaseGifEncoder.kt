@@ -84,6 +84,9 @@ class BaseGifEncoder(
     @PublishedApi
     internal var nextCrop: Rectangle? = null
 
+    @PublishedApi
+    internal var closed: Boolean = false
+
     /**
      * Writes a frame to the GIF.
      *
@@ -431,6 +434,8 @@ class BaseGifEncoder(
         afterFinalWrite: () -> Unit = {},
         wrapIo: (() -> Unit) -> Unit = { it() },
     ) {
+        if (closed) return
+        closed = true
         var closeThrowable: Throwable? = null
         try {
             val pendingWrite = pendingWrite

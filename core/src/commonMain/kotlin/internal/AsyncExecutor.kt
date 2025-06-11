@@ -15,6 +15,7 @@ class AsyncExecutor<T, R>(
 
     private val semaphore: Semaphore = Semaphore(maxConcurrency)
     private val outputChannel: Channel<Deferred<Result<R>>> = Channel(maxConcurrency)
+
     private val outputJob: Job = scope.launch {
         for (output in outputChannel) {
             onOutput(output.await())

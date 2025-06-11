@@ -1,6 +1,6 @@
 package com.shakster.gifkt.internal
 
-internal data class QuantizedImageData(
+data class QuantizedImageData(
     val imageColorIndices: ByteArray,
     val width: Int,
     val height: Int,
@@ -10,7 +10,8 @@ internal data class QuantizedImageData(
     val transparentColorIndex: Int,
 ) {
 
-    val bounds: Rectangle
+    @PublishedApi
+    internal val bounds: Rectangle
         get() = Rectangle(x, y, width, height)
 
     fun toImage(): Image {

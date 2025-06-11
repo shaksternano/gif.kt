@@ -5,9 +5,10 @@ import kotlin.math.pow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-internal val Int.centiseconds: Duration
+val Int.centiseconds: Duration
     get() = (this * 10).milliseconds
 
+@PublishedApi
 internal val Duration.roundedUpCentiseconds: Int
     get() = ceil(inWholeMilliseconds / 10.0).toInt()
 

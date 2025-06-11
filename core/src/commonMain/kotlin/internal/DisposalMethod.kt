@@ -7,7 +7,7 @@ package com.shakster.gifkt.internal
  * Documentation taken from the
  * [GIF89a specification](https://www.w3.org/Graphics/GIF/spec-gif89a.txt).
  */
-internal enum class DisposalMethod(
+enum class DisposalMethod(
     val id: Int,
 ) {
     /**

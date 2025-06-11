@@ -3,6 +3,7 @@ package com.shakster.gifkt.internal
 import kotlin.math.max
 import kotlin.math.min
 
+@PublishedApi
 internal data class Rectangle(
     val x: Int,
     val y: Int,

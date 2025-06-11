@@ -8,11 +8,12 @@ import kotlinx.io.writeString
 import kotlin.math.ceil
 import kotlin.math.log2
 
-internal const val GIF_MAX_COLORS: Int = 256
+const val GIF_MAX_COLORS: Int = 256
+const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
 internal const val GIF_MINIMUM_COLOR_TABLE_SIZE: Int = 2
-internal const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
 internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
 
+@PublishedApi
 internal fun optimizeTransparency(
     previousImage: Image,
     currentImage: Image,
@@ -59,7 +60,7 @@ internal fun optimizeTransparency(
     return Image(optimizedPixels, currentImage.width, currentImage.height)
 }
 
-internal fun getImageData(
+fun getImageData(
     image: Image,
     maxColors: Int,
     quantizer: ColorQuantizer,
@@ -154,6 +155,7 @@ internal fun getImageData(
     )
 }
 
+@PublishedApi
 internal fun QuantizedImageData.cropTransparentBorder(): QuantizedImageData {
     if (transparentColorIndex < 0) {
         return this
@@ -163,6 +165,7 @@ internal fun QuantizedImageData.cropTransparentBorder(): QuantizedImageData {
     return crop(x, y, width, height)
 }
 
+@PublishedApi
 internal fun QuantizedImageData.opaqueArea(): Rectangle {
     if (transparentColorIndex < 0) {
         return bounds
@@ -208,6 +211,7 @@ internal fun QuantizedImageData.opaqueArea(): Rectangle {
     return Rectangle(startX, startY, newWidth, newHeight)
 }
 
+@PublishedApi
 internal fun QuantizedImageData.crop(
     startX: Int,
     startY: Int,
@@ -256,6 +260,7 @@ private fun Sink.writeLittleEndianShort(int: Int) {
     writeShortLe(int.toShort())
 }
 
+@PublishedApi
 internal fun Sink.writeGifIntro(
     width: Int,
     height: Int,
@@ -311,7 +316,7 @@ internal fun Sink.writeGifCommentExtension(comment: String) {
     writeByte(0x00) // Block Terminator
 }
 
-internal fun Sink.writeGifImage(
+fun Sink.writeGifImage(
     data: QuantizedImageData,
     durationCentiseconds: Int,
     disposalMethod: DisposalMethod,
@@ -389,6 +394,7 @@ internal fun Sink.writeGifImageData(imageColorIndices: ByteArray, colorTableSize
     writeLzwIndexStream(imageColorIndices, colorTableSize)
 }
 
+@PublishedApi
 internal fun Sink.writeGifTrailer() {
     writeByte(0x3B)
 }

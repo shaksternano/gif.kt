@@ -2,7 +2,7 @@ package com.shakster.gifkt.internal
 
 import com.shakster.gifkt.ColorDistanceCalculator
 
-internal data class Image(
+data class Image(
     val argb: IntArray,
     val width: Int,
     val height: Int,

@@ -9,18 +9,18 @@ import kotlin.time.Duration
  * Reference:
  * https://www.matthewflickinger.com/lab/whatsinagif/bits_and_bytes.asp
  */
-internal class BaseGifEncoder(
-    private val sink: Sink,
-    private val transparencyColorTolerance: Double,
-    private val quantizedTransparencyColorTolerance: Double,
-    private val loopCount: Int,
+class BaseGifEncoder(
+    val sink: Sink,
+    val transparencyColorTolerance: Double,
+    val quantizedTransparencyColorTolerance: Double,
+    val loopCount: Int,
     maxColors: Int,
-    private val colorQuantizer: ColorQuantizer,
-    private val colorDistanceCalculator: ColorDistanceCalculator,
-    private val comment: String,
-    private val alphaFill: Int,
-    private val cropTransparent: Boolean,
-    private val minimumFrameDurationCentiseconds: Int,
+    val colorQuantizer: ColorQuantizer,
+    val colorDistanceCalculator: ColorDistanceCalculator,
+    val comment: String,
+    val alphaFill: Int,
+    val cropTransparent: Boolean,
+    val minimumFrameDurationCentiseconds: Int,
 ) {
 
     init {
@@ -29,33 +29,60 @@ internal class BaseGifEncoder(
         }
     }
 
-    private val optimizeTransparency: Boolean = transparencyColorTolerance >= 0
-    private val optimizeQuantizedTransparency: Boolean = quantizedTransparencyColorTolerance >= 0
-    private val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
-    private val minimumFrameDuration: Duration = minimumFrameDurationCentiseconds.centiseconds
+    val optimizeTransparency: Boolean = transparencyColorTolerance >= 0
+    val optimizeQuantizedTransparency: Boolean = quantizedTransparencyColorTolerance >= 0
+    val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
+    val minimumFrameDuration: Duration = minimumFrameDurationCentiseconds.centiseconds
 
-    private var initialized: Boolean = false
-    private var width: Int? = null
-    private var height: Int? = null
+    @PublishedApi
+    internal var initialized: Boolean = false
 
-    private lateinit var previousFrame: Image
-    private var pendingWrite: Image? = null
-    private var pendingDuration: Duration = Duration.ZERO
-    private var pendingDisposalMethod: DisposalMethod = DisposalMethod.UNSPECIFIED
-    private val writtenAny: Boolean
+    @PublishedApi
+    internal var width: Int? = null
+
+    @PublishedApi
+    internal var height: Int? = null
+
+    @PublishedApi
+    internal lateinit var previousFrame: Image
+
+    @PublishedApi
+    internal var pendingWrite: Image? = null
+
+    @PublishedApi
+    internal var pendingDuration: Duration = Duration.ZERO
+
+    @PublishedApi
+    internal var pendingDisposalMethod: DisposalMethod = DisposalMethod.UNSPECIFIED
+
+    @PublishedApi
+    internal val writtenAny: Boolean
         get() = ::previousFrame.isInitialized
 
-    private var optimizedPreviousFrame: Boolean = false
+    @PublishedApi
+    internal var optimizedPreviousFrame: Boolean = false
 
-    private lateinit var previousQuantizedFrame: Image
-    private var pendingQuantizedData: QuantizedImageData? = null
-    private var pendingQuantizedDurationCentiseconds: Int = 0
-    private var pendingQuantizedDisposalMethod: DisposalMethod = DisposalMethod.UNSPECIFIED
-    private val writtenAnyQuantized: Boolean
+    @PublishedApi
+    internal lateinit var previousQuantizedFrame: Image
+
+    @PublishedApi
+    internal var pendingQuantizedData: QuantizedImageData? = null
+
+    @PublishedApi
+    internal var pendingQuantizedDurationCentiseconds: Int = 0
+
+    @PublishedApi
+    internal var pendingQuantizedDisposalMethod: DisposalMethod = DisposalMethod.UNSPECIFIED
+
+    @PublishedApi
+    internal val writtenAnyQuantized: Boolean
         get() = ::previousQuantizedFrame.isInitialized
 
-    private var frameCount: Int = 0
-    private var nextCrop: Rectangle? = null
+    @PublishedApi
+    internal var frameCount: Int = 0
+
+    @PublishedApi
+    internal var nextCrop: Rectangle? = null
 
     /**
      * Writes a frame to the GIF.
@@ -190,7 +217,8 @@ internal class BaseGifEncoder(
         return true
     }
 
-    private inline fun init(
+    @PublishedApi
+    internal inline fun init(
         width: Int,
         height: Int,
         loopCount: Int,
@@ -210,7 +238,8 @@ internal class BaseGifEncoder(
         initialized = true
     }
 
-    private inline fun initAndWriteFrame(
+    @PublishedApi
+    internal inline fun initAndWriteFrame(
         image: Image,
         originalImage: Image,
         durationCentiseconds: Int,
@@ -267,7 +296,8 @@ internal class BaseGifEncoder(
         }
     }
 
-    private inline fun writeOptimizedGifImage(
+    @PublishedApi
+    internal inline fun writeOptimizedGifImage(
         imageData: QuantizedImageData,
         originalImage: Image,
         durationCentiseconds: Int,
@@ -353,7 +383,8 @@ internal class BaseGifEncoder(
         pendingQuantizedDurationCentiseconds += durationCentiseconds
     }
 
-    private inline fun writeGifImage(
+    @PublishedApi
+    internal inline fun writeGifImage(
         imageData: QuantizedImageData,
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,

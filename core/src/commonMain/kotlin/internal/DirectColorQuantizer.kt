@@ -3,7 +3,7 @@ package com.shakster.gifkt.internal
 import com.shakster.gifkt.ColorQuantizer
 import com.shakster.gifkt.ColorTable
 
-internal object DirectColorQuantizer : ColorQuantizer {
+internal data object DirectColorQuantizer : ColorQuantizer {
 
     override fun quantize(rgb: ByteArray, maxColors: Int): ColorTable =
         DirectColorTable(rgb)

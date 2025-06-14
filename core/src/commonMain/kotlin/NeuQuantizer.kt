@@ -25,6 +25,23 @@ class NeuQuantizer(
     override fun quantize(rgb: ByteArray, maxColors: Int): ColorTable =
         NeuQuantColorTable(NeuQuant(rgb, maxColors, quality))
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as NeuQuantizer
+
+        return quality == other.quality
+    }
+
+    override fun hashCode(): Int {
+        return quality
+    }
+
+    override fun toString(): String {
+        return "NeuQuantizer(quality=$quality)"
+    }
+
     private class NeuQuantColorTable(
         private val neuQuant: NeuQuant,
     ) : ColorTable {
@@ -33,5 +50,9 @@ class NeuQuantizer(
 
         override fun getColorIndex(red: Int, green: Int, blue: Int): Int =
             neuQuant.map(red, green, blue)
+
+        override fun toString(): String {
+            return "NeuQuantColorTable(colors=${colors.contentToString()})"
+        }
     }
 }

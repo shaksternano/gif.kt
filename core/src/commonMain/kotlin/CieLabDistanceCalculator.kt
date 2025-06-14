@@ -3,7 +3,7 @@ package com.shakster.gifkt
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-object CieLabDistanceCalculator : ColorDistanceCalculator {
+data object CieLabDistanceCalculator : ColorDistanceCalculator {
 
     override fun colorDistance(rgb1: Int, rgb2: Int): Double {
         if (rgb1 == rgb2) {

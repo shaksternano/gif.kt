@@ -262,4 +262,23 @@ internal class BaseGifDecoder(
     override fun close() {
         data.close()
     }
+
+    override fun toString(): String {
+        return "BaseGifDecoder(" +
+            "data=$data" +
+            ", cacheFrameInterval=$cacheFrameInterval" +
+            ", width=$width" +
+            ", height=$height" +
+            ", frameCount=$frameCount" +
+            ", duration=$duration" +
+            ", loopCount=$loopCount" +
+            ", frameInfos=$frameInfos" +
+            ", comment='$comment'" +
+            ", globalColorTable=${globalColorTable.contentToString()}" +
+            ", globalColorTableColors=$globalColorTableColors" +
+            ", backgroundColorIndex=$backgroundColorIndex" +
+            ", frames=$frames" +
+            ", lastFrame=$lastFrame" +
+            ")"
+    }
 }

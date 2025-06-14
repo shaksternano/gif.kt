@@ -440,9 +440,14 @@ class BaseGifEncoder(
         try {
             val pendingWrite = pendingWrite
             if (pendingWrite != null && (frameCount == 0 || pendingDuration > Duration.ZERO)) {
+                var totalFrames = frameCount + 1
+                if (pendingQuantizedData != null) {
+                    totalFrames++
+                }
+
                 val centiseconds: Int
                 val actualLoopCount: Int
-                if (frameCount > 1) {
+                if (totalFrames > 1) {
                     centiseconds = pendingDuration.roundedUpCentiseconds
                         .coerceAtLeast(minimumFrameDurationCentiseconds)
                     actualLoopCount = loopCount
@@ -450,6 +455,7 @@ class BaseGifEncoder(
                     centiseconds = 0
                     actualLoopCount = -1
                 }
+
                 initAndWriteFrame(
                     pendingWrite,
                     previousFrame,

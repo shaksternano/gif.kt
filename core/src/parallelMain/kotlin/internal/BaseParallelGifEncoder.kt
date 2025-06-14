@@ -91,6 +91,7 @@ internal class BaseParallelGifEncoder(
                 val exception = Exception("Error running onFrameWritten callback", t)
                 @OptIn(ExperimentalAtomicApi::class)
                 throwableReference.compareAndSet(null, exception)
+                break
             }
         }
     }

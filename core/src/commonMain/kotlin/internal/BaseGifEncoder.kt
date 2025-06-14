@@ -490,4 +490,40 @@ class BaseGifEncoder(
             }
         }
     }
+
+    override fun toString(): String {
+        return "BaseGifEncoder(" +
+            "sink=$sink" +
+            ", transparencyColorTolerance=$transparencyColorTolerance" +
+            ", quantizedTransparencyColorTolerance=$quantizedTransparencyColorTolerance" +
+            ", loopCount=$loopCount" +
+            ", colorQuantizer=$colorQuantizer" +
+            ", colorDistanceCalculator=$colorDistanceCalculator" +
+            ", comment='$comment'" +
+            ", alphaFill=$alphaFill" +
+            ", cropTransparent=$cropTransparent" +
+            ", minimumFrameDurationCentiseconds=$minimumFrameDurationCentiseconds" +
+            ", optimizeTransparency=$optimizeTransparency" +
+            ", optimizeQuantizedTransparency=$optimizeQuantizedTransparency" +
+            ", maxColors=$maxColors" +
+            ", minimumFrameDuration=$minimumFrameDuration" +
+            ", initialized=$initialized" +
+            ", width=$width" +
+            ", height=$height" +
+            ", previousFrame=$previousFrame" +
+            ", pendingWrite=$pendingWrite" +
+            ", pendingDuration=$pendingDuration" +
+            ", pendingDisposalMethod=$pendingDisposalMethod" +
+            ", writtenAny=$writtenAny" +
+            ", optimizedPreviousFrame=$optimizedPreviousFrame" +
+            ", previousQuantizedFrame=$previousQuantizedFrame" +
+            ", pendingQuantizedData=$pendingQuantizedData" +
+            ", pendingQuantizedDurationCentiseconds=$pendingQuantizedDurationCentiseconds" +
+            ", pendingQuantizedDisposalMethod=$pendingQuantizedDisposalMethod" +
+            ", writtenAnyQuantized=$writtenAnyQuantized" +
+            ", frameCount=$frameCount" +
+            ", nextCrop=$nextCrop" +
+            ", closed=$closed" +
+            ")"
+    }
 }

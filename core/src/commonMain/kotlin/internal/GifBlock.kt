@@ -1,5 +1,7 @@
 package com.shakster.gifkt.internal
 
+import com.shakster.gifkt.DisposalMethod
+
 internal sealed interface GifBlock
 
 internal sealed interface GifExtension : GifBlock

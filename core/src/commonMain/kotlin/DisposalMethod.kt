@@ -1,4 +1,4 @@
-package com.shakster.gifkt.internal
+package com.shakster.gifkt
 
 /**
  * Indicates the way in which a frame is to

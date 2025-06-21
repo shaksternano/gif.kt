@@ -1,5 +1,6 @@
 package com.shakster.gifkt.internal
 
+import com.shakster.gifkt.DisposalMethod
 import kotlin.time.Duration
 
 internal data class RawImage(

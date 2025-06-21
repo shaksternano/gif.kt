@@ -1,19 +1,124 @@
 package com.shakster.gifkt.internal
 
-import com.shakster.gifkt.ColorDistanceCalculator
-import com.shakster.gifkt.ColorQuantizer
+import com.shakster.gifkt.*
 import kotlinx.io.Sink
 import kotlinx.io.writeShortLe
 import kotlinx.io.writeString
 import kotlin.math.ceil
 import kotlin.math.log2
 
-const val GIF_MAX_COLORS: Int = 256
-const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
 internal const val GIF_MINIMUM_COLOR_TABLE_SIZE: Int = 2
 internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
+internal const val ALPHA_FILL_MASK: Int = 0xFF shl 24
 
-@PublishedApi
+internal fun Image.cropOrPad(width: Int, height: Int): Image =
+    if (this.width == width && this.height == height) {
+        this
+    } else if (this.width == width) {
+        val newArgb = argb.copyOf(width * height)
+        Image(newArgb, width, height)
+    } else {
+        val newArgb = IntArray(width * height) { i ->
+            val x = i % width
+            val y = i / width
+            val index = x + y * this.width
+            if (index < argb.size) {
+                argb[index]
+            } else {
+                0
+            }
+        }
+        Image(newArgb, width, height)
+    }
+
+internal fun Image.fillPartialAlpha(alphaFill: Int): Image {
+    val newArgb = IntArray(argb.size) { i ->
+        val pixel = argb[i]
+        fillPartialAlpha(pixel, alphaFill)
+    }
+    return copy(argb = newArgb)
+}
+
+private fun fillPartialAlpha(argb: Int, alphaFill: Int): Int {
+    if (alphaFill < 0) {
+        return argb
+    }
+    val alpha = argb ushr 24
+    if (alpha == 0) {
+        return 0
+    }
+    if (alpha == 0xFF) {
+        return argb
+    }
+
+    val red = argb shr 16 and 0xFF
+    val green = argb shr 8 and 0xFF
+    val blue = argb and 0xFF
+
+    val backgroundRed = alphaFill shr 16 and 0xFF
+    val backgroundGreen = alphaFill shr 8 and 0xFF
+    val backgroundBlue = alphaFill and 0xFF
+
+    val newRed = compositeAlpha(alpha, red, backgroundRed)
+    val newGreen = compositeAlpha(alpha, green, backgroundGreen)
+    val newBlue = compositeAlpha(alpha, blue, backgroundBlue)
+
+    return ALPHA_FILL_MASK or (newRed shl 16) or (newGreen shl 8) or newBlue
+}
+
+private fun compositeAlpha(alpha: Int, color: Int, backgroundColor: Int): Int {
+    val opacity = alpha / 255.0
+    return (color * opacity + backgroundColor * (1 - opacity)).toInt()
+}
+
+internal fun Image.isSimilar(
+    other: Image,
+    tolerance: Double,
+    colorDistanceCalculator: ColorDistanceCalculator,
+): Boolean {
+    return if (this === other) {
+        true
+    } else {
+        val resizedOther = other.cropOrPad(width, height)
+        val otherArgb = resizedOther.argb
+        argb.forEachIndexed { i, pixel ->
+            val otherPixel = otherArgb[i]
+            val alpha = pixel ushr 24
+            val otherAlpha = otherPixel ushr 24
+            val similar = if (alpha == 0 && otherAlpha == 0) {
+                true
+            } else if (alpha != otherAlpha) {
+                false
+            } else if (tolerance == 0.0) {
+                pixel == otherPixel
+            } else {
+                colorDistanceCalculator.colorDistance(pixel, otherPixel) <= tolerance
+            }
+            if (!similar) {
+                return false
+            }
+        }
+        true
+    }
+}
+
+internal fun Image.fillTransparent(other: Image): Image {
+    if (this === other) {
+        return this
+    }
+    val fixedDimensions = other.cropOrPad(width, height)
+    val filledRgb = IntArray(argb.size) { i ->
+        val pixel = argb[i]
+        val alpha = pixel ushr 24
+        if (alpha == 0) {
+            fixedDimensions.argb[i]
+        } else {
+            pixel
+        }
+    }
+    return copy(argb = filledRgb)
+}
+
 internal fun optimizeTransparency(
     previousImage: Image,
     currentImage: Image,
@@ -60,7 +165,7 @@ internal fun optimizeTransparency(
     return Image(optimizedPixels, currentImage.width, currentImage.height)
 }
 
-fun getImageData(
+internal fun quantizeImage(
     image: Image,
     maxColors: Int,
     quantizer: ColorQuantizer,
@@ -155,7 +260,22 @@ fun getImageData(
     )
 }
 
-@PublishedApi
+internal fun QuantizedImageData.toImage(): Image {
+    val argb = IntArray(imageColorIndices.size) { i ->
+        val index = imageColorIndices[i].toInt() and 0xFF
+        if (index == transparentColorIndex) {
+            0
+        } else {
+            val offset = index * 3
+            val red = colorTable[offset].toInt() and 0xFF
+            val green = colorTable[offset + 1].toInt() and 0xFF
+            val blue = colorTable[offset + 2].toInt() and 0xFF
+            ALPHA_FILL_MASK or (red shl 16) or (green shl 8) or blue
+        }
+    }
+    return Image(argb, width, height)
+}
+
 internal fun QuantizedImageData.cropTransparentBorder(): QuantizedImageData {
     if (transparentColorIndex < 0) {
         return this
@@ -165,7 +285,6 @@ internal fun QuantizedImageData.cropTransparentBorder(): QuantizedImageData {
     return crop(x, y, width, height)
 }
 
-@PublishedApi
 internal fun QuantizedImageData.opaqueArea(): Rectangle {
     if (transparentColorIndex < 0) {
         return bounds
@@ -211,7 +330,6 @@ internal fun QuantizedImageData.opaqueArea(): Rectangle {
     return Rectangle(startX, startY, newWidth, newHeight)
 }
 
-@PublishedApi
 internal fun QuantizedImageData.crop(
     startX: Int,
     startY: Int,
@@ -260,7 +378,6 @@ private fun Sink.writeLittleEndianShort(int: Int) {
     writeShortLe(int.toShort())
 }
 
-@PublishedApi
 internal fun Sink.writeGifIntro(
     width: Int,
     height: Int,
@@ -316,7 +433,7 @@ internal fun Sink.writeGifCommentExtension(comment: String) {
     writeByte(0x00) // Block Terminator
 }
 
-fun Sink.writeGifImage(
+internal fun Sink.writeQuantizedGifImage(
     data: QuantizedImageData,
     durationCentiseconds: Int,
     disposalMethod: DisposalMethod,
@@ -394,7 +511,6 @@ internal fun Sink.writeGifImageData(imageColorIndices: ByteArray, colorTableSize
     writeLzwIndexStream(imageColorIndices, colorTableSize)
 }
 
-@PublishedApi
 internal fun Sink.writeGifTrailer() {
     writeByte(0x3B)
 }

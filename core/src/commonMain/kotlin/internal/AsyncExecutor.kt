@@ -6,7 +6,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Semaphore
 import kotlin.coroutines.EmptyCoroutineContext
 
-class AsyncExecutor<T, R>(
+class AsyncExecutor<in T, out R>(
     maxConcurrency: Int,
     private val scope: CoroutineScope = CoroutineScope(EmptyCoroutineContext),
     private val task: suspend (T) -> R,

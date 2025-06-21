@@ -1,7 +1,5 @@
 package com.shakster.gifkt
 
-import com.shakster.gifkt.internal.GIF_MAX_COLORS
-import com.shakster.gifkt.internal.GIF_MINIMUM_FRAME_DURATION_CENTISECONDS
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.future.await
 import kotlinx.io.Sink

@@ -1,9 +1,10 @@
 package com.shakster.gifkt
 
-import com.shakster.gifkt.internal.GIF_MAX_COLORS
-import com.shakster.gifkt.internal.GIF_MINIMUM_FRAME_DURATION_CENTISECONDS
 import kotlinx.io.Sink
 import kotlin.time.Duration
+
+const val GIF_MAX_COLORS: Int = 256
+const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
 
 expect class GifEncoder(
     sink: Sink,

@@ -1,6 +1,7 @@
 package com.shakster.gifkt.internal
 
 import com.shakster.gifkt.RandomAccessData
+import com.shakster.gifkt.source
 import kotlinx.io.RawSource
 
 internal class ByteArrayData(
@@ -8,7 +9,7 @@ internal class ByteArrayData(
 ) : RandomAccessData {
 
     override fun source(offset: Long): RawSource {
-        return ByteArraySource(bytes, offset.toInt())
+        return bytes.source(offset.toInt())
     }
 
     override fun close() = Unit

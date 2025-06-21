@@ -1,6 +1,7 @@
 package com.shakster.gifkt
 
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 expect class ImageFrame(
     argb: IntArray,
@@ -44,3 +45,6 @@ fun ImageFrame.copy(
 ): ImageFrame {
     return ImageFrame(argb, width, height, duration, timestamp, index)
 }
+
+val Int.centiseconds: Duration
+    get() = (this * 10).milliseconds

@@ -1,4 +1,4 @@
-package com.shakster.gifkt.internal
+package com.shakster.gifkt
 
 data class QuantizedImageData(
     val imageColorIndices: ByteArray,
@@ -9,26 +9,6 @@ data class QuantizedImageData(
     val colorTable: ByteArray,
     val transparentColorIndex: Int,
 ) {
-
-    @PublishedApi
-    internal val bounds: Rectangle
-        get() = Rectangle(x, y, width, height)
-
-    fun toImage(): Image {
-        val argb = IntArray(imageColorIndices.size) { i ->
-            val index = imageColorIndices[i].toInt() and 0xFF
-            if (index == transparentColorIndex) {
-                0
-            } else {
-                val offset = index * 3
-                val red = colorTable[offset].toInt() and 0xFF
-                val green = colorTable[offset + 1].toInt() and 0xFF
-                val blue = colorTable[offset + 2].toInt() and 0xFF
-                ALPHA_FILL_MASK or (red shl 16) or (green shl 8) or blue
-            }
-        }
-        return Image(argb, width, height)
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

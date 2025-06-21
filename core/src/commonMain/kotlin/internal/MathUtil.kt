@@ -3,12 +3,7 @@ package com.shakster.gifkt.internal
 import kotlin.math.ceil
 import kotlin.math.pow
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
-val Int.centiseconds: Duration
-    get() = (this * 10).milliseconds
-
-@PublishedApi
 internal val Duration.roundedUpCentiseconds: Int
     get() = ceil(inWholeMilliseconds / 10.0).toInt()
 

@@ -1,7 +1,9 @@
 package com.shakster.gifkt.internal
 
+import com.shakster.gifkt.DisposalMethod
 import com.shakster.gifkt.ImageFrame
 import com.shakster.gifkt.InvalidGifException
+import com.shakster.gifkt.centiseconds
 import kotlinx.io.Source
 import kotlin.time.Duration
 

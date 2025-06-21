@@ -1,8 +1,6 @@
 package com.shakster.gifkt.internal
 
-import com.shakster.gifkt.ColorDistanceCalculator
-import com.shakster.gifkt.ColorQuantizer
-import com.shakster.gifkt.ImageFrame
+import com.shakster.gifkt.*
 import kotlinx.io.Sink
 import kotlin.time.Duration
 
@@ -77,7 +75,7 @@ internal class BaseSyncGifEncoder(
         optimizedPreviousFrame: Boolean,
     ) {
         baseEncoder.writeOrOptimizeGifImage(
-            baseEncoder.getImageData(optimizedImage),
+            baseEncoder.quantizeImage(optimizedImage),
             originalImage,
             durationCentiseconds,
             disposalMethod,
@@ -91,7 +89,7 @@ internal class BaseSyncGifEncoder(
         durationCentiseconds: Int,
         disposalMethod: DisposalMethod,
     ) {
-        sink.writeGifImage(imageData, durationCentiseconds, disposalMethod)
+        sink.writeQuantizedGifImage(imageData, durationCentiseconds, disposalMethod)
         handleWrittenFrame(durationCentiseconds.centiseconds)
     }
 

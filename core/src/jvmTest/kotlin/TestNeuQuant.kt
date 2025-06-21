@@ -1,6 +1,5 @@
 package com.shakster.gifkt
 
-import com.shakster.gifkt.internal.GIF_MAX_COLORS
 import com.shakster.gifkt.internal.NeuQuant
 import kotlin.test.Test
 import kotlin.test.assertContentEquals

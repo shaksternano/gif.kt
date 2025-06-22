@@ -1,6 +1,6 @@
 package com.shakster.gifkt.internal
 
-private const val MAX_LZW_CODE: Int = 0xFFF
+private const val MAX_LZW_CODE: Int = 4095
 
 internal fun MonitoredSource.readLzwIndexStream(): ByteList {
     val lzwMinCodeSize = readUByte().toInt()
@@ -11,6 +11,7 @@ internal fun MonitoredSource.readLzwIndexStream(): ByteList {
     var blockSize = readUByte().toInt()
     val initialCodeSize = lzwMinCodeSize + 1
     var currentCodeSize = initialCodeSize
+    var growCode = 2.pow(currentCodeSize)
     var currentBits = 0
     var currentBitPosition = 0
 
@@ -39,9 +40,11 @@ internal fun MonitoredSource.readLzwIndexStream(): ByteList {
 
                     if (code == clearCode) {
                         currentCodeSize = initialCodeSize
+                        growCode = 2.pow(currentCodeSize)
                         reset = true
                     } else if (code == endOfInformationCode) {
                         endStream = true
+                        break
                     } else if (reset) {
                         initCodeTable(codeTable, clearCode)
                         val indices = codeTable[code]
@@ -61,15 +64,17 @@ internal fun MonitoredSource.readLzwIndexStream(): ByteList {
                             val firstIndex = indices.first()
                             previousIndices + firstIndex
                         }
-                        if (codeTable.size < MAX_LZW_CODE) {
+                        if (codeTable.size <= MAX_LZW_CODE) {
                             codeTable.add(nextSequence)
-                            if (codeTable.size == 2.pow(currentCodeSize)) {
+                            if (codeTable.size == growCode && codeTable.size <= MAX_LZW_CODE) {
                                 currentCodeSize++
+                                growCode = 2.pow(currentCodeSize)
                             }
                         }
                         previousCode = code
                     }
                 }
+
                 if (endStream) {
                     break
                 }

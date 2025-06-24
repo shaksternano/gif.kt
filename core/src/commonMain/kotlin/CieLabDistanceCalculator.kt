@@ -5,22 +5,9 @@ import kotlin.math.sqrt
 
 data object CieLabDistanceCalculator : ColorDistanceCalculator {
 
-    override fun colorDistance(rgb1: Int, rgb2: Int): Double {
-        if (rgb1 == rgb2) {
-            return 0.0
-        }
-
-        val red1 = rgb1 shr 16 and 0xFF
-        val green1 = rgb1 shr 8 and 0xFF
-        val blue1 = rgb1 and 0xFF
-
-        val red2 = rgb2 shr 16 and 0xFF
-        val green2 = rgb2 shr 8 and 0xFF
-        val blue2 = rgb2 and 0xFF
-
-        val (l1, a1, b1) = rgbToCieLab(red1, green1, blue1)
-        val (l2, a2, b2) = rgbToCieLab(red2, green2, blue2)
-
+    override fun colorDistance(rgb1: RGB, rgb2: RGB): Double {
+        val (l1, a1, b1) = rgbToCieLab(rgb1.red, rgb1.green, rgb1.blue)
+        val (l2, a2, b2) = rgbToCieLab(rgb2.red, rgb2.green, rgb2.blue)
         // Euclidean distance
         val distance = sqrt((l1 - l2).pow(2) + (a1 - a2).pow(2) + (b1 - b2).pow(2))
         return (distance / 100).coerceIn(0.0, 1.0)

@@ -34,34 +34,26 @@ internal fun Image.cropOrPad(width: Int, height: Int): Image =
 internal fun Image.fillPartialAlpha(alphaFill: Int): Image {
     val newArgb = IntArray(argb.size) { i ->
         val pixel = argb[i]
-        fillPartialAlpha(pixel, alphaFill)
+        fillPartialAlpha(RGB(pixel), RGB(alphaFill))
     }
     return copy(argb = newArgb)
 }
 
-private fun fillPartialAlpha(argb: Int, alphaFill: Int): Int {
-    if (alphaFill < 0) {
-        return argb
+private fun fillPartialAlpha(rgb: RGB, alphaFill: RGB): Int {
+    if (alphaFill.value < 0) {
+        return rgb.value
     }
-    val alpha = argb ushr 24
+    val alpha = rgb.alpha
     if (alpha == 0) {
         return 0
     }
     if (alpha == 0xFF) {
-        return argb
+        return rgb.value
     }
 
-    val red = argb shr 16 and 0xFF
-    val green = argb shr 8 and 0xFF
-    val blue = argb and 0xFF
-
-    val backgroundRed = alphaFill shr 16 and 0xFF
-    val backgroundGreen = alphaFill shr 8 and 0xFF
-    val backgroundBlue = alphaFill and 0xFF
-
-    val newRed = compositeAlpha(alpha, red, backgroundRed)
-    val newGreen = compositeAlpha(alpha, green, backgroundGreen)
-    val newBlue = compositeAlpha(alpha, blue, backgroundBlue)
+    val newRed = compositeAlpha(alpha, rgb.red, alphaFill.red)
+    val newGreen = compositeAlpha(alpha, rgb.green, alphaFill.green)
+    val newBlue = compositeAlpha(alpha, rgb.blue, alphaFill.blue)
 
     return ALPHA_FILL_MASK or (newRed shl 16) or (newGreen shl 8) or newBlue
 }
@@ -92,7 +84,7 @@ internal fun Image.isSimilar(
             } else if (tolerance == 0.0) {
                 pixel == otherPixel
             } else {
-                colorDistanceCalculator.colorDistance(pixel, otherPixel) <= tolerance
+                calculateColorDistance(pixel, otherPixel, colorDistanceCalculator) <= tolerance
             }
             if (!similar) {
                 return false
@@ -155,7 +147,7 @@ internal fun optimizeTransparency(
         if (previousAlpha == 0 && currentAlpha != 0) {
             return@IntArray currentArgb
         }
-        val colorDistance = colorDistanceCalculator.colorDistance(previousArgb, currentArgb)
+        val colorDistance = calculateColorDistance(previousArgb, currentArgb, colorDistanceCalculator)
         if (colorDistance > colorTolerance) {
             currentArgb
         } else {
@@ -163,6 +155,14 @@ internal fun optimizeTransparency(
         }
     }
     return Image(optimizedPixels, currentImage.width, currentImage.height)
+}
+
+private fun calculateColorDistance(rgb1: Int, rgb2: Int, colorDistanceCalculator: ColorDistanceCalculator): Double {
+    return if (rgb1 == rgb2) {
+        0.0
+    } else {
+        colorDistanceCalculator.colorDistance(RGB(rgb1), RGB(rgb2))
+    }
 }
 
 internal fun quantizeImage(
@@ -173,20 +173,17 @@ internal fun quantizeImage(
 ): QuantizedImageData {
     // Build color table
     val (argb, width, height) = image
-    val rgb = mutableListOf<Byte>()
+    val rgbValues = ByteList()
     val distinctColors = hashSetOf<Int>()
     var hasTransparent = forceTransparency
     argb.forEach { pixel ->
-        val alpha = pixel ushr 24
-        if (alpha == 0) {
+        val rgb = RGB(pixel)
+        if (rgb.alpha == 0) {
             hasTransparent = true
         } else {
-            val red = pixel shr 16 and 0xFF
-            val green = pixel shr 8 and 0xFF
-            val blue = pixel and 0xFF
-            rgb.add(red.toByte())
-            rgb.add(green.toByte())
-            rgb.add(blue.toByte())
+            rgbValues.add(rgb.red.toByte())
+            rgbValues.add(rgb.green.toByte())
+            rgbValues.add(rgb.blue.toByte())
             distinctColors.add(pixel)
         }
     }
@@ -203,7 +200,7 @@ internal fun quantizeImage(
         if (hasTransparent) colorCount - 1
         else colorCount
     val quantizationResult = actualQuantizer.quantize(
-        rgb.toByteArray(),
+        rgbValues.toByteArray(),
         quantizerMaxColors,
     )
     val quantizedColors = quantizationResult.colors
@@ -240,10 +237,8 @@ internal fun quantizeImage(
             if (alpha == 0) {
                 0
             } else {
-                val red = pixel shr 16 and 0xFF
-                val green = pixel shr 8 and 0xFF
-                val blue = pixel and 0xFF
-                quantizationResult.getColorIndex(red, green, blue) + indexOffset
+                val rgb = RGB(pixel)
+                quantizationResult.getColorIndex(rgb.red, rgb.green, rgb.blue) + indexOffset
             }
         }
         imageColorIndices[i] = index.toByte()

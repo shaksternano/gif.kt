@@ -20,7 +20,7 @@ actual class GifEncoderBuilder actual constructor(
 
     actual var colorQuantizer: ColorQuantizer = NeuQuantizer.DEFAULT
 
-    actual var colorDistanceCalculator: ColorDistanceCalculator = CieLabDistanceCalculator
+    actual var colorDistanceCalculator: ColorDistanceCalculator = ColorDistanceCalculator.DEFAULT
 
     actual var comment: String = ""
 

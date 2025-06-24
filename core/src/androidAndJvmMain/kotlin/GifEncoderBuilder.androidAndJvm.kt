@@ -37,7 +37,7 @@ actual class GifEncoderBuilder actual constructor(
 
     @JvmSynthetic
     @JvmField
-    actual var colorDistanceCalculator: ColorDistanceCalculator = CieLabDistanceCalculator
+    actual var colorDistanceCalculator: ColorDistanceCalculator = ColorDistanceCalculator.DEFAULT
 
     @JvmSynthetic
     @JvmField

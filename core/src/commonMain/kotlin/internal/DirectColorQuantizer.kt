@@ -24,9 +24,9 @@ internal data object DirectColorQuantizer : ColorQuantizer {
                 .toByteArray()
             colorIndices = distinctColors.mapIndexed { i, (red, green, blue) ->
                 RGB(
-                    red.toUByte().toInt(),
-                    green.toUByte().toInt(),
-                    blue.toUByte().toInt(),
+                    red.toInt(),
+                    green.toInt(),
+                    blue.toInt(),
                 ) to i
             }.toMap()
         }

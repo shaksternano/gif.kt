@@ -33,7 +33,7 @@ actual class GifEncoderBuilder actual constructor(
 
     @JvmSynthetic
     @JvmField
-    actual var colorQuantizer: ColorQuantizer = NeuQuantizer.DEFAULT
+    actual var colorQuantizer: ColorQuantizer = ColorQuantizer.DEFAULT
 
     @JvmSynthetic
     @JvmField
@@ -202,7 +202,7 @@ actual class GifEncoderBuilder actual constructor(
         onFrameWritten: (
             framesWritten: Int,
             writtenDuration: JavaDuration,
-        ) -> CompletionStage<Void>,
+        ) -> CompletionStage<*>,
     ): ParallelGifEncoder {
         return buildParallel { framesWritten, writtenDuration ->
             onFrameWritten(

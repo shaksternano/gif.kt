@@ -9,17 +9,6 @@ class NeuQuantizer(
     quality: Int,
 ) : ColorQuantizer {
 
-    companion object {
-        @JvmField
-        val DEFAULT: ColorQuantizer = NeuQuantizer(10)
-
-        @JvmField
-        val MAX_QUALITY: ColorQuantizer = NeuQuantizer(1)
-
-        @JvmField
-        val MIN_QUALITY: ColorQuantizer = NeuQuantizer(NEU_QUANT_MAX_SAMPLING_FACTOR)
-    }
-
     private val quality: Int = quality.coerceIn(1, NEU_QUANT_MAX_SAMPLING_FACTOR)
 
     override fun quantize(rgb: ByteArray, maxColors: Int): ColorTable =
@@ -54,5 +43,16 @@ class NeuQuantizer(
         override fun toString(): String {
             return "NeuQuantColorTable(colors=${colors.contentToString()})"
         }
+    }
+
+    companion object {
+        @JvmField
+        val DEFAULT: ColorQuantizer = NeuQuantizer(10)
+
+        @JvmField
+        val MAX_QUALITY: ColorQuantizer = NeuQuantizer(1)
+
+        @JvmField
+        val MIN_QUALITY: ColorQuantizer = NeuQuantizer(NEU_QUANT_MAX_SAMPLING_FACTOR)
     }
 }

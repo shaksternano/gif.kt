@@ -18,7 +18,7 @@ actual class GifEncoderBuilder actual constructor(
 
     actual var maxColors: Int = GIF_MAX_COLORS
 
-    actual var colorQuantizer: ColorQuantizer = NeuQuantizer.DEFAULT
+    actual var colorQuantizer: ColorQuantizer = ColorQuantizer.DEFAULT
 
     actual var colorDistanceCalculator: ColorDistanceCalculator = ColorDistanceCalculator.DEFAULT
 

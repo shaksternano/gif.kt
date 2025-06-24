@@ -20,6 +20,21 @@ data class EuclideanDistanceCalculator(
         blueWeight.toDouble(),
     )
 
+    init {
+        require(redWeight >= 0) {
+            "Red weight must be non-negative"
+        }
+        require(greenWeight >= 0) {
+            "Green weight must be non-negative"
+        }
+        require(blueWeight >= 0) {
+            "Blue weight must be non-negative"
+        }
+        require(redWeight > 0 || greenWeight > 0 || blueWeight > 0) {
+            "At least one weight must be positive"
+        }
+    }
+
     private val maxDistance: Double = sqrt(255 * 255 * (redWeight + greenWeight + blueWeight))
 
     override fun colorDistance(rgb1: RGB, rgb2: RGB): Double {

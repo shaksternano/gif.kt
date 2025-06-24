@@ -11,7 +11,7 @@ value class RGB(val value: Int) {
         blue: Int,
         alpha: Int = 0xFF,
     ) : this(
-        (alpha and 0xFF) shl 24 or
+        alpha shl 24 or
             (red and 0xFF) shl 16 or
             (green and 0xFF) shl 8 or
             (blue and 0xFF)

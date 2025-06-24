@@ -19,7 +19,7 @@ internal data object DirectColorQuantizer : ColorQuantizer {
         init {
             val distinctColors = rgb.asList()
                 .chunked(3)
-                .distinct()
+                .toSet()
             colors = distinctColors.flatten()
                 .toByteArray()
             colorIndices = distinctColors.mapIndexed { i, (red, green, blue) ->

@@ -5,6 +5,15 @@ import kotlin.jvm.JvmInline
 @JvmInline
 value class RGB(val value: Int) {
 
+    constructor(
+        red: Int,
+        green: Int,
+        blue: Int,
+        alpha: Int = 0xFF,
+    ) : this(
+        (alpha shl 24) or (red shl 16) or (green shl 8) or blue
+    )
+
     inline val red: Int
         get() = (value shr 16) and 0xFF
 

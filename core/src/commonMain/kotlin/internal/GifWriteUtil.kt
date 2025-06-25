@@ -66,7 +66,7 @@ private fun compositeAlpha(alpha: Int, color: Int, backgroundColor: Int): Int {
 internal fun Image.isSimilar(
     other: Image,
     tolerance: Double,
-    colorDistanceCalculator: ColorDistanceCalculator,
+    colorSimilarityChecker: ColorSimilarityChecker,
 ): Boolean {
     return if (this === other) {
         true
@@ -84,7 +84,12 @@ internal fun Image.isSimilar(
             } else if (tolerance == 0.0) {
                 pixel == otherPixel
             } else {
-                calculateColorDistance(pixel, otherPixel, colorDistanceCalculator) <= tolerance
+                areColorsSimilar(
+                    pixel,
+                    otherPixel,
+                    tolerance,
+                    colorSimilarityChecker,
+                )
             }
             if (!similar) {
                 return false
@@ -115,7 +120,7 @@ internal fun optimizeTransparency(
     previousImage: Image,
     currentImage: Image,
     colorTolerance: Double,
-    colorDistanceCalculator: ColorDistanceCalculator,
+    colorSimilarityChecker: ColorSimilarityChecker,
     safeTransparent: Boolean,
 ): Image? {
     if (previousImage.width != currentImage.width
@@ -147,21 +152,32 @@ internal fun optimizeTransparency(
         if (previousAlpha == 0 && currentAlpha != 0) {
             return@IntArray currentArgb
         }
-        val colorDistance = calculateColorDistance(previousArgb, currentArgb, colorDistanceCalculator)
-        if (colorDistance > colorTolerance) {
-            currentArgb
-        } else {
+        val isSimilar = areColorsSimilar(
+            previousArgb,
+            currentArgb,
+            colorTolerance,
+            colorSimilarityChecker,
+        )
+        if (isSimilar) {
             0
+        } else {
+            currentArgb
         }
     }
     return Image(optimizedPixels, currentImage.width, currentImage.height)
 }
 
-private fun calculateColorDistance(rgb1: Int, rgb2: Int, colorDistanceCalculator: ColorDistanceCalculator): Double {
-    return if (rgb1 == rgb2) {
-        0.0
+private fun areColorsSimilar(
+    rgb1: Int,
+    rgb2: Int,
+    tolerance: Double,
+    colorSimilarityChecker: ColorSimilarityChecker,
+): Boolean {
+    val areEqual = rgb1 == rgb2
+    return if (areEqual || tolerance == 0.0) {
+        areEqual
     } else {
-        colorDistanceCalculator.colorDistance(RGB(rgb1), RGB(rgb2))
+        colorSimilarityChecker.isSimilar(RGB(rgb1), RGB(rgb2), tolerance)
     }
 }
 

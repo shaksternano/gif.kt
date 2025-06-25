@@ -15,7 +15,7 @@ actual fun GifEncoderBuilder.buildParallel(
         loopCount,
         maxColors,
         colorQuantizer,
-        colorDistanceCalculator,
+        colorSimilarityChecker,
         comment,
         alphaFill,
         cropTransparent,

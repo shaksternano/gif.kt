@@ -37,7 +37,7 @@ actual class GifEncoderBuilder actual constructor(
 
     @JvmSynthetic
     @JvmField
-    actual var colorDistanceCalculator: ColorDistanceCalculator = ColorDistanceCalculator.DEFAULT
+    actual var colorSimilarityChecker: ColorSimilarityChecker = ColorSimilarityChecker.DEFAULT
 
     @JvmSynthetic
     @JvmField
@@ -92,8 +92,8 @@ actual class GifEncoderBuilder actual constructor(
         return this
     }
 
-    actual fun colorDistanceCalculator(colorDistanceCalculator: ColorDistanceCalculator): GifEncoderBuilder {
-        this.colorDistanceCalculator = colorDistanceCalculator
+    actual fun colorSimilarityChecker(colorSimilarityChecker: ColorSimilarityChecker): GifEncoderBuilder {
+        this.colorSimilarityChecker = colorSimilarityChecker
         return this
     }
 
@@ -152,7 +152,7 @@ actual class GifEncoderBuilder actual constructor(
             loopCount,
             maxColors,
             colorQuantizer,
-            colorDistanceCalculator,
+            colorSimilarityChecker,
             comment,
             alphaFill,
             cropTransparent,
@@ -175,7 +175,7 @@ actual class GifEncoderBuilder actual constructor(
             loopCount,
             maxColors,
             colorQuantizer,
-            colorDistanceCalculator,
+            colorSimilarityChecker,
             comment,
             alphaFill,
             cropTransparent,

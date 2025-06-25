@@ -20,7 +20,7 @@ actual class GifEncoderBuilder actual constructor(
 
     actual var colorQuantizer: ColorQuantizer = ColorQuantizer.DEFAULT
 
-    actual var colorDistanceCalculator: ColorDistanceCalculator = ColorDistanceCalculator.DEFAULT
+    actual var colorSimilarityChecker: ColorSimilarityChecker = ColorSimilarityChecker.DEFAULT
 
     actual var comment: String = ""
 
@@ -61,8 +61,8 @@ actual class GifEncoderBuilder actual constructor(
         return this
     }
 
-    actual fun colorDistanceCalculator(colorDistanceCalculator: ColorDistanceCalculator): GifEncoderBuilder {
-        this.colorDistanceCalculator = colorDistanceCalculator
+    actual fun colorSimilarityChecker(colorSimilarityChecker: ColorSimilarityChecker): GifEncoderBuilder {
+        this.colorSimilarityChecker = colorSimilarityChecker
         return this
     }
 
@@ -120,7 +120,7 @@ actual class GifEncoderBuilder actual constructor(
             loopCount,
             maxColors,
             colorQuantizer,
-            colorDistanceCalculator,
+            colorSimilarityChecker,
             comment,
             alphaFill,
             cropTransparent,

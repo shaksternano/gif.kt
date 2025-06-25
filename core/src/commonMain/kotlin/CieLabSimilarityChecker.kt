@@ -1,16 +1,15 @@
 package com.shakster.gifkt
 
 import kotlin.math.pow
-import kotlin.math.sqrt
 
-data object CieLabDistanceCalculator : ColorDistanceCalculator {
+data object CieLabSimilarityChecker : ColorSimilarityChecker {
 
-    override fun colorDistance(rgb1: RGB, rgb2: RGB): Double {
+    override fun isSimilar(rgb1: RGB, rgb2: RGB, tolerance: Double): Boolean {
         val (l1, a1, b1) = rgbToCieLab(rgb1.red, rgb1.green, rgb1.blue)
         val (l2, a2, b2) = rgbToCieLab(rgb2.red, rgb2.green, rgb2.blue)
         // Euclidean distance
-        val distance = sqrt((l1 - l2).pow(2) + (a1 - a2).pow(2) + (b1 - b2).pow(2))
-        return (distance / 100).coerceIn(0.0, 1.0)
+        val distance = (l1 - l2).pow(2) + (a1 - a2).pow(2) + (b1 - b2).pow(2)
+        return (distance / 10000).coerceAtMost(1.0) <= tolerance * tolerance
     }
 
     private fun rgbToCieLab(red: Int, green: Int, blue: Int): Triple<Double, Double, Double> {

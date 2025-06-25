@@ -15,7 +15,7 @@ internal class BaseGifEncoder(
     private val loopCount: Int,
     maxColors: Int,
     private val colorQuantizer: ColorQuantizer,
-    private val colorDistanceCalculator: ColorDistanceCalculator,
+    private val colorSimilarityChecker: ColorSimilarityChecker,
     private val comment: String,
     private val alphaFill: Int,
     private val cropTransparent: Boolean,
@@ -103,7 +103,7 @@ internal class BaseGifEncoder(
             && previousFrame.isSimilar(
                 currentFrame,
                 transparencyColorTolerance,
-                colorDistanceCalculator,
+                colorSimilarityChecker,
             )
         ) {
             // Merge similar sequential frames into one
@@ -125,7 +125,7 @@ internal class BaseGifEncoder(
                     previousFrame,
                     currentFrame,
                     transparencyColorTolerance,
-                    colorDistanceCalculator,
+                    colorSimilarityChecker,
                     safeTransparent = false,
                 )
             } else {
@@ -284,7 +284,7 @@ internal class BaseGifEncoder(
             && previousQuantizedFrame.isSimilar(
                 quantizedImage,
                 quantizedTransparencyColorTolerance,
-                colorDistanceCalculator,
+                colorSimilarityChecker,
             )
         ) {
             // Merge similar sequential frames into one
@@ -303,7 +303,7 @@ internal class BaseGifEncoder(
                     previousQuantizedFrame,
                     quantizedImage,
                     quantizedTransparencyColorTolerance,
-                    colorDistanceCalculator,
+                    colorSimilarityChecker,
                     safeTransparent = true,
                 )
             } else {
@@ -471,7 +471,7 @@ internal class BaseGifEncoder(
             ", quantizedTransparencyColorTolerance=$quantizedTransparencyColorTolerance" +
             ", loopCount=$loopCount" +
             ", colorQuantizer=$colorQuantizer" +
-            ", colorDistanceCalculator=$colorDistanceCalculator" +
+            ", colorSimilarityChecker=$colorSimilarityChecker" +
             ", comment='$comment'" +
             ", alphaFill=$alphaFill" +
             ", cropTransparent=$cropTransparent" +

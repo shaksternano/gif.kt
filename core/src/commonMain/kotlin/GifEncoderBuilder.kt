@@ -14,7 +14,7 @@ expect class GifEncoderBuilder(
     var loopCount: Int
     var maxColors: Int
     var colorQuantizer: ColorQuantizer
-    var colorDistanceCalculator: ColorDistanceCalculator
+    var colorSimilarityChecker: ColorSimilarityChecker
     var comment: String
     var alphaFill: Int
     var cropTransparent: Boolean
@@ -33,7 +33,7 @@ expect class GifEncoderBuilder(
 
     fun colorQuantizer(colorQuantizer: ColorQuantizer): GifEncoderBuilder
 
-    fun colorDistanceCalculator(colorDistanceCalculator: ColorDistanceCalculator): GifEncoderBuilder
+    fun colorSimilarityChecker(colorSimilarityChecker: ColorSimilarityChecker): GifEncoderBuilder
 
     fun comment(comment: String): GifEncoderBuilder
 

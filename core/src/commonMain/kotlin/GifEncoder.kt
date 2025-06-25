@@ -13,7 +13,7 @@ expect class GifEncoder(
     loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
     colorQuantizer: ColorQuantizer = ColorQuantizer.DEFAULT,
-    colorDistanceCalculator: ColorDistanceCalculator = ColorDistanceCalculator.DEFAULT,
+    colorSimilarityChecker: ColorSimilarityChecker = ColorSimilarityChecker.DEFAULT,
     comment: String = "",
     alphaFill: Int = -1,
     cropTransparent: Boolean = true,

@@ -240,15 +240,16 @@ internal class ByteList private constructor(
 
     private fun getNewHashCode(currentHashCode: Int, element: Byte): Int =
         31 * currentHashCode + element
+}
 
-    /**
-     * Ignores the elements after the specified [size].
-     */
-    private fun ByteArray.contentEquals(other: ByteArray, size: Int): Boolean {
-        if (this === other) return true
-        for (i in 0..<size) {
-            if (this[i] != other[i]) return false
-        }
-        return true
+/**
+ * Ignores the elements after the specified [size].
+ */
+internal expect fun ByteArray.contentEquals(other: ByteArray, size: Int): Boolean
+
+internal fun ByteArray.contentEqualsCommon(other: ByteArray, size: Int): Boolean {
+    for (i in 0..<size) {
+        if (this[i] != other[i]) return false
     }
+    return true
 }

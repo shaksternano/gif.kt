@@ -1,7 +1,6 @@
 package com.shakster.gifkt
 
 import kotlin.jvm.JvmField
-import kotlin.math.pow
 import kotlin.math.sqrt
 
 data class EuclideanDistanceCalculator(
@@ -38,10 +37,13 @@ data class EuclideanDistanceCalculator(
     private val maxDistance: Double = sqrt(255 * 255 * (redWeight + greenWeight + blueWeight))
 
     override fun colorDistance(rgb1: RGB, rgb2: RGB): Double {
+        val redComponent = rgb1.red - rgb2.red
+        val greenComponent = rgb1.green - rgb2.green
+        val blueComponent = rgb1.blue - rgb2.blue
         val distance = sqrt(
-            (rgb1.red - rgb2.red).toDouble().pow(2) * redWeight +
-                (rgb1.green - rgb2.green).toDouble().pow(2) * greenWeight +
-                (rgb1.blue - rgb2.blue).toDouble().pow(2) * blueWeight
+            redComponent * redComponent * redWeight +
+                greenComponent * greenComponent * greenWeight +
+                blueComponent * blueComponent * blueWeight
         )
         return distance / maxDistance
     }

@@ -8,7 +8,10 @@ data object CieLabSimilarityChecker : ColorSimilarityChecker {
         val (l1, a1, b1) = rgbToCieLab(rgb1.red, rgb1.green, rgb1.blue)
         val (l2, a2, b2) = rgbToCieLab(rgb2.red, rgb2.green, rgb2.blue)
         // Euclidean distance
-        val distance = (l1 - l2).pow(2) + (a1 - a2).pow(2) + (b1 - b2).pow(2)
+        val lComponent = l1 - l2
+        val aComponent = a1 - a2
+        val bComponent = b1 - b2
+        val distance = lComponent * lComponent + aComponent * aComponent + bComponent * bComponent
         return (distance / 10000).coerceAtMost(1.0) <= tolerance * tolerance
     }
 

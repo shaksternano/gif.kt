@@ -247,9 +247,9 @@ internal class ByteList private constructor(
  */
 internal expect fun ByteArray.contentEquals(other: ByteArray, size: Int): Boolean
 
-internal fun ByteArray.contentEqualsCommon(other: ByteArray, size: Int): Boolean {
+internal fun contentEqualsCommon(byteArray1: ByteArray, byteArray2: ByteArray, size: Int): Boolean {
     for (i in 0..<size) {
-        if (this[i] != other[i]) return false
+        if (byteArray1[i] != byteArray2[i]) return false
     }
     return true
 }

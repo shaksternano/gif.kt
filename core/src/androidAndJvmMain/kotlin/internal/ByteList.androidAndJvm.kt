@@ -3,10 +3,9 @@ package com.shakster.gifkt.internal
 import java.lang.invoke.MethodHandle
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.MethodType
-import java.util.Arrays
+import java.util.*
 
-private val equalsHandle: MethodHandle? = try {
-    val lookup = MethodHandles.lookup()
+private val EQUALS_HANDLE: MethodHandle? = try {
     val methodType = MethodType.methodType(
         Boolean::class.javaPrimitiveType,
         ByteArray::class.java,
@@ -16,7 +15,7 @@ private val equalsHandle: MethodHandle? = try {
         Int::class.javaPrimitiveType,
         Int::class.javaPrimitiveType,
     )
-    lookup.findStatic(Arrays::class.java, "equals", methodType)
+    MethodHandles.lookup().findStatic(Arrays::class.java, "equals", methodType)
 } catch (_: Throwable) {
     null
 }
@@ -26,6 +25,6 @@ private val equalsHandle: MethodHandle? = try {
  */
 internal actual fun ByteArray.contentEquals(other: ByteArray, size: Int): Boolean {
     return if (this === other) true
-    else if (equalsHandle == null) contentEqualsCommon(other, size)
-    else equalsHandle.invokeExact(this, 0, size, other, 0, size) as Boolean
+    else if (EQUALS_HANDLE == null) contentEqualsCommon(this, other, size)
+    else EQUALS_HANDLE.invokeExact(this, 0, size, other, 0, size) as Boolean
 }

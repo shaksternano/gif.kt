@@ -9,7 +9,7 @@ internal expect class IntSet() {
     operator fun iterator(): IntIterator
 }
 
-internal inline fun IntSet.forEachIndexed(action: (index: Int, value: Int) -> Unit) {
+internal inline fun IntSet.forEachIndexed(action: (index: Int, Int) -> Unit) {
     var index = 0
     for (item in this) action(index++, item)
 }

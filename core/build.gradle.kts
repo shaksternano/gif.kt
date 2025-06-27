@@ -99,6 +99,10 @@ kotlin {
             dependsOn(commonMain.get())
         }
         androidAndJvmMain.registerChildSourceSets(androidMain, jvmMain)
+        androidAndJvmMain.dependencies {
+            implementation(libs.eclipse.collections.api)
+            runtimeOnly(libs.eclipse.collections)
+        }
 
         val parallelMain by creating {
             dependsOn(commonMain.get())

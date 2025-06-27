@@ -196,7 +196,7 @@ internal class ByteList private constructor(
      */
     inner class Iterator : ByteIterator() {
 
-        private var index = 0
+        private var index: Int = 0
 
         override fun hasNext(): Boolean = index < size
 

@@ -248,9 +248,9 @@ internal operator fun ByteList.plusAssign(elements: ByteArray) = addAll(elements
  */
 internal expect fun ByteArray.contentEquals(other: ByteArray, size: Int): Boolean
 
-internal fun contentEqualsCommon(byteArray1: ByteArray, byteArray2: ByteArray, size: Int): Boolean {
+internal fun contentEqualsCommon(array1: ByteArray, array2: ByteArray, size: Int): Boolean {
     for (i in 0..<size) {
-        if (byteArray1[i] != byteArray2[i]) return false
+        if (array1[i] != array2[i]) return false
     }
     return true
 }

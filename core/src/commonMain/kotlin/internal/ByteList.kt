@@ -18,8 +18,6 @@ internal class ByteList private constructor(
      */
     var size: Int = size
         private set
-    val indices: IntRange
-        get() = 0..<size
 
     constructor() : this(
         elements = ByteArray(8),
@@ -39,11 +37,6 @@ internal class ByteList private constructor(
     operator fun get(index: Int): Byte = elements[index]
 
     /**
-     * Returns the first element in the list.
-     */
-    fun first(): Byte = elements[0]
-
-    /**
      * Adds the specified [element] to the end of this list.
      */
     fun add(element: Byte) {
@@ -55,11 +48,6 @@ internal class ByteList private constructor(
         lastHashCode = hashCode
         hashCode = getNewHashCode(hashCode, element)
     }
-
-    /**
-     * Adds the specified [element] to the end of this list.
-     */
-    operator fun plusAssign(element: Byte) = add(element)
 
     /**
      * Adds all the specified [elements] to the end of this list.
@@ -83,11 +71,6 @@ internal class ByteList private constructor(
     /**
      * Adds all the specified [elements] to the end of this list.
      */
-    operator fun plusAssign(elements: ByteList) = addAll(elements)
-
-    /**
-     * Adds all the specified [elements] to the end of this list.
-     */
     fun addAll(elements: ByteArray) {
         val newSize = size + elements.size
         ensureCapacity(newSize)
@@ -101,11 +84,6 @@ internal class ByteList private constructor(
             hashCode = getNewHashCode(hashCode, byte)
         }
     }
-
-    /**
-     * Adds all the specified [elements] to the end of this list.
-     */
-    operator fun plusAssign(elements: ByteArray) = addAll(elements)
 
     /**
      * Removes the last element from this mutable list.
@@ -241,6 +219,29 @@ internal class ByteList private constructor(
     private fun getNewHashCode(currentHashCode: Int, element: Byte): Int =
         31 * currentHashCode + element
 }
+
+internal val ByteList.indices: IntRange
+    get() = 0..<size
+
+/**
+ * Returns the first element in the list.
+ */
+internal fun ByteList.first(): Byte = get(0)
+
+/**
+ * Adds the specified [element] to the end of this list.
+ */
+internal operator fun ByteList.plusAssign(element: Byte) = add(element)
+
+/**
+ * Adds all the specified [elements] to the end of this list.
+ */
+internal operator fun ByteList.plusAssign(elements: ByteList) = addAll(elements)
+
+/**
+ * Adds all the specified [elements] to the end of this list.
+ */
+internal operator fun ByteList.plusAssign(elements: ByteArray) = addAll(elements)
 
 /**
  * Ignores the elements after the specified [size].

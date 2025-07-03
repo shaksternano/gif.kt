@@ -12,23 +12,29 @@ internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
 internal const val ALPHA_FILL_MASK: Int = 0xFF shl 24
 
 internal fun Image.cropOrPad(width: Int, height: Int): Image =
-    if (this.width == width && this.height == height) {
-        this
-    } else if (this.width == width) {
-        val newArgb = argb.copyOf(width * height)
-        Image(newArgb, width, height)
-    } else {
-        val newArgb = IntArray(width * height) { i ->
-            val x = i % width
-            val y = i / width
-            val index = x + y * this.width
-            if (index < argb.size) {
-                argb[index]
-            } else {
-                0
-            }
+    when (this.width) {
+        width if this.height == height -> {
+            this
         }
-        Image(newArgb, width, height)
+
+        width -> {
+            val newArgb = argb.copyOf(width * height)
+            Image(newArgb, width, height)
+        }
+
+        else -> {
+            val newArgb = IntArray(width * height) { i ->
+                val x = i % width
+                val y = i / width
+                val index = x + y * this.width
+                if (index < argb.size) {
+                    argb[index]
+                } else {
+                    0
+                }
+            }
+            Image(newArgb, width, height)
+        }
     }
 
 internal fun Image.fillPartialAlpha(alphaFill: Int): Image {
@@ -324,25 +330,31 @@ internal fun QuantizedImageData.crop(
         return this
     }
 
-    val croppedIndices = if (width == newWidth && height == newHeight) {
-        imageColorIndices
-    } else if (width == newWidth) {
-        imageColorIndices.copyOfRange(startY * newWidth, (startY + newHeight) * newWidth)
-    } else {
-        var x = 0
-        var y = 0
-        ByteArray(newWidth * newHeight) {
-            val oldX = startX + x
-            val oldY = startY + y
-            val i = oldX + oldY * width
+    val croppedIndices = when (width) {
+        newWidth if height == newHeight -> {
+            imageColorIndices
+        }
 
-            x++
-            if (x == newWidth) {
-                x = 0
-                y++
+        newWidth -> {
+            imageColorIndices.copyOfRange(startY * newWidth, (startY + newHeight) * newWidth)
+        }
+
+        else -> {
+            var x = 0
+            var y = 0
+            ByteArray(newWidth * newHeight) {
+                val oldX = startX + x
+                val oldY = startY + y
+                val i = oldX + oldY * width
+
+                x++
+                if (x == newWidth) {
+                    x = 0
+                    y++
+                }
+
+                imageColorIndices[i]
             }
-
-            imageColorIndices[i]
         }
     }
 

@@ -4,6 +4,8 @@ import com.shakster.gifkt.FrameInfo
 import com.shakster.gifkt.ImageFrame
 import com.shakster.gifkt.InvalidGifException
 import com.shakster.gifkt.RandomAccessData
+import kotlinx.io.RawSource
+import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlin.time.Duration
 
@@ -40,7 +42,7 @@ internal class BaseGifDecoder(
     private var lastFrame: RawImage? = null
 
     init {
-        val gifInfo = data.source().buffered().use { source ->
+        val gifInfo = data.source().asSourceOrBuffered().use { source ->
             source.readGif(decodeImages = false)
         }
 
@@ -200,7 +202,7 @@ internal class BaseGifDecoder(
             }
             val cachedArgb = frame.argb
             val imageArgb = if (cachedArgb == null) {
-                val imageData = data.source(frame.byteOffset).buffered().monitored().use { source ->
+                val imageData = data.source(frame.byteOffset).asSourceOrBuffered().monitored().use { source ->
                     // Block introducer
                     source.skip(1)
                     source.readGifImage(decodeImage = true)
@@ -257,6 +259,10 @@ internal class BaseGifDecoder(
                 previousImageArgb = disposedImage
             }
         }
+    }
+
+    private fun RawSource.asSourceOrBuffered(): Source {
+        return this as? Source ?: buffered()
     }
 
     override fun close() {

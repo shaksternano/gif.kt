@@ -249,8 +249,8 @@ internal class BaseGifEncoder(
             durationCentiseconds: Int,
             disposalMethod: DisposalMethod,
         ) -> Unit,
-    ) {
-        if (optimizeQuantizedTransparency) {
+    ): Boolean {
+        return if (optimizeQuantizedTransparency) {
             writeOptimizedGifImage(
                 imageData,
                 originalImage,
@@ -265,6 +265,7 @@ internal class BaseGifEncoder(
                 disposalMethod,
                 encodeAndWriteImage,
             )
+            true
         }
     }
 
@@ -278,7 +279,7 @@ internal class BaseGifEncoder(
             durationCentiseconds: Int,
             disposalMethod: DisposalMethod,
         ) -> Unit,
-    ) {
+    ): Boolean {
         val quantizedImage = imageData.toImage()
         if (writtenAnyQuantized
             && previousQuantizedFrame.isSimilar(
@@ -289,7 +290,7 @@ internal class BaseGifEncoder(
         ) {
             // Merge similar sequential frames into one
             pendingQuantizedDurationCentiseconds += durationCentiseconds
-            return
+            return false
         }
 
         // Optimise transparency
@@ -352,6 +353,8 @@ internal class BaseGifEncoder(
         }
         pendingQuantizedData = imageData.copy(imageColorIndices = optimizedColorIndices)
         pendingQuantizedDurationCentiseconds += durationCentiseconds
+
+        return true
     }
 
     private inline fun writeGifImage(

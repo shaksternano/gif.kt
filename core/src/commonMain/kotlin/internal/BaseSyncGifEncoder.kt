@@ -74,7 +74,7 @@ internal class BaseSyncGifEncoder(
         disposalMethod: DisposalMethod,
         optimizedPreviousFrame: Boolean,
     ) {
-        baseEncoder.writeOrOptimizeGifImage(
+        val written = baseEncoder.writeOrOptimizeGifImage(
             baseEncoder.quantizeImage(optimizedImage),
             originalImage,
             durationCentiseconds,
@@ -82,6 +82,11 @@ internal class BaseSyncGifEncoder(
             optimizedPreviousFrame,
             ::writeImage,
         )
+
+        // Account for frames that have been merged due to similarity.
+        if (!written) {
+            handleWrittenFrame(Duration.ZERO)
+        }
     }
 
     private fun writeImage(

@@ -182,7 +182,7 @@ abstract class AsyncGifEncoder(
         disposalMethod: DisposalMethod,
         optimizedPreviousFrame: Boolean,
     ) {
-        baseEncoder.writeOrOptimizeGifImage(
+        val written = baseEncoder.writeOrOptimizeGifImage(
             imageData,
             originalImage,
             durationCentiseconds,
@@ -192,6 +192,11 @@ abstract class AsyncGifEncoder(
                 encodeAndWriteImage(imageData1, durationCentiseconds1, disposalMethod1)
             },
         )
+
+        // Account for frames that have been merged due to similarity.
+        if (!written) {
+            writtenFrameNotifications.send(Duration.ZERO)
+        }
     }
 
     private suspend fun encodeAndWriteImage(

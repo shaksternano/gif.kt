@@ -1,6 +1,5 @@
 package com.shakster.gifkt
 
-import kotlinx.io.buffered
 import kotlinx.io.readTo
 import kotlin.random.Random
 import kotlin.test.Test
@@ -17,7 +16,7 @@ class TestByteArraySource {
         }
         // Remove looping pattern
         bytes.shuffle(Random(0))
-        val source = bytes.source().buffered()
+        val source = bytes.source()
         val result = ByteArray(arraySize)
         source.readTo(result)
         assertContentEquals(bytes, result)
@@ -33,7 +32,7 @@ class TestByteArraySource {
         // Remove looping pattern
         bytes.shuffle(Random(0))
         val offset = 10000
-        val source = bytes.source(offset).buffered()
+        val source = bytes.source(offset)
         val result = ByteArray(arraySize - offset)
         source.readTo(result)
         val expected = bytes.copyOfRange(offset, arraySize)

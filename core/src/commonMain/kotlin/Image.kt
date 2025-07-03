@@ -4,6 +4,7 @@ data class Image(
     val argb: IntArray,
     val width: Int,
     val height: Int,
+    val empty: Boolean = false,
 ) {
 
     override fun equals(other: Any?): Boolean {

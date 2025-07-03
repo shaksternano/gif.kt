@@ -63,42 +63,6 @@ private fun compositeAlpha(alpha: Int, color: Int, backgroundColor: Int): Int {
     return (color * opacity + backgroundColor * (1 - opacity)).toInt()
 }
 
-internal fun Image.isSimilar(
-    other: Image,
-    tolerance: Double,
-    colorSimilarityChecker: ColorSimilarityChecker,
-): Boolean {
-    return if (this === other) {
-        true
-    } else {
-        val resizedOther = other.cropOrPad(width, height)
-        val otherArgb = resizedOther.argb
-        argb.forEachIndexed { i, pixel ->
-            val otherPixel = otherArgb[i]
-            val alpha = pixel ushr 24
-            val otherAlpha = otherPixel ushr 24
-            val similar = if (alpha == 0 && otherAlpha == 0) {
-                true
-            } else if (alpha != otherAlpha) {
-                false
-            } else if (tolerance == 0.0) {
-                pixel == otherPixel
-            } else {
-                areColorsSimilar(
-                    pixel,
-                    otherPixel,
-                    tolerance,
-                    colorSimilarityChecker,
-                )
-            }
-            if (!similar) {
-                return false
-            }
-        }
-        true
-    }
-}
-
 internal fun Image.fillTransparent(other: Image): Image {
     if (this === other) {
         return this
@@ -129,6 +93,7 @@ internal fun optimizeTransparency(
     ) {
         return null
     }
+    var empty = true
     val optimizedPixels = IntArray(currentImage.argb.size) { i ->
         val previousArgb = previousImage.argb[i]
         val currentArgb = currentImage.argb[i]
@@ -146,10 +111,12 @@ internal fun optimizeTransparency(
             }
         }
         if (colorTolerance == 0.0) {
+            empty = false
             return@IntArray currentArgb
         }
         // Previous is transparent, current is opaque
         if (previousAlpha == 0 && currentAlpha != 0) {
+            empty = false
             return@IntArray currentArgb
         }
         val isSimilar = areColorsSimilar(
@@ -161,10 +128,16 @@ internal fun optimizeTransparency(
         if (isSimilar) {
             0
         } else {
+            empty = false
             currentArgb
         }
     }
-    return Image(optimizedPixels, currentImage.width, currentImage.height)
+    return Image(
+        optimizedPixels,
+        currentImage.width,
+        currentImage.height,
+        empty,
+    )
 }
 
 private fun areColorsSimilar(

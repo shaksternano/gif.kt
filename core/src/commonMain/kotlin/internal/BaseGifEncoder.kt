@@ -98,18 +98,6 @@ internal class BaseGifEncoder(
         val currentFrame = Image(image, width, height)
             .cropOrPad(targetWidth, targetHeight)
             .fillPartialAlpha(alphaFill)
-        if (optimizeTransparency
-            && writtenAny
-            && previousFrame.isSimilar(
-                currentFrame,
-                transparencyColorTolerance,
-                colorSimilarityChecker,
-            )
-        ) {
-            // Merge similar sequential frames into one
-            pendingDuration += duration
-            return false
-        }
 
         // Optimise transparency
         val toWrite: Image
@@ -134,6 +122,10 @@ internal class BaseGifEncoder(
             if (optimized == null) {
                 pendingDisposalMethod = DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
                 toWrite = currentFrame
+            } else if (optimized.empty) {
+                // Merge similar sequential frames into one
+                pendingDuration += duration
+                return false
             } else {
                 pendingDisposalMethod = DisposalMethod.DO_NOT_DISPOSE
                 toWrite = optimized
@@ -280,20 +272,8 @@ internal class BaseGifEncoder(
             disposalMethod: DisposalMethod,
         ) -> Unit,
     ): Boolean {
-        val quantizedImage = imageData.toImage()
-        if (writtenAnyQuantized
-            && previousQuantizedFrame.isSimilar(
-                quantizedImage,
-                quantizedTransparencyColorTolerance,
-                colorSimilarityChecker,
-            )
-        ) {
-            // Merge similar sequential frames into one
-            pendingQuantizedDurationCentiseconds += durationCentiseconds
-            return false
-        }
-
         // Optimise transparency
+        val quantizedImage = imageData.toImage()
         val toWrite = if (!writtenAnyQuantized) {
             // First frame
             quantizedImage
@@ -313,6 +293,10 @@ internal class BaseGifEncoder(
             if (optimized == null) {
                 pendingQuantizedDisposalMethod = DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
                 quantizedImage
+            } else if (optimized.empty) {
+                // Merge similar sequential frames into one
+                pendingQuantizedDurationCentiseconds += durationCentiseconds
+                return false
             } else {
                 pendingQuantizedDisposalMethod = DisposalMethod.DO_NOT_DISPOSE
                 optimized

@@ -25,4 +25,6 @@ jobs:
                 uses: actions/upload-artifact@v4
                 with:
                     name: Artifacts
-                    path: core/build/libs/
+                    path: |
+                        core/build/libs/
+                        cli/build/libs/

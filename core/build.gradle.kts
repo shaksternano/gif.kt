@@ -8,9 +8,6 @@ plugins {
     alias(libs.plugins.vanniktech.mavenPublish)
 }
 
-group = "com.shakster"
-version = "0.1.0"
-
 if (isRunningTask("publishAllPublicationsToMavenCentralRepository")) {
     version = "${version}-SNAPSHOT"
 }

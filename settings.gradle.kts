@@ -21,3 +21,4 @@ dependencyResolutionManagement {
 }
 
 include(":core")
+include(":cli")

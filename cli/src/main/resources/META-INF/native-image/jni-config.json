@@ -251,6 +251,15 @@
         ]
     },
     {
+        "name": "java.awt.GraphicsEnvironment",
+        "methods": [
+            {
+                "name": "isHeadless",
+                "parameterTypes": []
+            }
+        ]
+    },
+    {
         "name": "java.awt.Insets",
         "fields": [
             {
@@ -689,6 +698,12 @@
         "methods": [
             {
                 "name": "getProperty",
+                "parameterTypes": [
+                    "java.lang.String"
+                ]
+            },
+            {
+                "name": "load",
                 "parameterTypes": [
                     "java.lang.String"
                 ]

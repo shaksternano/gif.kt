@@ -21,10 +21,14 @@ jobs:
             -   name: Build
                 run: ./gradlew build --parallel
 
-            -   name: Upload build artifacts
+            -   name: Upload core build artifacts
                 uses: actions/upload-artifact@v4
                 with:
                     name: Artifacts
-                    path: |
-                        core/build/libs/
-                        cli/build/libs/
+                    path: core/build/libs/
+
+            -   name: Upload cli build artifacts
+                uses: actions/upload-artifact@v4
+                with:
+                    name: CLI Artifacts
+                    path: cli/build/libs/

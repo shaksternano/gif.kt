@@ -17,6 +17,12 @@ import kotlinx.io.asSink
 import kotlinx.io.buffered
 import java.nio.file.Path
 import kotlin.io.path.outputStream
+import kotlin.time.Duration.Companion.days
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.microseconds
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import kotlin.time.TimeSource
 
@@ -66,7 +72,18 @@ object GifCommand : CliktCommand() {
         }
         val time = TimeSource.Monotonic.markNow()
         val timeTaken = time - startTime
-        println("\nDone in ${timeTaken.toString(DurationUnit.SECONDS, 3)}")
+        val durationUnits = listOf(
+            1.days to DurationUnit.DAYS,
+            1.hours to DurationUnit.HOURS,
+            1.minutes to DurationUnit.MINUTES,
+            1.seconds to DurationUnit.SECONDS,
+            1.milliseconds to DurationUnit.MILLISECONDS,
+            1.microseconds to DurationUnit.MICROSECONDS,
+        )
+        val timeTakenStringUnit = durationUnits.firstOrNull { timeTaken >= it.first }
+            ?.second ?: DurationUnit.NANOSECONDS
+        val timeTakenString = timeTaken.toString(timeTakenStringUnit, 3)
+        println("\nDone in $timeTakenString")
     }
 
     private fun renderProgressBar(progress: Double): String {

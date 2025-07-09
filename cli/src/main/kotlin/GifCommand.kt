@@ -57,11 +57,11 @@ object GifCommand : CliktCommand() {
                     maxConcurrency = Runtime.getRuntime().availableProcessors(),
                     ioContext = Dispatchers.IO,
                 ) { framesWritten, writtenDuration ->
-                    val progress = framesWritten.toDouble() / imageReader.frameCount
                     val time = TimeSource.Monotonic.markNow()
                     val timeTaken = time - startTime
                     val fps = framesWritten / timeTaken.toDouble(DurationUnit.SECONDS)
                     val fpsFormatted = String.format("%.2f", fps)
+                    val progress = framesWritten.toDouble() / imageReader.frameCount
                     print("\r${renderProgressBar(progress)} Processed $framesWritten/${imageReader.frameCount} frames, $fpsFormatted FPS")
                 }.use { encoder ->
                     imageReader.readFrames().forEach { imageFrame ->

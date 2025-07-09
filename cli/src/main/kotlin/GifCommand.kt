@@ -34,16 +34,10 @@ object GifCommand : CliktCommand() {
         .path()
         .help("The output file")
 
-    private val imageReaderFactories: List<ImageReaderFactory> = listOf(
-        ::GifImageReader,
-        ::JavaxImageReader,
-        ::FFmpegImageReader,
-    )
-
     override fun run() {
         val startTime = TimeSource.Monotonic.markNow()
         try {
-            getImageReader(input)
+            ImageReader.create(input)
         } catch (_: IOException) {
             println("Could not read $input")
             return
@@ -73,18 +67,6 @@ object GifCommand : CliktCommand() {
         val time = TimeSource.Monotonic.markNow()
         val timeTaken = time - startTime
         println("\nDone in ${timeTaken.toString(DurationUnit.SECONDS, 3)}")
-    }
-
-    private fun getImageReader(input: Path): ImageReader {
-        var throwable: Throwable? = null
-        for (imageReaderFactory in imageReaderFactories) {
-            try {
-                return imageReaderFactory(input)
-            } catch (t: Throwable) {
-                throwable = t
-            }
-        }
-        throw IOException(throwable)
     }
 
     private fun renderProgressBar(progress: Double): String {

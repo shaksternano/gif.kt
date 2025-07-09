@@ -9,8 +9,8 @@ fun interface SuspendClosable {
     suspend fun close()
 }
 
-@OptIn(ExperimentalContracts::class)
 suspend inline fun <T : SuspendClosable?, R> T.use(block: (T) -> R): R {
+    @OptIn(ExperimentalContracts::class)
     contract {
         callsInPlace(block, InvocationKind.EXACTLY_ONCE)
     }
@@ -21,7 +21,7 @@ suspend inline fun <T : SuspendClosable?, R> T.use(block: (T) -> R): R {
         exception = e
         throw e
     } finally {
-        this.closeFinally(exception)
+        closeFinally(exception)
     }
 }
 

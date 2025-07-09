@@ -19,7 +19,7 @@ jobs:
                 uses: gradle/actions/setup-gradle@v4
 
             -   name: Run tests
-                run: ./gradlew cleanAllTests allTests --stacktrace --parallel
+                run: ./gradlew cleanAllTests allTests --stacktrace
 
             -   name: Upload test report
                 if: success() || failure()

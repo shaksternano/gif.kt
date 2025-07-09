@@ -89,8 +89,8 @@ object GifCommand : CliktCommand() {
     private fun renderProgressBar(progress: Double): String {
         var progressBar = "["
         val total = terminal.size.width / 2
+        val progressInt = (progress * total).toInt()
         repeat(total) { index ->
-            val progressInt = (progress * total).toInt()
             progressBar += if (index < progressInt) {
                 "#"
             } else if (index == progressInt) {

@@ -3,12 +3,12 @@ package com.shakster.gifkt.internal
 private const val MAX_LZW_CODE: Int = 4095
 
 internal fun MonitoredSource.readLzwIndexStream(): ByteList {
-    val lzwMinCodeSize = readUByte().toInt()
+    val lzwMinCodeSize = readByte().toInt() and 0xFF
     val clearCode = 2 shl (lzwMinCodeSize - 1)
     val endOfInformationCode = clearCode + 1
 
     // Subblock byte count
-    var blockSize = readUByte().toInt()
+    var blockSize = readByte().toInt() and 0xFF
     val initialCodeSize = lzwMinCodeSize + 1
     var currentCodeSize = initialCodeSize
     var growCode = 2.pow(currentCodeSize)
@@ -27,7 +27,7 @@ internal fun MonitoredSource.readLzwIndexStream(): ByteList {
         } else {
             val block = readByteArray(blockSize)
             for (i in 0..<blockSize) {
-                val byte = block[i].toUByte().toInt()
+                val byte = block[i].toInt() and 0xFF
                 currentBits = currentBits or (byte shl currentBitPosition)
                 currentBitPosition += Byte.SIZE_BITS
                 while (currentBitPosition >= currentCodeSize) {
@@ -80,7 +80,7 @@ internal fun MonitoredSource.readLzwIndexStream(): ByteList {
                 }
             }
         }
-        blockSize = readUByte().toInt()
+        blockSize = readByte().toInt() and 0xFF
     }
     return indexStream
 }

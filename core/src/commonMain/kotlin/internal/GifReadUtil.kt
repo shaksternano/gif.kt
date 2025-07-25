@@ -258,7 +258,7 @@ internal fun getImageArgb(
             if (relativeX in 0..<imageWidth && relativeY in 0..<imageHeight) {
                 val index = relativeY * imageWidth + relativeX
                 if (index in colorIndices.indices) {
-                    return@run colorIndices[index].toUByte().toInt()
+                    return@run colorIndices[index].toInt() and 0xFF
                 }
             }
             // Missing indices are treated as transparent
@@ -453,7 +453,7 @@ internal fun MonitoredSource.readGifBlock(
 ): GifBlock = readGifSection("content") {
     if (exhausted()) return GifTerminator
     val blockStart = bytesRead
-    val blockIntroducer = readUByte().toInt()
+    val blockIntroducer = readByte().toInt() and 0xFF
     when (blockIntroducer) {
         0x21 -> readGifExtension()
         0x2C -> readGifImage(decodeImage)
@@ -465,7 +465,7 @@ internal fun MonitoredSource.readGifBlock(
 }
 
 private fun MonitoredSource.readGifExtension(): GifExtension = readGifSection("extension") {
-    val extensionLabel = readUByte().toInt()
+    val extensionLabel = readByte().toInt() and 0xFF
     when (extensionLabel) {
         0xF9 -> readGifGraphicsControlExtension()
         0xFF -> readGifApplicationExtension()
@@ -485,7 +485,7 @@ private fun MonitoredSource.readGifGraphicsControlExtension(): GraphicsControlEx
          * 7   : User input flag
          * 8   : Transparent color flag
          */
-        val packed = subBlocks[0].toUByte().toInt()
+        val packed = subBlocks[0].toInt() and 0xFF
 
         // Bits 4-6
         val disposalMethodId = packed and 0b00011100 shr 2
@@ -495,12 +495,12 @@ private fun MonitoredSource.readGifGraphicsControlExtension(): GraphicsControlEx
         val transparentColorFlag = packed and 0b00000001 != 0
 
         // Delay time in little-endian format
-        val delayTimeLow = subBlocks[1].toUByte().toInt()
-        val delayTimeHigh = subBlocks[2].toUByte().toInt()
+        val delayTimeLow = subBlocks[1].toInt() and 0xFF
+        val delayTimeHigh = subBlocks[2].toInt() and 0xFF
         val delayTime = delayTimeLow or (delayTimeHigh shl 8)
 
         val transparentColorIndex = if (transparentColorFlag) {
-            subBlocks[3].toUByte().toInt()
+            subBlocks[3].toInt() and 0xFF
         } else -1
 
         GraphicsControlExtension(
@@ -512,7 +512,7 @@ private fun MonitoredSource.readGifGraphicsControlExtension(): GraphicsControlEx
 
 private fun MonitoredSource.readGifApplicationExtension(): ApplicationExtension =
     readGifSection("application extension") {
-        val identifierSize = readUByte().toLong()
+        val identifierSize = readByte().toLong() and 0xFF
         val identifier = readString(identifierSize)
         when (identifier) {
             "NETSCAPE2.0" -> readGifNetscapeApplicationExtension()
@@ -523,8 +523,8 @@ private fun MonitoredSource.readGifApplicationExtension(): ApplicationExtension 
 private fun MonitoredSource.readGifNetscapeApplicationExtension(): NetscapeApplicationExtension =
     readGifSection("Netscape application extension") {
         val data = readGifSubBlocks()
-        val loopCountLow = data[1].toUByte().toInt()
-        val loopCountHigh = data[2].toUByte().toInt()
+        val loopCountLow = data[1].toInt() and 0xFF
+        val loopCountHigh = data[2].toInt() and 0xFF
         val loopCount = loopCountLow or (loopCountHigh shl 8)
         NetscapeApplicationExtension(loopCount)
     }
@@ -580,7 +580,7 @@ private fun MonitoredSource.readGifImageDescriptor(): ImageDescriptor = readGifS
      * 4-5 : Reserved for future use
      * 6-8 : Size of local color table
      */
-    val packed = readUByte().toInt()
+    val packed = readByte().toInt() and 0xFF
     // Bit 1
     val localColorTableFlag = packed and 0b10000000 != 0
     // Bits 6-8
@@ -620,27 +620,27 @@ internal fun MonitoredSource.readGifColorTable(size: Int): ByteArray {
 
 private fun MonitoredSource.readGifSubBlocks(): ByteList {
     val data = ByteList()
-    var blockSize = readUByte().toInt()
+    var blockSize = readByte().toInt() and 0xFF
     while (blockSize != 0) {
         data += readByteArray(blockSize)
-        blockSize = readUByte().toInt()
+        blockSize = readByte().toInt() and 0xFF
     }
     return data
 }
 
 private fun MonitoredSource.skipGifSubBlocks() {
-    var blockSize = readUByte().toLong()
+    var blockSize = readByte().toLong() and 0xFF
     while (blockSize != 0L) {
         skip(blockSize)
-        blockSize = readUByte().toLong()
+        blockSize = readByte().toLong() and 0xFF
     }
 }
 
 private fun getColor(colorTable: ByteArray, index: Int): Int {
     val colorIndex = index * BYTES_PER_COLOR
-    val red = colorTable[colorIndex].toUByte().toInt()
-    val green = colorTable[colorIndex + 1].toUByte().toInt()
-    val blue = colorTable[colorIndex + 2].toUByte().toInt()
+    val red = colorTable[colorIndex].toInt() and 0xFF
+    val green = colorTable[colorIndex + 1].toInt() and 0xFF
+    val blue = colorTable[colorIndex + 2].toInt() and 0xFF
     val alpha = 0xFF
     return (alpha shl 24) or (red shl 16) or (green shl 8) or blue
 }

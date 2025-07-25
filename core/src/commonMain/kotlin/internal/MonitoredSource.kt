@@ -1,6 +1,9 @@
 package com.shakster.gifkt.internal
 
-import kotlinx.io.*
+import kotlinx.io.Source
+import kotlinx.io.readByteArray
+import kotlinx.io.readShortLe
+import kotlinx.io.readString
 
 internal fun Source.monitored(): MonitoredSource = MonitoredSource(this)
 
@@ -13,12 +16,6 @@ internal class MonitoredSource(
 
     fun readByte(): Byte {
         val byte = source.readByte()
-        bytesRead++
-        return byte
-    }
-
-    fun readUByte(): UByte {
-        val byte = source.readUByte()
         bytesRead++
         return byte
     }

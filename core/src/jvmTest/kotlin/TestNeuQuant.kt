@@ -43,7 +43,6 @@ class TestNeuQuant {
         val colorTable = neuQuant.process()
         assertTrue(colorTable.size % 3 == 0)
         assertEquals(colorTable.size, maxColors * 3)
-        assertTrue(colorTable.all { it.toUByte() in 0u..255u })
     }
 
     @Test

@@ -55,12 +55,12 @@ actual constructor(
 
     @Throws(IOException::class)
     actual suspend fun writeFrame(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: Duration,
     ) {
-        baseEncoder.writeFrame(image, width, height, duration)
+        baseEncoder.writeFrame(argb, width, height, duration)
     }
 
     @Throws(IOException::class)

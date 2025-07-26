@@ -28,7 +28,7 @@ expect class ParallelGifEncoder(
 ) : SuspendClosable {
 
     suspend fun writeFrame(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: Duration,

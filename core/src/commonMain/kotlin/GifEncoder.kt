@@ -87,7 +87,7 @@ expect class GifEncoder(
     /**
      * Writes a single frame to the GIF.
      *
-     * @param image The pixel data of the frame as an array of ARGB values,
+     * @param argb The ARGB pixel data for the frame,
      * going row by row from top to bottom.
      *
      * @param width The width of the frame in pixels.
@@ -99,7 +99,7 @@ expect class GifEncoder(
      * @throws IOException if an I/O error occurs.
      */
     fun writeFrame(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: Duration,

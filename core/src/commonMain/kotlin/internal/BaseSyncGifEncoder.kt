@@ -40,13 +40,13 @@ internal class BaseSyncGifEncoder(
     private var writtenDuration: Duration = Duration.ZERO
 
     fun writeFrame(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: Duration,
     ) {
         val written = baseEncoder.writeFrame(
-            image,
+            argb,
             width,
             height,
             duration,

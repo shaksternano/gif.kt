@@ -93,7 +93,7 @@ abstract class AsyncGifEncoder(
     }
 
     suspend fun writeFrame(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: Duration,
@@ -105,7 +105,7 @@ abstract class AsyncGifEncoder(
         }
 
         val written = baseEncoder.writeFrame(
-            image,
+            argb,
             width,
             height,
             duration,

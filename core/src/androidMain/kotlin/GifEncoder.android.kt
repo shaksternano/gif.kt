@@ -52,13 +52,13 @@ actual constructor(
 
     @Throws(IOException::class)
     actual fun writeFrame(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: Duration,
     ) {
         baseEncoder.writeFrame(
-            image,
+            argb,
             width,
             height,
             duration,
@@ -67,13 +67,13 @@ actual constructor(
 
     @Throws(IOException::class)
     fun writeFrame(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: JavaDuration,
     ) {
         baseEncoder.writeFrame(
-            image,
+            argb,
             width,
             height,
             duration.toKotlinDuration(),

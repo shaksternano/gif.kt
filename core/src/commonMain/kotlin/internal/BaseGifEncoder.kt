@@ -65,7 +65,7 @@ internal class BaseGifEncoder(
      * because it was merged with the previous frame due to being similar.
      */
     inline fun writeFrame(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: Duration,
@@ -95,7 +95,7 @@ internal class BaseGifEncoder(
          */
         val targetWidth = this.width ?: width
         val targetHeight = this.height ?: height
-        val currentFrame = Image(image, width, height)
+        val currentFrame = Image(argb, width, height)
             .cropOrPad(targetWidth, targetHeight)
             .fillPartialAlpha(alphaFill)
 

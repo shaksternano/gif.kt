@@ -49,12 +49,12 @@ actual class ParallelGifEncoder actual constructor(
 
     @Throws(CancellationException::class, IOException::class)
     actual suspend fun writeFrame(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: Duration,
     ) {
-        baseEncoder.writeFrame(image, width, height, duration)
+        baseEncoder.writeFrame(argb, width, height, duration)
     }
 
     @Throws(CancellationException::class, IOException::class)

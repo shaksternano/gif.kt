@@ -106,7 +106,7 @@ actual constructor(
     /**
      * Writes a single frame to the GIF.
      *
-     * @param image The pixel data of the frame as an array of ARGB values,
+     * @param argb The ARGB pixel data for the frame,
      * going row by row from top to bottom.
      *
      * @param width The width of the frame in pixels.
@@ -119,13 +119,13 @@ actual constructor(
      */
     @Throws(IOException::class)
     actual fun writeFrame(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: Duration,
     ) {
         baseEncoder.writeFrame(
-            image,
+            argb,
             width,
             height,
             duration,
@@ -135,7 +135,7 @@ actual constructor(
     /**
      * Writes a single frame to the GIF.
      *
-     * @param image The pixel data of the frame as an array of ARGB values,
+     * @param argb The ARGB pixel data for the frame,
      * going row by row from top to bottom.
      *
      * @param width The width of the frame in pixels.
@@ -148,13 +148,13 @@ actual constructor(
      */
     @Throws(IOException::class)
     fun writeFrame(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: JavaDuration,
     ) {
         baseEncoder.writeFrame(
-            image,
+            argb,
             width,
             height,
             duration.toKotlinDuration(),

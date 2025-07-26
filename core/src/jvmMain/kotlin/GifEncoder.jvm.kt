@@ -115,7 +115,7 @@ actual constructor(
      *
      * @param duration The duration of the frame.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException If an I/O error occurs.
      */
     @Throws(IOException::class)
     actual fun writeFrame(
@@ -144,7 +144,7 @@ actual constructor(
      *
      * @param duration The duration of the frame.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException If an I/O error occurs.
      */
     @Throws(IOException::class)
     fun writeFrame(
@@ -168,7 +168,7 @@ actual constructor(
      *
      * @param duration The duration of the frame.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException If an I/O error occurs.
      */
     @Throws(IOException::class)
     fun writeFrame(image: BufferedImage, duration: Duration) {
@@ -187,7 +187,7 @@ actual constructor(
      *
      * @param duration The duration of the frame.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException If an I/O error occurs.
      */
     @Throws(IOException::class)
     fun writeFrame(image: BufferedImage, duration: JavaDuration) {
@@ -204,7 +204,7 @@ actual constructor(
      *
      * @param frame The [ImageFrame] containing the argb data, dimensions, and duration of the frame.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException If an I/O error occurs.
      */
     @Throws(IOException::class)
     actual fun writeFrame(frame: ImageFrame) {
@@ -215,7 +215,7 @@ actual constructor(
      * Closes the encoder, ensuring all data is written.
      * Closing the encoder also closes the underlying sink.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException If an I/O error occurs.
      */
     @Throws(IOException::class)
     actual override fun close() {

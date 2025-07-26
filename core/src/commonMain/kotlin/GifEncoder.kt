@@ -96,7 +96,7 @@ expect class GifEncoder(
      *
      * @param duration The duration of the frame.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException If an I/O error occurs.
      */
     fun writeFrame(
         argb: IntArray,
@@ -110,7 +110,7 @@ expect class GifEncoder(
      *
      * @param frame The [ImageFrame] containing the argb data, dimensions, and duration of the frame.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException If an I/O error occurs.
      */
     fun writeFrame(frame: ImageFrame)
 
@@ -118,7 +118,7 @@ expect class GifEncoder(
      * Closes the encoder, ensuring all data is written.
      * Closing the encoder also closes the underlying sink.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException If an I/O error occurs.
      */
     override fun close()
 

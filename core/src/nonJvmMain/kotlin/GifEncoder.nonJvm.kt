@@ -102,7 +102,7 @@ actual class GifEncoder actual constructor(
      *
      * @param duration The duration of the frame.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException If an I/O error occurs.
      */
     @Throws(IOException::class)
     actual fun writeFrame(
@@ -124,7 +124,7 @@ actual class GifEncoder actual constructor(
      *
      * @param frame The [ImageFrame] containing the argb data, dimensions, and duration of the frame.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException If an I/O error occurs.
      */
     @Throws(IOException::class)
     actual fun writeFrame(frame: ImageFrame) {
@@ -135,7 +135,7 @@ actual class GifEncoder actual constructor(
      * Closes the encoder, ensuring all data is written.
      * Closing the encoder also closes the underlying sink.
      *
-     * @throws IOException if an I/O error occurs.
+     * @throws IOException If an I/O error occurs.
      */
     actual override fun close() {
         baseEncoder.close()

@@ -15,8 +15,8 @@ actual class ParallelGifEncoder
 @JvmOverloads
 actual constructor(
     sink: Sink,
-    transparencyColorTolerance: Double,
-    quantizedTransparencyColorTolerance: Double,
+    colorDifferenceTolerance: Double,
+    quantizedColorDifferenceTolerance: Double,
     loopCount: Int,
     maxColors: Int,
     colorQuantizer: ColorQuantizer,
@@ -36,8 +36,8 @@ actual constructor(
 
     private val baseEncoder: BaseParallelGifEncoder = BaseParallelGifEncoder(
         sink,
-        transparencyColorTolerance,
-        quantizedTransparencyColorTolerance,
+        colorDifferenceTolerance,
+        quantizedColorDifferenceTolerance,
         loopCount,
         maxColors,
         colorQuantizer,

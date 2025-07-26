@@ -10,8 +10,8 @@ import kotlin.time.Duration
  */
 internal class BaseGifEncoder(
     private val sink: Sink,
-    private val transparencyColorTolerance: Double,
-    private val quantizedTransparencyColorTolerance: Double,
+    private val colorDifferenceTolerance: Double,
+    private val quantizedColorDifferenceTolerance: Double,
     private val loopCount: Int,
     maxColors: Int,
     private val colorQuantizer: ColorQuantizer,
@@ -28,8 +28,8 @@ internal class BaseGifEncoder(
         }
     }
 
-    private val optimizeTransparency: Boolean = transparencyColorTolerance >= 0
-    val optimizeQuantizedTransparency: Boolean = quantizedTransparencyColorTolerance >= 0
+    private val optimizeTransparency: Boolean = colorDifferenceTolerance >= 0
+    val optimizeQuantizedTransparency: Boolean = quantizedColorDifferenceTolerance >= 0
     val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
     private val minimumFrameDuration: Duration = minimumFrameDurationCentiseconds.centiseconds
 
@@ -112,7 +112,7 @@ internal class BaseGifEncoder(
                 optimizeTransparency(
                     previousFrame,
                     currentFrame,
-                    transparencyColorTolerance,
+                    colorDifferenceTolerance,
                     colorSimilarityChecker,
                     safeTransparent = false,
                 )
@@ -292,7 +292,7 @@ internal class BaseGifEncoder(
                 optimizeTransparency(
                     previousQuantizedFrame,
                     quantizedImage,
-                    quantizedTransparencyColorTolerance,
+                    quantizedColorDifferenceTolerance,
                     colorSimilarityChecker,
                     safeTransparent = true,
                 )
@@ -463,8 +463,8 @@ internal class BaseGifEncoder(
     override fun toString(): String {
         return "BaseGifEncoder(" +
             "sink=$sink" +
-            ", transparencyColorTolerance=$transparencyColorTolerance" +
-            ", quantizedTransparencyColorTolerance=$quantizedTransparencyColorTolerance" +
+            ", colorDifferenceTolerance=$colorDifferenceTolerance" +
+            ", quantizedColorDifferenceTolerance=$quantizedColorDifferenceTolerance" +
             ", loopCount=$loopCount" +
             ", colorQuantizer=$colorQuantizer" +
             ", colorSimilarityChecker=$colorSimilarityChecker" +

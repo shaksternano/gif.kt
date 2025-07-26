@@ -8,8 +8,8 @@ import kotlin.time.Duration
 
 expect class ParallelGifEncoder(
     sink: Sink,
-    transparencyColorTolerance: Double = 0.0,
-    quantizedTransparencyColorTolerance: Double = -1.0,
+    colorDifferenceTolerance: Double = 0.0,
+    quantizedColorDifferenceTolerance: Double = -1.0,
     loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
     colorQuantizer: ColorQuantizer = ColorQuantizer.DEFAULT,

@@ -20,8 +20,8 @@ actual class GifEncoder
 @JvmOverloads
 actual constructor(
     sink: Sink,
-    transparencyColorTolerance: Double,
-    quantizedTransparencyColorTolerance: Double,
+    colorDifferenceTolerance: Double,
+    quantizedColorDifferenceTolerance: Double,
     loopCount: Int,
     maxColors: Int,
     colorQuantizer: ColorQuantizer,
@@ -38,8 +38,8 @@ actual constructor(
 
     private val baseEncoder: BaseSyncGifEncoder = BaseSyncGifEncoder(
         sink,
-        transparencyColorTolerance,
-        quantizedTransparencyColorTolerance,
+        colorDifferenceTolerance,
+        quantizedColorDifferenceTolerance,
         loopCount,
         maxColors,
         colorQuantizer,

@@ -17,8 +17,8 @@ import kotlin.time.Duration
 
 abstract class AsyncGifEncoder(
     private val sink: Sink,
-    transparencyColorTolerance: Double,
-    quantizedTransparencyColorTolerance: Double,
+    colorDifferenceTolerance: Double,
+    quantizedColorDifferenceTolerance: Double,
     loopCount: Int,
     maxColors: Int,
     colorQuantizer: ColorQuantizer,
@@ -39,8 +39,8 @@ abstract class AsyncGifEncoder(
 
     private val baseEncoder: BaseGifEncoder = BaseGifEncoder(
         sink,
-        transparencyColorTolerance,
-        quantizedTransparencyColorTolerance,
+        colorDifferenceTolerance,
+        quantizedColorDifferenceTolerance,
         loopCount,
         maxColors,
         colorQuantizer,

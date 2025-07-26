@@ -8,8 +8,8 @@ const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
 
 expect class GifEncoder(
     sink: Sink,
-    transparencyColorTolerance: Double = 0.0,
-    quantizedTransparencyColorTolerance: Double = -1.0,
+    colorDifferenceTolerance: Double = 0.0,
+    quantizedColorDifferenceTolerance: Double = -1.0,
     loopCount: Int = 0,
     maxColors: Int = GIF_MAX_COLORS,
     colorQuantizer: ColorQuantizer = ColorQuantizer.DEFAULT,

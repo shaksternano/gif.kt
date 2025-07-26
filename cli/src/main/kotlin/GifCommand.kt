@@ -52,8 +52,8 @@ object GifCommand : CliktCommand() {
             runBlocking {
                 ParallelGifEncoder(
                     sink = output.outputStream().asSink().buffered(),
-                    transparencyColorTolerance = 0.01,
-                    quantizedTransparencyColorTolerance = 0.02,
+                    colorDifferenceTolerance = 0.01,
+                    quantizedColorDifferenceTolerance = 0.02,
                     maxConcurrency = Runtime.getRuntime().availableProcessors(),
                     ioContext = Dispatchers.IO,
                 ) { framesWritten, writtenDuration ->

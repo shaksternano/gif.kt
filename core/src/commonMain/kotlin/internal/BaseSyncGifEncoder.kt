@@ -6,8 +6,8 @@ import kotlin.time.Duration
 
 internal class BaseSyncGifEncoder(
     private val sink: Sink,
-    transparencyColorTolerance: Double,
-    quantizedTransparencyColorTolerance: Double,
+    colorDifferenceTolerance: Double,
+    quantizedColorDifferenceTolerance: Double,
     loopCount: Int,
     maxColors: Int,
     colorQuantizer: ColorQuantizer,
@@ -24,8 +24,8 @@ internal class BaseSyncGifEncoder(
 
     private val baseEncoder: BaseGifEncoder = BaseGifEncoder(
         sink,
-        transparencyColorTolerance,
-        quantizedTransparencyColorTolerance,
+        colorDifferenceTolerance,
+        quantizedColorDifferenceTolerance,
         loopCount,
         maxColors,
         colorQuantizer,

@@ -93,7 +93,7 @@ internal fun Image.fillTransparent(other: Image): Image {
 internal fun optimizeTransparency(
     previousImage: Image,
     currentImage: Image,
-    colorTolerance: Double,
+    colorDifferenceTolerance: Double,
     colorSimilarityChecker: ColorSimilarityChecker,
     safeTransparent: Boolean,
 ): Image? {
@@ -120,7 +120,7 @@ internal fun optimizeTransparency(
                 return null
             }
         }
-        if (colorTolerance == 0.0) {
+        if (colorDifferenceTolerance == 0.0) {
             empty = false
             return@IntArray currentArgb
         }
@@ -132,7 +132,7 @@ internal fun optimizeTransparency(
         val isSimilar = areColorsSimilar(
             previousArgb,
             currentArgb,
-            colorTolerance,
+            colorDifferenceTolerance,
             colorSimilarityChecker,
         )
         if (isSimilar) {

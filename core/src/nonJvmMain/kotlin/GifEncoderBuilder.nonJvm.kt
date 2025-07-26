@@ -10,9 +10,9 @@ actual class GifEncoderBuilder actual constructor(
     internal val sink: Sink,
 ) {
 
-    actual var transparencyColorTolerance: Double = 0.0
+    actual var colorDifferenceTolerance: Double = 0.0
 
-    actual var quantizedTransparencyColorTolerance: Double = -1.0
+    actual var quantizedColorDifferenceTolerance: Double = -1.0
 
     actual var loopCount: Int = 0
 
@@ -36,13 +36,13 @@ actual class GifEncoderBuilder actual constructor(
 
     actual var ioContext: CoroutineContext = EmptyCoroutineContext
 
-    actual fun transparencyColorTolerance(colorTolerance: Double): GifEncoderBuilder {
-        this.transparencyColorTolerance = colorTolerance
+    actual fun colorDifferenceTolerance(colorTolerance: Double): GifEncoderBuilder {
+        this.colorDifferenceTolerance = colorTolerance
         return this
     }
 
-    actual fun quantizedTransparencyColorTolerance(colorTolerance: Double): GifEncoderBuilder {
-        this.quantizedTransparencyColorTolerance = colorTolerance
+    actual fun quantizedColorDifferenceTolerance(colorTolerance: Double): GifEncoderBuilder {
+        this.quantizedColorDifferenceTolerance = colorTolerance
         return this
     }
 
@@ -115,8 +115,8 @@ actual class GifEncoderBuilder actual constructor(
     ): GifEncoder {
         return GifEncoder(
             sink,
-            transparencyColorTolerance,
-            quantizedTransparencyColorTolerance,
+            colorDifferenceTolerance,
+            quantizedColorDifferenceTolerance,
             loopCount,
             maxColors,
             colorQuantizer,

@@ -10,8 +10,8 @@ actual fun GifEncoderBuilder.buildParallel(
 ): ParallelGifEncoder {
     return ParallelGifEncoder(
         sink,
-        transparencyColorTolerance,
-        quantizedTransparencyColorTolerance,
+        colorDifferenceTolerance,
+        quantizedColorDifferenceTolerance,
         loopCount,
         maxColors,
         colorQuantizer,

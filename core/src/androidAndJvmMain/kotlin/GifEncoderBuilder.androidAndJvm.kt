@@ -17,11 +17,11 @@ actual class GifEncoderBuilder actual constructor(
     // Hide fields from Java
     @JvmSynthetic
     @JvmField
-    actual var transparencyColorTolerance: Double = 0.0
+    actual var colorDifferenceTolerance: Double = 0.0
 
     @JvmSynthetic
     @JvmField
-    actual var quantizedTransparencyColorTolerance: Double = -1.0
+    actual var quantizedColorDifferenceTolerance: Double = -1.0
 
     @JvmSynthetic
     @JvmField
@@ -67,13 +67,13 @@ actual class GifEncoderBuilder actual constructor(
     @JvmField
     actual var ioContext: CoroutineContext = EmptyCoroutineContext
 
-    actual fun transparencyColorTolerance(colorTolerance: Double): GifEncoderBuilder {
-        this.transparencyColorTolerance = colorTolerance
+    actual fun colorDifferenceTolerance(colorTolerance: Double): GifEncoderBuilder {
+        this.colorDifferenceTolerance = colorTolerance
         return this
     }
 
-    actual fun quantizedTransparencyColorTolerance(colorTolerance: Double): GifEncoderBuilder {
-        this.quantizedTransparencyColorTolerance = colorTolerance
+    actual fun quantizedColorDifferenceTolerance(colorTolerance: Double): GifEncoderBuilder {
+        this.quantizedColorDifferenceTolerance = colorTolerance
         return this
     }
 
@@ -147,8 +147,8 @@ actual class GifEncoderBuilder actual constructor(
     ): GifEncoder {
         return GifEncoder(
             sink,
-            transparencyColorTolerance,
-            quantizedTransparencyColorTolerance,
+            colorDifferenceTolerance,
+            quantizedColorDifferenceTolerance,
             loopCount,
             maxColors,
             colorQuantizer,
@@ -170,8 +170,8 @@ actual class GifEncoderBuilder actual constructor(
     ): ParallelGifEncoder {
         return ParallelGifEncoder(
             sink,
-            transparencyColorTolerance,
-            quantizedTransparencyColorTolerance,
+            colorDifferenceTolerance,
+            quantizedColorDifferenceTolerance,
             loopCount,
             maxColors,
             colorQuantizer,

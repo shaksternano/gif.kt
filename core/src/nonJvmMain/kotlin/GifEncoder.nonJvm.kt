@@ -7,8 +7,8 @@ import kotlin.time.Duration
 
 actual class GifEncoder actual constructor(
     sink: Sink,
-    transparencyColorTolerance: Double,
-    quantizedTransparencyColorTolerance: Double,
+    colorDifferenceTolerance: Double,
+    quantizedColorDifferenceTolerance: Double,
     loopCount: Int,
     maxColors: Int,
     colorQuantizer: ColorQuantizer,
@@ -25,8 +25,8 @@ actual class GifEncoder actual constructor(
 
     private val baseEncoder: BaseSyncGifEncoder = BaseSyncGifEncoder(
         sink,
-        transparencyColorTolerance,
-        quantizedTransparencyColorTolerance,
+        colorDifferenceTolerance,
+        quantizedColorDifferenceTolerance,
         loopCount,
         maxColors,
         colorQuantizer,

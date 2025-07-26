@@ -10,8 +10,8 @@ import kotlin.time.Duration
 
 actual class ParallelGifEncoder actual constructor(
     sink: Sink,
-    transparencyColorTolerance: Double,
-    quantizedTransparencyColorTolerance: Double,
+    colorDifferenceTolerance: Double,
+    quantizedColorDifferenceTolerance: Double,
     loopCount: Int,
     maxColors: Int,
     colorQuantizer: ColorQuantizer,
@@ -31,8 +31,8 @@ actual class ParallelGifEncoder actual constructor(
 
     private val baseEncoder: BaseParallelGifEncoder = BaseParallelGifEncoder(
         sink,
-        transparencyColorTolerance,
-        quantizedTransparencyColorTolerance,
+        colorDifferenceTolerance,
+        quantizedColorDifferenceTolerance,
         loopCount,
         maxColors,
         colorQuantizer,

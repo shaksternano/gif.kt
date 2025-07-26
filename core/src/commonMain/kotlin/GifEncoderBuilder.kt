@@ -9,8 +9,8 @@ expect class GifEncoderBuilder(
     sink: Sink,
 ) {
 
-    var transparencyColorTolerance: Double
-    var quantizedTransparencyColorTolerance: Double
+    var colorDifferenceTolerance: Double
+    var quantizedColorDifferenceTolerance: Double
     var loopCount: Int
     var maxColors: Int
     var colorQuantizer: ColorQuantizer
@@ -23,9 +23,9 @@ expect class GifEncoderBuilder(
     var coroutineScope: CoroutineScope
     var ioContext: CoroutineContext
 
-    fun transparencyColorTolerance(colorTolerance: Double): GifEncoderBuilder
+    fun colorDifferenceTolerance(colorTolerance: Double): GifEncoderBuilder
 
-    fun quantizedTransparencyColorTolerance(colorTolerance: Double): GifEncoderBuilder
+    fun quantizedColorDifferenceTolerance(colorTolerance: Double): GifEncoderBuilder
 
     fun loopCount(loopCount: Int): GifEncoderBuilder
 

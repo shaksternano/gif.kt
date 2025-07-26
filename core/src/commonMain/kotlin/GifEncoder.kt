@@ -1,11 +1,71 @@
 package com.shakster.gifkt
 
+import kotlinx.io.IOException
 import kotlinx.io.Sink
 import kotlin.time.Duration
 
+/**
+ * The maximum number of colors allowed in a GIF frame.
+ */
 const val GIF_MAX_COLORS: Int = 256
+
+/**
+ * The minimum duration of a GIF frame in centiseconds that is supported by most GIF viewers.
+ */
 const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
 
+/**
+ * A class for encoding GIF files.
+ * The encoder must be closed after use to ensure all data is written correctly.
+ *
+ * Basic usage:
+ * ```kotlin
+ * // Obtain a Sink to write the GIF data to
+ * val sink: Sink = ...
+ * val encoder = GifEncoder(sink)
+ *
+ * val argb: IntArray = ...
+ * val width: Int = ...
+ * val height: Int = ...
+ * val duration: Duration = ...
+ * encoder.writeFrame(argb, width, height, duration)
+ * encoder.close()
+ * ```
+ *
+ * @param sink The [Sink] to write the GIF data to.
+ *
+ * @param colorDifferenceTolerance The tolerance for color difference when performing transparency optimization.
+ * Set to -1 to disable transparency optimization.
+ *
+ * @param quantizedColorDifferenceTolerance The tolerance for color difference when performing transparency
+ * optimization after quantization. Set to -1 to disable post-quantization transparency optimization.
+ *
+ * @param loopCount The number of times the GIF should loop. Set to 0 for infinite looping.
+ * Set to -1 for no looping.
+ *
+ * @param maxColors The maximum number of colors in each frame, capped to [GIF_MAX_COLORS].
+ *
+ * @param colorQuantizer The [ColorQuantizer] to use for reducing the number of colors in each frame to [maxColors].
+ *
+ * @param colorSimilarityChecker The [ColorSimilarityChecker] to use for determining if two frames are similar
+ * enough to merge.
+ *
+ * @param comment An optional comment to include in the GIF comment block metadata.
+ *
+ * @param alphaFill The solid RGB color to use for filling in pixels with partial alpha transparency,
+ * as GIFs do not support partial transparency. Set to -1 to disable filling.
+ *
+ * @param cropTransparent Whether to crop the transparent pixels from the edges of each frame.
+ * This can reduce the size of the GIF by a small amount.
+ *
+ * @param minimumFrameDurationCentiseconds The minimum duration for each frame in centiseconds.
+ * Setting this to a value less than [GIF_MINIMUM_FRAME_DURATION_CENTISECONDS] can result in the GIF being played
+ * slower than expected on some GIF viewers.
+ *
+ * @param onFrameWritten A callback that is invoked after each frame is written,
+ * providing the number of frames written and the total duration written so far.
+ * This can be used to track progress or update a UI.
+ */
 expect class GifEncoder(
     sink: Sink,
     colorDifferenceTolerance: Double = 0.0,
@@ -24,6 +84,20 @@ expect class GifEncoder(
     ) -> Unit = { _, _ -> },
 ) : AutoCloseable {
 
+    /**
+     * Writes a single frame to the GIF.
+     *
+     * @param image The pixel data of the frame as an array of ARGB values,
+     * going row by row from top to bottom.
+     *
+     * @param width The width of the frame in pixels.
+     *
+     * @param height The height of the frame in pixels.
+     *
+     * @param duration The duration of the frame.
+     *
+     * @throws IOException if an I/O error occurs.
+     */
     fun writeFrame(
         image: IntArray,
         width: Int,
@@ -31,11 +105,31 @@ expect class GifEncoder(
         duration: Duration,
     )
 
+    /**
+     * Writes a single frame to the GIF.
+     *
+     * @param frame The [ImageFrame] containing the argb data, dimensions, and duration of the frame.
+     *
+     * @throws IOException if an I/O error occurs.
+     */
     fun writeFrame(frame: ImageFrame)
 
+    /**
+     * Closes the encoder, ensuring all data is written.
+     * Closing the encoder also closes the underlying sink.
+     *
+     * @throws IOException if an I/O error occurs.
+     */
     override fun close()
 
     companion object {
+        /**
+         * Creates a new [GifEncoderBuilder] for configuring and building a [GifEncoder].
+         *
+         * @param sink The [Sink] to write the GIF data to.
+         *
+         * @return A [GifEncoderBuilder] instance for configuring the encoder.
+         */
         fun builder(sink: Sink): GifEncoderBuilder
     }
 }

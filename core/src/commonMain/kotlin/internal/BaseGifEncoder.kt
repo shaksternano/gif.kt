@@ -120,8 +120,17 @@ internal class BaseGifEncoder(
                 null
             }
             if (optimized == null) {
-                pendingDisposalMethod = DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
-                toWrite = currentFrame
+                val isEmpty = currentFrame.argb.all {
+                    RGB(it).alpha == 0
+                }
+                if (isEmpty) {
+                    // If the frame is fully transparent, we can skip writing it
+                    pendingDuration += duration
+                    return false
+                } else {
+                    pendingDisposalMethod = DisposalMethod.RESTORE_TO_BACKGROUND_COLOR
+                    toWrite = currentFrame
+                }
             } else if (optimized.empty) {
                 // Merge similar sequential frames into one
                 pendingDuration += duration

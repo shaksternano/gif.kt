@@ -253,8 +253,11 @@ actual constructor(
          * @param path The path of the file to write the GIF data to.
          *
          * @return A [GifEncoderBuilder] instance for configuring the encoder.
+         *
+         * @throws IOException If an I/O error occurs.
          */
         @JvmStatic
+        @Throws(IOException::class)
         fun builder(path: Path): GifEncoderBuilder {
             return GifEncoderBuilder(SystemFileSystem.sink(path).buffered())
         }
@@ -265,8 +268,11 @@ actual constructor(
          * @param path The path of the file to write the GIF data to.
          *
          * @return A [GifEncoderBuilder] instance for configuring the encoder.
+         *
+         * @throws IOException If an I/O error occurs.
          */
         @JvmStatic
+        @Throws(IOException::class)
         fun builder(path: JavaPath): GifEncoderBuilder {
             return GifEncoderBuilder(path.outputStream().asSink().buffered())
         }
@@ -277,8 +283,11 @@ actual constructor(
          * @param file The file to write the GIF data to.
          *
          * @return A [GifEncoderBuilder] instance for configuring the encoder.
+         *
+         * @throws IOException If an I/O error occurs.
          */
         @JvmStatic
+        @Throws(IOException::class)
         fun builder(file: File): GifEncoderBuilder {
             return GifEncoderBuilder(file.outputStream().asSink().buffered())
         }

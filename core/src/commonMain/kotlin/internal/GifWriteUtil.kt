@@ -11,8 +11,8 @@ internal const val GIF_MINIMUM_COLOR_TABLE_SIZE: Int = 2
 internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
 internal const val ALPHA_FILL_MASK: Int = 0xFF shl 24
 
-internal fun Image.cropOrPad(width: Int, height: Int): Image =
-    when (this.width) {
+internal fun Image.cropOrPad(width: Int, height: Int): Image {
+    return when (this.width) {
         width if this.height == height -> {
             this
         }
@@ -36,8 +36,12 @@ internal fun Image.cropOrPad(width: Int, height: Int): Image =
             Image(newArgb, width, height)
         }
     }
+}
 
 internal fun Image.fillPartialAlpha(alphaFill: Int): Image {
+    if (alphaFill < 0) {
+        return this
+    }
     val newArgb = IntArray(argb.size) { i ->
         val pixel = argb[i]
         fillPartialAlpha(RGB(pixel), RGB(alphaFill))

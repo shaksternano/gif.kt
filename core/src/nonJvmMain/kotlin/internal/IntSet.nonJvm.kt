@@ -11,7 +11,7 @@ internal actual class IntSet actual constructor() {
 
     actual operator fun iterator(): IntIterator = object : IntIterator() {
 
-        private val iterator = backingSet.iterator()
+        private val iterator: MutableIterator<Int> = backingSet.iterator()
 
         override fun nextInt(): Int = iterator.next()
 

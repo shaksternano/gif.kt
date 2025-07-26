@@ -1,6 +1,7 @@
 package com.shakster.gifkt.internal
 
 import org.eclipse.collections.api.factory.primitive.IntSets
+import org.eclipse.collections.api.iterator.MutableIntIterator
 import org.eclipse.collections.api.set.primitive.MutableIntSet
 
 internal actual class IntSet actual constructor() {
@@ -14,7 +15,7 @@ internal actual class IntSet actual constructor() {
 
     actual operator fun iterator(): IntIterator = object : IntIterator() {
 
-        private val iterator = primitiveSet.intIterator()
+        private val iterator: MutableIntIterator = primitiveSet.intIterator()
 
         override fun nextInt(): Int = iterator.next()
 

@@ -31,6 +31,7 @@ import java.time.Duration as JavaDuration
  * val height: Int = ...
  * val duration: Duration = ...
  * encoder.writeFrame(argb, width, height, duration)
+ *
  * encoder.close()
  * ```
  *

@@ -20,6 +20,7 @@ import kotlin.time.Duration
  * val height: Int = ...
  * val duration: Duration = ...
  * encoder.writeFrame(argb, width, height, duration)
+ *
  * encoder.close()
  * ```
  *

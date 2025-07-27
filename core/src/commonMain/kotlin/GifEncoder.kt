@@ -29,6 +29,7 @@ const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
  * val height: Int = ...
  * val duration: Duration = ...
  * encoder.writeFrame(argb, width, height, duration)
+ *
  * encoder.close()
  * ```
  *

@@ -7,7 +7,6 @@ import org.bytedeco.javacv.Java2DFrameConverter
 import java.nio.file.Path
 import kotlin.time.Duration.Companion.microseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlin.use
 
 class FFmpegImageReader(
     input: Path,
@@ -25,32 +24,28 @@ class FFmpegImageReader(
 
     override fun readFrames(): Sequence<ImageFrame> {
         return sequence {
-            try {
-                grabber.setTimestamp(0)
-                var frame = grabber.grabImage()
-                var index = 0
-                val frameDuration = (1 / grabber.frameRate).seconds
-                while (frame != null) {
-                    if (isInvalidImageChannels(frame.imageChannels)) {
-                        frame.imageChannels = 3
-                    }
-                    val bufferedImage = Java2DFrameConverter().use {
-                        it.convert(frame)
-                    }
-                    yield(
-                        ImageFrame(
-                            bufferedImage,
-                            frameDuration,
-                            frame.timestamp.microseconds,
-                            index,
-                        )
-                    )
-                    frame.close()
-                    frame = grabber.grabImage()
-                    index++
+            grabber.setTimestamp(0)
+            var frame = grabber.grabImage()
+            var index = 0
+            val frameDuration = (1 / grabber.frameRate).seconds
+            while (frame != null) {
+                if (isInvalidImageChannels(frame.imageChannels)) {
+                    frame.imageChannels = 3
                 }
-            } finally {
-                grabber.close()
+                val bufferedImage = Java2DFrameConverter().use {
+                    it.convert(frame)
+                }
+                yield(
+                    ImageFrame(
+                        bufferedImage,
+                        frameDuration,
+                        frame.timestamp.microseconds,
+                        index,
+                    )
+                )
+                frame.close()
+                frame = grabber.grabImage()
+                index++
             }
         }
     }

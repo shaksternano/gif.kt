@@ -1,9 +1,9 @@
 package com.shakster.gifkt
 
 data class EuclideanSimilarityChecker(
-    val redWeight: Double,
-    val greenWeight: Double,
-    val blueWeight: Double,
+    private val redWeight: Double,
+    private val greenWeight: Double,
+    private val blueWeight: Double,
 ) : ColorSimilarityChecker {
 
     init {

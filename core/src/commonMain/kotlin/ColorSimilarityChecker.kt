@@ -15,6 +15,6 @@ fun interface ColorSimilarityChecker {
         val EUCLIDEAN_LUMINANCE_WEIGHTING: ColorSimilarityChecker = EuclideanSimilarityChecker(2.99, 5.87, 1.14)
 
         @JvmField
-        val CIE_LAB: ColorSimilarityChecker = CieLabSimilarityChecker
+        val CIELAB: ColorSimilarityChecker = CieLabSimilarityChecker
     }
 }

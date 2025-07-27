@@ -1,5 +1,6 @@
 package com.shakster.gifkt
 
+import com.shakster.gifkt.internal.OctreeQuantizer
 import kotlin.jvm.JvmField
 
 fun interface ColorQuantizer {
@@ -15,5 +16,8 @@ fun interface ColorQuantizer {
 
         @JvmField
         val NEU_QUANT_MIN_QUALITY: ColorQuantizer = NeuQuantizer(1)
+
+        @JvmField
+        val OCTREE: ColorQuantizer = OctreeQuantizer
     }
 }

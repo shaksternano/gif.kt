@@ -64,9 +64,9 @@ actual data class ImageFrame actual constructor(
         index = index,
     )
 
-    val javaDuration: JavaDuration
+    inline val javaDuration: JavaDuration
         get() = duration.toJavaDuration()
-    val javaTimestamp: JavaDuration
+    inline val javaTimestamp: JavaDuration
         get() = timestamp.toJavaDuration()
 
     fun toBufferedImage(): BufferedImage {
@@ -86,6 +86,6 @@ actual data class ImageFrame actual constructor(
     override fun toString(): String = toStringImpl()
 }
 
-var BufferedImage.rgb: IntArray
+inline var BufferedImage.rgb: IntArray
     get() = getRGB(0, 0, width, height, null, 0, width)
     set(rgb) = setRGB(0, 0, width, height, rgb, 0, width)

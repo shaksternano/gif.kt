@@ -46,5 +46,5 @@ fun ImageFrame.copy(
     return ImageFrame(argb, width, height, duration, timestamp, index)
 }
 
-val Int.centiseconds: Duration
+inline val Int.centiseconds: Duration
     get() = (this * 10).milliseconds

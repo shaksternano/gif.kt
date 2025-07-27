@@ -33,9 +33,9 @@ actual data class ImageFrame actual constructor(
         index = index,
     )
 
-    val javaDuration: JavaDuration
+    inline val javaDuration: JavaDuration
         get() = duration.toJavaDuration()
-    val javaTimestamp: JavaDuration
+    inline val javaTimestamp: JavaDuration
         get() = timestamp.toJavaDuration()
 
     actual override fun compareTo(other: ImageFrame): Int {

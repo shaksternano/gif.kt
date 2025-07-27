@@ -18,9 +18,9 @@ actual class GifEncoderBuilder actual constructor(
 
     actual var maxColors: Int = GIF_MAX_COLORS
 
-    actual var colorQuantizer: ColorQuantizer = ColorQuantizer.DEFAULT
+    actual var colorQuantizer: ColorQuantizer = ColorQuantizer.NEU_QUANT
 
-    actual var colorSimilarityChecker: ColorSimilarityChecker = ColorSimilarityChecker.DEFAULT
+    actual var colorSimilarityChecker: ColorSimilarityChecker = ColorSimilarityChecker.EUCLIDEAN_LUMINANCE_WEIGHTING
 
     actual var comment: String = ""
 

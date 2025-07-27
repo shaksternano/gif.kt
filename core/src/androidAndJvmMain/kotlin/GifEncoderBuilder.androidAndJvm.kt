@@ -33,11 +33,11 @@ actual class GifEncoderBuilder actual constructor(
 
     @JvmSynthetic
     @JvmField
-    actual var colorQuantizer: ColorQuantizer = ColorQuantizer.DEFAULT
+    actual var colorQuantizer: ColorQuantizer = ColorQuantizer.NEU_QUANT
 
     @JvmSynthetic
     @JvmField
-    actual var colorSimilarityChecker: ColorSimilarityChecker = ColorSimilarityChecker.DEFAULT
+    actual var colorSimilarityChecker: ColorSimilarityChecker = ColorSimilarityChecker.EUCLIDEAN_LUMINANCE_WEIGHTING
 
     @JvmSynthetic
     @JvmField

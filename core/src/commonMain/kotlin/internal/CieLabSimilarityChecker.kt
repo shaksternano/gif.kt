@@ -1,8 +1,10 @@
-package com.shakster.gifkt
+package com.shakster.gifkt.internal
 
+import com.shakster.gifkt.ColorSimilarityChecker
+import com.shakster.gifkt.RGB
 import kotlin.math.pow
 
-data object CieLabSimilarityChecker : ColorSimilarityChecker {
+internal data object CieLabSimilarityChecker : ColorSimilarityChecker {
 
     override fun isSimilar(rgb1: RGB, rgb2: RGB, tolerance: Double): Boolean {
         val (l1, a1, b1) = rgbToCieLab(rgb1.red, rgb1.green, rgb1.blue)

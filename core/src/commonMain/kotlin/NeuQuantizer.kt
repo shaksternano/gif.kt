@@ -1,9 +1,6 @@
 package com.shakster.gifkt
 
 import com.shakster.gifkt.internal.NeuQuant
-import kotlin.jvm.JvmField
-
-private const val NEU_QUANT_MAX_SAMPLING_FACTOR: Int = 30
 
 class NeuQuantizer(
     quality: Int,
@@ -11,8 +8,9 @@ class NeuQuantizer(
 
     private val quality: Int = quality.coerceIn(1, NEU_QUANT_MAX_SAMPLING_FACTOR)
 
-    override fun quantize(rgb: ByteArray, maxColors: Int): ColorTable =
-        NeuQuantColorTable(NeuQuant(rgb, maxColors, quality))
+    override fun quantize(rgb: ByteArray, maxColors: Int): ColorTable {
+        return NeuQuantColorTable(NeuQuant(rgb, maxColors, quality))
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -37,8 +35,9 @@ class NeuQuantizer(
 
         override val colors: ByteArray = neuQuant.process()
 
-        override fun getColorIndex(red: Int, green: Int, blue: Int): Int =
-            neuQuant.map(red, green, blue)
+        override fun getColorIndex(red: Int, green: Int, blue: Int): Int {
+            return neuQuant.map(red, green, blue)
+        }
 
         override fun toString(): String {
             return "NeuQuantColorTable(colors=${colors.contentToString()})"
@@ -46,13 +45,6 @@ class NeuQuantizer(
     }
 
     companion object {
-        @JvmField
-        val DEFAULT: ColorQuantizer = NeuQuantizer(10)
-
-        @JvmField
-        val MAX_QUALITY: ColorQuantizer = NeuQuantizer(1)
-
-        @JvmField
-        val MIN_QUALITY: ColorQuantizer = NeuQuantizer(NEU_QUANT_MAX_SAMPLING_FACTOR)
+        internal const val NEU_QUANT_MAX_SAMPLING_FACTOR: Int = 30
     }
 }

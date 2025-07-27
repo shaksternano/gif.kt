@@ -1,22 +1,10 @@
 package com.shakster.gifkt
 
-import kotlin.jvm.JvmField
-
 data class EuclideanSimilarityChecker(
-    private val redWeight: Double,
-    private val greenWeight: Double,
-    private val blueWeight: Double,
+    val redWeight: Double,
+    val greenWeight: Double,
+    val blueWeight: Double,
 ) : ColorSimilarityChecker {
-
-    constructor(
-        redWeight: Int,
-        greenWeight: Int,
-        blueWeight: Int,
-    ) : this(
-        redWeight.toDouble(),
-        greenWeight.toDouble(),
-        blueWeight.toDouble(),
-    )
 
     init {
         require(redWeight >= 0) {
@@ -43,14 +31,5 @@ data class EuclideanSimilarityChecker(
             greenComponent * greenComponent * greenWeight +
             blueComponent * blueComponent * blueWeight
         return distance / maxDistance <= tolerance * tolerance
-    }
-
-    companion object {
-        @JvmField
-        val EQUAL_WEIGHTING: ColorSimilarityChecker = EuclideanSimilarityChecker(1, 1, 1)
-
-        @JvmField
-        val LUMINANCE_WEIGHTING: ColorSimilarityChecker =
-            EuclideanSimilarityChecker(2.99, 5.87, 1.14)
     }
 }

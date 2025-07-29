@@ -9,7 +9,7 @@ import kotlin.time.Duration
  * A class for encoding GIF files.
  * The encoder must be closed after use to ensure all data is written correctly.
  *
- * Basic usage:
+ * Usage:
  * ```kotlin
  * // Obtain a Sink to write the GIF data to
  * val sink: Sink = ...

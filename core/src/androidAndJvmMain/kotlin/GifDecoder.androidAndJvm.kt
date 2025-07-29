@@ -17,7 +17,7 @@ import java.time.Duration as JavaDuration
  * Other than cached frames, configured with [cacheFrameInterval],
  * all frames are decoded only when requested, minimizing memory usage.
  *
- * Basic usage:
+ * Usage:
  * ```kotlin
  * // Obtain a Path to read the GIF data from
  * val path: Path = ...

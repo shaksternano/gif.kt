@@ -43,7 +43,7 @@ import kotlin.time.Duration
  *
  * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
  * Disable caching if you only need to read frames sequentially using [asSequence]
- * or [get] in order of their index or timestamp.
+ * or [get] in increasing order of their index or timestamp.
  *
  * @throws IOException If an I/O error occurs.
  */
@@ -68,7 +68,7 @@ actual constructor(
      *
      * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
      * Disable caching if you only need to read frames sequentially using [asSequence]
-     * or [get] in order of their index or timestamp.
+     * or [get] in increasing order of their index or timestamp.
      */
     actual constructor(
         bytes: ByteArray,

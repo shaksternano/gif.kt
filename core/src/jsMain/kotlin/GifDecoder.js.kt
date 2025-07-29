@@ -18,7 +18,7 @@ import org.khronos.webgl.Int8Array
  *
  * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
  * Disable caching if you only need to read frames sequentially using [asSequence]
- * or [get] in order of their index or timestamp.
+ * or [get] in increasing order of their index or timestamp.
  */
 fun GifDecoder(
     buffer: ArrayBuffer,
@@ -41,7 +41,7 @@ fun GifDecoder(
  *
  * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
  * Disable caching if you only need to read frames sequentially using [asSequence]
- * or [get] in order of their index or timestamp.
+ * or [get] in increasing order of their index or timestamp.
  */
 fun GifDecoder(
     bytes: Int8Array,

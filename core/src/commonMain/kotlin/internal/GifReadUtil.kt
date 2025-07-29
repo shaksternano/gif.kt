@@ -1,6 +1,7 @@
 package com.shakster.gifkt.internal
 
 import com.shakster.gifkt.*
+import kotlinx.io.IOException
 import kotlinx.io.Source
 import kotlin.time.Duration
 
@@ -348,6 +349,8 @@ internal inline fun <T> MonitoredSource.readGifSection(name: String, block: () -
     try {
         return block()
     } catch (e: InvalidGifException) {
+        throw e
+    } catch (e: IOException) {
         throw e
     } catch (t: Throwable) {
         throw InvalidGifException(

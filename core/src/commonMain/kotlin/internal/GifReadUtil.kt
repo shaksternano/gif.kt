@@ -258,21 +258,24 @@ internal fun getImageArgb(
                     return@run colorIndices[index].toInt() and 0xFF
                 }
             }
-            // Missing indices are treated as transparent
-            currentTransparentColorIndex
+            /*
+             * Missing indices use the background color if available,
+             * otherwise they are transparent.
+             */
+            -1
         }
 
-        if (colorIndex == currentTransparentColorIndex) {
-            if (previousImage == null) {
-                if (
-                    currentColorTable === globalColorTable
-                    && backgroundColorIndex in 0..<globalColorTableColors
-                ) {
-                    getColor(globalColorTable, backgroundColorIndex)
-                } else {
-                    // Transparent
-                    0
-                }
+        val useBackgroundColor = colorIndex < 0
+        if (useBackgroundColor || colorIndex == currentTransparentColorIndex) {
+            if (
+                useBackgroundColor
+                && currentColorTable === globalColorTable
+                && backgroundColorIndex in 0..<globalColorTableColors
+            ) {
+                getColor(globalColorTable, backgroundColorIndex)
+            } else if (previousImage == null) {
+                // Transparent
+                0
             } else {
                 previousImage[i]
             }

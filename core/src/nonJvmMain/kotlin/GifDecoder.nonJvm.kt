@@ -181,13 +181,6 @@ actual constructor(
     }
 
     /**
-     * Returns an [Iterable] view of all frames in the GIF.
-     */
-    actual fun asIterable(): Iterable<ImageFrame> {
-        return asList()
-    }
-
-    /**
      * Returns a [Sequence] view of all frames in the GIF.
      */
     actual fun asSequence(): Sequence<ImageFrame> {

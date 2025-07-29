@@ -160,11 +160,6 @@ expect class GifDecoder(
     fun asList(): List<ImageFrame>
 
     /**
-     * Returns an [Iterable] view of all frames in the GIF.
-     */
-    fun asIterable(): Iterable<ImageFrame>
-
-    /**
      * Returns a [Sequence] view of all frames in the GIF.
      */
     fun asSequence(): Sequence<ImageFrame>

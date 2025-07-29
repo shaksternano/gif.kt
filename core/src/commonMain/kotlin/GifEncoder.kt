@@ -37,13 +37,18 @@ const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
  *
  * @param colorDifferenceTolerance The tolerance for color difference used by [colorSimilarityChecker]
  * when performing transparency optimization.
+ *
  * Set to -1 to disable transparency optimization.
  *
  * @param quantizedColorDifferenceTolerance The tolerance for color difference used by [colorSimilarityChecker]
  * when performing transparency optimization after quantization.
+ *
  * Set to -1 to disable post-quantization transparency optimization.
  *
- * @param loopCount The number of times the GIF should loop. Set to 0 for infinite looping.
+ * @param loopCount The number of times the GIF should loop.
+ *
+ * Set to 0 for infinite looping.
+ *
  * Set to -1 for no looping.
  *
  * @param maxColors The maximum number of colors in each frame, capped to [GIF_MAX_COLORS].
@@ -56,7 +61,9 @@ const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
  * @param comment An optional comment to include in the GIF comment block metadata.
  *
  * @param alphaFill The solid RGB color to use for filling in pixels with partial alpha transparency,
- * as GIFs do not support partial transparency. Set to -1 to disable filling.
+ * as GIFs do not support partial transparency.
+ *
+ * Set to -1 to disable filling.
  *
  * @param cropTransparent Whether to crop the transparent pixels from the edges of each frame.
  * This can reduce the size of the GIF by a small amount.

@@ -20,6 +20,8 @@ import kotlinx.io.files.Path
  * Disable caching if you only need to read frames sequentially using [GifDecoder.asSequence]
  * or [GifDecoder.get] in increasing order of their index or timestamp.
  *
+ * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
+ *
  * @throws IOException If an I/O error occurs.
  */
 @Throws(IOException::class)

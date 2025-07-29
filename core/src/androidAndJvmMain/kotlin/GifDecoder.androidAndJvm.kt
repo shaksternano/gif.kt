@@ -51,6 +51,8 @@ import java.time.Duration as JavaDuration
  * Disable caching if you only need to read frames sequentially using [asSequence]
  * or [get] in increasing order of their index or timestamp.
  *
+ * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
+ *
  * @throws IOException If an I/O error occurs.
  */
 actual class GifDecoder
@@ -77,6 +79,8 @@ actual constructor(
      * Disable caching if you only need to read frames sequentially using [asSequence]
      * or [get] in increasing order of their index or timestamp.
      *
+     * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
+     *
      * @throws IOException If an I/O error occurs.
      */
     @JvmOverloads
@@ -102,6 +106,8 @@ actual constructor(
      * Disable caching if you only need to read frames sequentially using [asSequence]
      * or [get] in increasing order of their index or timestamp.
      *
+     * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
+     *
      * @throws IOException If an I/O error occurs.
      */
     @JvmOverloads
@@ -126,8 +132,13 @@ actual constructor(
      * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
      * Disable caching if you only need to read frames sequentially using [asSequence]
      * or [get] in increasing order of their index or timestamp.
+     *
+     * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
+     *
+     * @throws IOException If an I/O error occurs.
      */
     @JvmOverloads
+    @Throws(IOException::class)
     actual constructor(
         bytes: ByteArray,
         cacheFrameInterval: Int,
@@ -193,6 +204,8 @@ actual constructor(
      *
      * @throws IndexOutOfBoundsException if the index is out of bounds.
      *
+     * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
+     *
      * @throws IOException If an I/O error occurs.
      */
     @Throws(IOException::class)
@@ -211,6 +224,8 @@ actual constructor(
      *
      * @throws IllegalArgumentException if the timestamp is negative or exceeds the total duration of the GIF.
      *
+     * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
+     *
      * @throws IOException If an I/O error occurs.
      */
     @Throws(IOException::class)
@@ -228,6 +243,8 @@ actual constructor(
      * @throws NoSuchElementException if there are no frames available.
      *
      * @throws IllegalArgumentException if the timestamp is negative or exceeds the total duration of the GIF.
+     *
+     * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
      *
      * @throws IOException If an I/O error occurs.
      */

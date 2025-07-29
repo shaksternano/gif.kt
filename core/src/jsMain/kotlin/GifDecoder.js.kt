@@ -1,6 +1,7 @@
 package com.shakster.gifkt
 
 import com.shakster.gifkt.internal.DEFAULT_GIF_CACHE_FRAME_INTERVAL
+import kotlinx.io.IOException
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
 
@@ -19,6 +20,10 @@ import org.khronos.webgl.Int8Array
  * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
  * Disable caching if you only need to read frames sequentially using [asSequence]
  * or [get] in increasing order of their index or timestamp.
+ *
+ * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
+ *
+ * @throws IOException If an I/O error occurs.
  */
 fun GifDecoder(
     buffer: ArrayBuffer,
@@ -42,6 +47,10 @@ fun GifDecoder(
  * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
  * Disable caching if you only need to read frames sequentially using [asSequence]
  * or [get] in increasing order of their index or timestamp.
+ *
+ * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
+ *
+ * @throws IOException If an I/O error occurs.
  */
 fun GifDecoder(
     bytes: Int8Array,

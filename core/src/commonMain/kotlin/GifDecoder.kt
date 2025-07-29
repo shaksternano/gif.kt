@@ -45,6 +45,8 @@ import kotlin.time.Duration
  * Disable caching if you only need to read frames sequentially using [asSequence]
  * or [get] in increasing order of their index or timestamp.
  *
+ * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
+ *
  * @throws IOException If an I/O error occurs.
  */
 expect class GifDecoder(
@@ -67,6 +69,10 @@ expect class GifDecoder(
      * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
      * Disable caching if you only need to read frames sequentially using [asSequence]
      * or [get] in increasing order of their index or timestamp.
+     *
+     * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
+     *
+     * @throws IOException If an I/O error occurs.
      */
     constructor(
         bytes: ByteArray,
@@ -124,6 +130,8 @@ expect class GifDecoder(
      *
      * @throws IndexOutOfBoundsException if the index is out of bounds.
      *
+     * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
+     *
      * @throws IOException If an I/O error occurs.
      */
     operator fun get(index: Int): ImageFrame
@@ -138,6 +146,8 @@ expect class GifDecoder(
      * @throws NoSuchElementException if there are no frames available.
      *
      * @throws IllegalArgumentException if the timestamp is negative or exceeds the total duration of the GIF.
+     *
+     * @throws InvalidGifException If the GIF data is invalid and cannot be decoded.
      *
      * @throws IOException If an I/O error occurs.
      */

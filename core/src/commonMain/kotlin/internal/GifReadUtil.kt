@@ -1,9 +1,6 @@
 package com.shakster.gifkt.internal
 
-import com.shakster.gifkt.DisposalMethod
-import com.shakster.gifkt.ImageFrame
-import com.shakster.gifkt.InvalidGifException
-import com.shakster.gifkt.centiseconds
+import com.shakster.gifkt.*
 import kotlinx.io.Source
 import kotlin.time.Duration
 
@@ -638,9 +635,8 @@ private fun MonitoredSource.skipGifSubBlocks() {
 
 private fun getColor(colorTable: ByteArray, index: Int): Int {
     val colorIndex = index * BYTES_PER_COLOR
-    val red = colorTable[colorIndex].toInt() and 0xFF
-    val green = colorTable[colorIndex + 1].toInt() and 0xFF
-    val blue = colorTable[colorIndex + 2].toInt() and 0xFF
-    val alpha = 0xFF
-    return (alpha shl 24) or (red shl 16) or (green shl 8) or blue
+    val red = colorTable[colorIndex].toInt()
+    val green = colorTable[colorIndex + 1].toInt()
+    val blue = colorTable[colorIndex + 2].toInt()
+    return RGB(red, green, blue).value
 }

@@ -10,7 +10,7 @@ import kotlinx.io.files.Path
  * @param path The path of the file containing the GIF data.
  *
  * @param cacheFrameInterval The interval at which frames are cached.
- * Setting this to a higher value can improve random access speed with [GifDecoder.readFrame],
+ * Setting this to a higher value can improve random access speed with [GifDecoder.get],
  * but increases memory usage.
  *
  * Set to 1 to cache every frame, making random access speed similar to that of [Array].
@@ -18,7 +18,7 @@ import kotlinx.io.files.Path
  *
  * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
  * Disable caching if you only need to read frames sequentially using [GifDecoder.asSequence]
- * or [GifDecoder.readFrame] in order of their index or timestamp.
+ * or [GifDecoder.get] in order of their index or timestamp.
  *
  * @throws IOException If an I/O error occurs.
  */

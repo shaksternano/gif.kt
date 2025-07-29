@@ -25,10 +25,10 @@ import java.time.Duration as JavaDuration
  * val decoder = GifDecoder(data)
  *
  * // Read a single frame by index
- * val frame1 = decoder.readFrame(0)
+ * val frame1 = decoder[0]
  *
  * // Read a single frame by timestamp
- * val frame2 = decoder.readFrame(2.seconds)
+ * val frame2 = decoder[2.seconds]
  *
  * // Read all frames
  * decoder.asSequence().forEach { frame ->
@@ -41,7 +41,7 @@ import java.time.Duration as JavaDuration
  * @param data The [RandomAccessData] to read the GIF data from.
  *
  * @param cacheFrameInterval The interval at which frames are cached.
- * Setting this to a higher value can improve random access speed with [readFrame],
+ * Setting this to a higher value can improve random access speed with [get],
  * but increases memory usage.
  *
  * Set to 1 to cache every frame, making random access speed similar to that of [Array].
@@ -49,7 +49,7 @@ import java.time.Duration as JavaDuration
  *
  * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
  * Disable caching if you only need to read frames sequentially using [asSequence]
- * or [readFrame] in order of their index or timestamp.
+ * or [get] in order of their index or timestamp.
  *
  * @throws IOException If an I/O error occurs.
  */
@@ -67,7 +67,7 @@ actual constructor(
      * @param path The path of the file containing the GIF data.
      *
      * @param cacheFrameInterval The interval at which frames are cached.
-     * Setting this to a higher value can improve random access speed with [readFrame],
+     * Setting this to a higher value can improve random access speed with [get],
      * but increases memory usage.
      *
      * Set to 1 to cache every frame, making random access speed similar to that of [Array].
@@ -75,7 +75,7 @@ actual constructor(
      *
      * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
      * Disable caching if you only need to read frames sequentially using [asSequence]
-     * or [readFrame] in order of their index or timestamp.
+     * or [get] in order of their index or timestamp.
      *
      * @throws IOException If an I/O error occurs.
      */
@@ -92,7 +92,7 @@ actual constructor(
      * @param file The file containing the GIF data.
      *
      * @param cacheFrameInterval The interval at which frames are cached.
-     * Setting this to a higher value can improve random access speed with [readFrame],
+     * Setting this to a higher value can improve random access speed with [get],
      * but increases memory usage.
      *
      * Set to 1 to cache every frame, making random access speed similar to that of [Array].
@@ -100,7 +100,7 @@ actual constructor(
      *
      * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
      * Disable caching if you only need to read frames sequentially using [asSequence]
-     * or [readFrame] in order of their index or timestamp.
+     * or [get] in order of their index or timestamp.
      *
      * @throws IOException If an I/O error occurs.
      */
@@ -117,7 +117,7 @@ actual constructor(
      * @param bytes The byte array containing the GIF data.
      *
      * @param cacheFrameInterval The interval at which frames are cached.
-     * Setting this to a higher value can improve random access speed with [readFrame],
+     * Setting this to a higher value can improve random access speed with [get],
      * but increases memory usage.
      *
      * Set to 1 to cache every frame, making random access speed similar to that of [Array].
@@ -125,7 +125,7 @@ actual constructor(
      *
      * Set to 0 to disable caching, which will decrease the initial load time and minimize memory usage.
      * Disable caching if you only need to read frames sequentially using [asSequence]
-     * or [readFrame] in order of their index or timestamp.
+     * or [get] in order of their index or timestamp.
      */
     @JvmOverloads
     actual constructor(
@@ -181,60 +181,6 @@ actual constructor(
      * This can be an empty string if no comment is present.
      */
     actual val comment: String = baseDecoder.comment
-
-    /**
-     * Reads a frame by its index.
-     *
-     * @param index The index of the frame to read.
-     *
-     * @return The [ImageFrame] at the specified index.
-     *
-     * @throws NoSuchElementException if there are no frames available.
-     *
-     * @throws IndexOutOfBoundsException if the index is out of bounds.
-     *
-     * @throws IOException If an I/O error occurs.
-     */
-    @Throws(IOException::class)
-    actual fun readFrame(index: Int): ImageFrame {
-        return baseDecoder.readFrame(index)
-    }
-
-    /**
-     * Reads a frame by its timestamp.
-     *
-     * @param timestamp The timestamp of the frame to read.
-     *
-     * @return The [ImageFrame] at the specified timestamp.
-     *
-     * @throws NoSuchElementException if there are no frames available.
-     *
-     * @throws IllegalArgumentException if the timestamp is negative or exceeds the total duration of the GIF.
-     *
-     * @throws IOException If an I/O error occurs.
-     */
-    @Throws(IOException::class)
-    actual fun readFrame(timestamp: Duration): ImageFrame {
-        return baseDecoder.readFrame(timestamp)
-    }
-
-    /**
-     * Reads a frame by its timestamp.
-     *
-     * @param timestamp The timestamp of the frame to read.
-     *
-     * @return The [ImageFrame] at the specified timestamp.
-     *
-     * @throws NoSuchElementException if there are no frames available.
-     *
-     * @throws IllegalArgumentException if the timestamp is negative or exceeds the total duration of the GIF.
-     *
-     * @throws IOException If an I/O error occurs.
-     */
-    @Throws(IOException::class)
-    fun readFrame(timestamp: JavaDuration): ImageFrame {
-        return baseDecoder.readFrame(timestamp.toKotlinDuration())
-    }
 
     /**
      * Reads a frame by its index.

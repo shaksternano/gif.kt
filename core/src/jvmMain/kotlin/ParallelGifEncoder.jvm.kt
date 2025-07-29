@@ -48,11 +48,13 @@ import java.time.Duration as JavaDuration
  *
  * @param sink The [Sink] to write the GIF data to.
  *
- * @param colorDifferenceTolerance The tolerance for color difference when performing transparency optimization.
+ * @param colorDifferenceTolerance The tolerance for color difference used by [colorSimilarityChecker]
+ * when performing transparency optimization.
  * Set to -1 to disable transparency optimization.
  *
- * @param quantizedColorDifferenceTolerance The tolerance for color difference when performing transparency
- * optimization after quantization. Set to -1 to disable post-quantization transparency optimization.
+ * @param quantizedColorDifferenceTolerance The tolerance for color difference used by [colorSimilarityChecker]
+ * when performing transparency optimization after quantization.
+ * Set to -1 to disable post-quantization transparency optimization.
  *
  * @param loopCount The number of times the GIF should loop. Set to 0 for infinite looping.
  * Set to -1 for no looping.
@@ -129,8 +131,13 @@ actual constructor(
 
     /**
      * Writes a single frame to the GIF.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
      *
-     * @param argb The ARGB pixel data for the frame,
+     * @param argb The ARGB pixel data for the frame.
+     * Each element in the array represents a pixel in ARGB format,
      * going row by row from top to bottom.
      *
      * @param width The width of the frame in pixels.
@@ -153,8 +160,13 @@ actual constructor(
 
     /**
      * Writes a single frame to the GIF.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
      *
-     * @param argb The ARGB pixel data for the frame,
+     * @param argb The ARGB pixel data for the frame.
+     * Each element in the array represents a pixel in ARGB format,
      * going row by row from top to bottom.
      *
      * @param width The width of the frame in pixels.
@@ -182,6 +194,10 @@ actual constructor(
 
     /**
      * Writes a single frame to the GIF.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
      *
      * @param image The [BufferedImage] containing the pixel data of the frame.
      *
@@ -201,6 +217,10 @@ actual constructor(
 
     /**
      * Writes a single frame to the GIF.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
      *
      * @param image The [BufferedImage] containing the pixel data of the frame.
      *
@@ -220,6 +240,10 @@ actual constructor(
 
     /**
      * Writes a single frame to the GIF.
+     * The frame may be skipped if the duration is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
      *
      * @param frame The [ImageFrame] containing the argb data, dimensions, and duration of the frame.
      *
@@ -232,8 +256,13 @@ actual constructor(
 
     /**
      * Writes a single frame to the GIF asynchronously.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
      *
-     * @param argb The ARGB pixel data for the frame,
+     * @param argb The ARGB pixel data for the frame.
+     * Each element in the array represents a pixel in ARGB format,
      * going row by row from top to bottom.
      *
      * @param width The width of the frame in pixels.
@@ -258,8 +287,13 @@ actual constructor(
 
     /**
      * Writes a single frame to the GIF asynchronously.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
      *
-     * @param argb The ARGB pixel data for the frame,
+     * @param argb The ARGB pixel data for the frame.
+     * Each element in the array represents a pixel in ARGB format,
      * going row by row from top to bottom.
      *
      * @param width The width of the frame in pixels.
@@ -289,6 +323,10 @@ actual constructor(
 
     /**
      * Writes a single frame to the GIF asynchronously.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
      *
      * @param image The [BufferedImage] containing the pixel data of the frame.
      *
@@ -310,6 +348,10 @@ actual constructor(
 
     /**
      * Writes a single frame to the GIF asynchronously.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
      *
      * @param image The [BufferedImage] containing the pixel data of the frame.
      *
@@ -331,6 +373,10 @@ actual constructor(
 
     /**
      * Writes a single frame to the GIF asynchronously.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
      *
      * @param frame The [ImageFrame] containing the argb data, dimensions, and duration of the frame.
      *
@@ -345,7 +391,7 @@ actual constructor(
 
     /**
      * Closes the encoder, ensuring all data is written.
-     * Closing the encoder also closes the underlying sink.
+     * Closing the encoder also closes the underlying [sink].
      *
      * @throws IOException If an I/O error occurs.
      */
@@ -356,7 +402,7 @@ actual constructor(
 
     /**
      * Closes the encoder asynchronously, ensuring all data is written.
-     * Closing the encoder also closes the underlying sink.
+     * Closing the encoder also closes the underlying [sink].
      *
      * @return A [CompletableFuture] that completes when the encoder has been closed.
      * The future will complete exceptionally with an [IOException] if an I/O error occurs.

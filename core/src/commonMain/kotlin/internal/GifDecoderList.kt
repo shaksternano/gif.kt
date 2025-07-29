@@ -11,7 +11,7 @@ internal open class GifDecoderList(
     override val size: Int = gifDecoder.frameCount
 
     override fun get(index: Int): ImageFrame {
-        return gifDecoder.readFrame(index)
+        return gifDecoder[index]
     }
 
     override fun iterator(): Iterator<ImageFrame> {

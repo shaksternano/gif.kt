@@ -179,13 +179,13 @@ actual constructor(
      */
     @Throws(IOException::class)
     suspend fun writeFrame(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: JavaDuration,
     ) {
         baseEncoder.writeFrame(
-            image,
+            argb,
             width,
             height,
             duration.toKotlinDuration(),
@@ -275,13 +275,13 @@ actual constructor(
      * The future will complete exceptionally with an [IOException] if an I/O error occurs.
      */
     fun writeFrameFuture(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: Duration,
     ): CompletableFuture<Void> {
         return coroutineScope.future {
-            baseEncoder.writeFrame(image, width, height, duration)
+            baseEncoder.writeFrame(argb, width, height, duration)
         }.thenAccept { }
     }
 
@@ -306,14 +306,14 @@ actual constructor(
      * The future will complete exceptionally with an [IOException] if an I/O error occurs.
      */
     fun writeFrameFuture(
-        image: IntArray,
+        argb: IntArray,
         width: Int,
         height: Int,
         duration: JavaDuration,
     ): CompletableFuture<Void> {
         return coroutineScope.future {
             baseEncoder.writeFrame(
-                image,
+                argb,
                 width,
                 height,
                 duration.toKotlinDuration(),
@@ -373,7 +373,7 @@ actual constructor(
 
     /**
      * Writes a single frame to the GIF asynchronously.
-     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * The frame may be skipped if the duration is below [minimumFrameDurationCentiseconds],
      * or if the frame is the same as or similar enough to the previous frame,
      * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
      * and [colorSimilarityChecker].

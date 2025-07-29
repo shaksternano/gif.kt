@@ -1,6 +1,9 @@
-package com.shakster.gifkt
+package com.shakster.gifkt.internal
 
-data class EuclideanSimilarityChecker(
+import com.shakster.gifkt.ColorSimilarityChecker
+import com.shakster.gifkt.RGB
+
+internal data class EuclideanSimilarityChecker(
     private val redWeight: Double,
     private val greenWeight: Double,
     private val blueWeight: Double,

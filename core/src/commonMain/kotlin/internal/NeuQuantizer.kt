@@ -25,8 +25,4 @@ internal data class NeuQuantizer(
             return "NeuQuantColorTable(colors=${colors.contentToString()})"
         }
     }
-
-    companion object {
-        internal const val NEU_QUANT_MAX_SAMPLING_FACTOR: Int = 30
-    }
 }

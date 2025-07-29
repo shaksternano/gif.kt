@@ -4,6 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class TestGifDecoder {
@@ -49,6 +50,28 @@ class TestGifDecoder {
             assertContentEquals(expectedRgb, frame.argb, "Frame $frameNumber")
             assertEquals(11, frame.width)
             assertEquals(29, frame.height)
+            assertEquals(expectedDuration, frame.duration)
+            assertEquals(expectedTimestamp, frame.timestamp)
+            assertEquals(i, frame.index)
+            expectedTimestamp += expectedDuration
+        }
+    }
+
+    @Test
+    fun testCorrectTransparency() {
+        val gifFrames = readGifFrames("media/dancecrazy/dance-crazy.gif")
+        assertEquals(2, gifFrames.size)
+        val expectedFrameDurations = listOf(30.milliseconds, 30.milliseconds)
+        var expectedTimestamp = Duration.ZERO
+        gifFrames.forEachIndexed { i, frame ->
+            val frameNumber = i + 1
+            val expectedRgb = loadImage("media/dancecrazy/dance-crazy-frame-$frameNumber.png").rgb
+            println(RGB(expectedRgb[0]))
+            println(RGB(frame.argb[1]))
+            val expectedDuration = expectedFrameDurations[i]
+            assertContentEquals(expectedRgb, frame.argb, "Frame $frameNumber")
+            assertEquals(84, frame.width)
+            assertEquals(128, frame.height)
             assertEquals(expectedDuration, frame.duration)
             assertEquals(expectedTimestamp, frame.timestamp)
             assertEquals(i, frame.index)

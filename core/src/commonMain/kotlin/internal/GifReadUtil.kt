@@ -267,17 +267,17 @@ internal fun getImageArgb(
 
         val useBackgroundColor = colorIndex < 0
         if (useBackgroundColor || colorIndex == currentTransparentColorIndex) {
-            if (
+            if (previousImage != null) {
+                previousImage[i]
+            } else if (
                 useBackgroundColor
                 && currentColorTable === globalColorTable
                 && backgroundColorIndex in 0..<globalColorTableColors
             ) {
                 getColor(globalColorTable, backgroundColorIndex)
-            } else if (previousImage == null) {
+            } else {
                 // Transparent
                 0
-            } else {
-                previousImage[i]
             }
         } else {
             getColor(currentColorTable, colorIndex)

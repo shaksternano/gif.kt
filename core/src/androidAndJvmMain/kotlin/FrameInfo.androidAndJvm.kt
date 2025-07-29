@@ -9,9 +9,9 @@ actual data class FrameInfo actual constructor(
     actual val timestamp: Duration,
 ) : Comparable<FrameInfo> {
 
-    val javaDuration: JavaDuration
+    inline val javaDuration: JavaDuration
         get() = duration.toJavaDuration()
-    val javaTimestamp: JavaDuration
+    inline val javaTimestamp: JavaDuration
         get() = timestamp.toJavaDuration()
 
     actual override fun compareTo(other: FrameInfo): Int {

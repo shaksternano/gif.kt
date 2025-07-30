@@ -137,6 +137,26 @@ actual class GifEncoderBuilder actual constructor(
     }
 
     /**
+     * Builds a [GifEncoder] with the specified parameters.
+     *
+     * @param onFrameWritten A callback that is invoked after each frame is written,
+     * providing the number of frames written and the total duration written so far.
+     * This can be used to track progress or update a UI.
+     *
+     * @return The constructed [GifEncoder].
+     */
+    fun buildJavaCallback(
+        onFrameWritten: OnFrameWrittenCallback,
+    ): GifEncoder {
+        return build { framesWritten, writtenDuration ->
+            onFrameWritten.onFrameWritten(
+                framesWritten,
+                writtenDuration.toJavaDuration(),
+            )
+        }
+    }
+
+    /**
      * Builds a [ParallelGifEncoder] with the specified parameters.
      *
      * @param onFrameWritten A callback that is invoked after each frame is written,
@@ -180,7 +200,7 @@ actual class GifEncoderBuilder actual constructor(
      *
      * @return The constructed [ParallelGifEncoder].
      */
-    fun buildParallelSyncCallback(
+    fun buildParallelJavaCallback(
         onFrameWritten: OnFrameWrittenCallback,
     ): ParallelGifEncoder {
         return buildParallel { framesWritten, writtenDuration ->

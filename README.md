@@ -184,3 +184,14 @@ encoder.writeFrameFuture(argb2, width2, height2, duration2).join();
 
 encoder.closeFuture().join();
 ```
+
+## Modules
+
+### Core
+
+The [core](https://github.com/shaksternano/gif.kt/tree/main/core) module contains the main library code.
+
+### CLI
+
+The [cli](https://github.com/shaksternano/gif.kt/tree/main/cli) module contains a command-line interface GIF encoder
+tool that uses the library to create GIFs from images, videos, and other GIFs.

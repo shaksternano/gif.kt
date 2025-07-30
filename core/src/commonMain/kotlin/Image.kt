@@ -1,5 +1,14 @@
 package com.shakster.gifkt
 
+/**
+ * Represents an image with pixel data in ARGB format.
+ *
+ * @property argb The pixel data in ARGB format.
+ * @property width The width of the image in pixels.
+ * @property height The height of the image in pixels.
+ * @property empty Indicates whether the image is empty,
+ * used to avoid iteration over [argb]
+ */
 data class Image(
     val argb: IntArray,
     val width: Int,

@@ -1,5 +1,25 @@
 package com.shakster.gifkt
 
+/**
+ * Represents quantized image data used in GIF encoding.
+ *
+ * @param imageColorIndices The indices of the colors in the image.
+ * Each index corresponds to a color in the [colorTable].
+ *
+ * @param width The width of the image in pixels.
+ *
+ * @param height The height of the image in pixels.
+ *
+ * @param x The x-coordinate of the top-left corner of the image within the GIF canvas.
+ *
+ * @param y The y-coordinate of the top-left corner of the image within the GIF canvas.
+ *
+ * @param colorTable The color table of the image,
+ * where each color is represented by three consecutive bytes: red, green, and blue.
+ *
+ * @param transparentColorIndex The index of the transparent color.
+ * A value of -1 indicates that there is no transparency in the image.
+ */
 data class QuantizedImageData(
     val imageColorIndices: ByteArray,
     val width: Int,

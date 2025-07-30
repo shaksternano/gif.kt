@@ -80,7 +80,32 @@ object GifCommand : CliktCommand() {
             }
         }
         .default(ColorQuantizer.NEU_QUANT)
-        .help("The color quantizer to use for reducing the number of colors in each frame to '--max-colors'. Available options: 'neuquant', 'neuquant-<samplingFactor>' where <samplingFactor> is an integer between 1 and ${ColorQuantizer.NEU_QUANT_MAX_SAMPLING_FACTOR}, or 'octree'.")
+        .help("The color quantizer to use for reducing the number of colors in each frame to '--max-colors'. Available options: 'neuquant', 'neuquant-<samplingFactor>' (where <samplingFactor> is an integer between 1 and ${ColorQuantizer.NEU_QUANT_MAX_SAMPLING_FACTOR}), or 'octree'.")
+
+    private val colorSimilarityChecker: ColorSimilarityChecker by option("--color-similarity-checker")
+        .convert {
+            when (it.lowercase()) {
+                "euclidean" -> ColorSimilarityChecker.EUCLIDEAN
+                "euclidean-luminance" -> ColorSimilarityChecker.EUCLIDEAN_LUMINANCE_WEIGHTING
+                "cielab" -> ColorSimilarityChecker.CIELAB
+                else -> {
+                    if (it.startsWith("euclidean-")) {
+                        val weights = it.substringAfter("-").split(",").map { weight ->
+                            weight.toDoubleOrNull()
+                                ?: fail("Invalid euclidean weights: $it. Must be three comma-separated doubles.")
+                        }
+                        require(weights.size == 3) {
+                            "Euclidean weights must be three comma-separated doubles."
+                        }
+                        ColorSimilarityChecker.euclidean(weights[0], weights[1], weights[2])
+                    } else {
+                        fail("Unknown color similarity checker: $it")
+                    }
+                }
+            }
+        }
+        .default(ColorSimilarityChecker.EUCLIDEAN_LUMINANCE_WEIGHTING)
+        .help("The color similarity checker to use for determining if two frames are similar enough to merge. Available options: 'euclidean', 'euclidean-luminance-weighting', 'euclidean-<redWeight>,<greenWeight>,<blueWeight>' (where <redWeight>, <greenWeight>, and <blueWeight> are numbers representing the weights for the red, green, and blue channels), or 'cielab'.")
 
     private val comment: String by option("--comment")
         .help("An optional comment to include in the GIF comment block metadata.")
@@ -149,6 +174,7 @@ object GifCommand : CliktCommand() {
             builder.loopCount = loopCount
             builder.maxColors = maxColors
             builder.colorQuantizer = colorQuantizer
+            builder.colorSimilarityChecker = colorSimilarityChecker
             builder.comment = comment
             builder.alphaFill = alphaFill
             builder.cropTransparent = cropTransparent

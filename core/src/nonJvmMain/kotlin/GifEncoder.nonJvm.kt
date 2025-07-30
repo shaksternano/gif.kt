@@ -7,6 +7,9 @@ import kotlin.time.Duration
 
 /**
  * A class for encoding GIF files.
+ * The dimensions of the created GIF are determined by the first frame written.
+ * Subsequent frames will have the same dimensions as the first frame,
+ * cropping or padding the frame to fit if necessary.
  * The encoder must be closed after use to ensure all data is written correctly.
  *
  * Usage:

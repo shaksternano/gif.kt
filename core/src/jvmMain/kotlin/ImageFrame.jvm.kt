@@ -11,6 +11,23 @@ import kotlin.time.toJavaDuration
 import kotlin.time.toKotlinDuration
 import java.time.Duration as JavaDuration
 
+/**
+ * Stores a single frame's data.
+ *
+ * @param argb The ARGB pixel data for the frame.
+ * Each element in the array represents a pixel in ARGB format,
+ * going row by row from top to bottom.
+ *
+ * @param width The width of the frame in pixels.
+ *
+ * @param height The height of the frame in pixels.
+ *
+ * @param duration The duration of the frame.
+ *
+ * @param timestamp The timestamp of the frame.
+ *
+ * @param index The index of the frame.
+ */
 actual data class ImageFrame actual constructor(
     actual val argb: IntArray,
     actual val width: Int,
@@ -20,6 +37,23 @@ actual data class ImageFrame actual constructor(
     actual val index: Int,
 ) : Comparable<ImageFrame> {
 
+    /**
+     * Constructs an [ImageFrame] from ARGB pixel data.
+     *
+     * @param argb The ARGB pixel data for the frame.
+     * Each element in the array represents a pixel in ARGB format,
+     * going row by row from top to bottom.
+     *
+     * @param width The width of the frame in pixels.
+     *
+     * @param height The height of the frame in pixels.
+     *
+     * @param duration The duration of the frame.
+     *
+     * @param timestamp The timestamp of the frame.
+     *
+     * @param index The index of the frame.
+     */
     constructor(
         argb: IntArray,
         width: Int,
@@ -36,6 +70,17 @@ actual data class ImageFrame actual constructor(
         index = index,
     )
 
+    /**
+     * Constructs an [ImageFrame] from a [BufferedImage].
+     *
+     * @param image The [BufferedImage] containing the pixel data for the frame.
+     *
+     * @param duration The duration of the frame.
+     *
+     * @param timestamp The timestamp of the frame.
+     *
+     * @param index The index of the frame.
+     */
     constructor(
         image: BufferedImage,
         duration: Duration,
@@ -50,6 +95,17 @@ actual data class ImageFrame actual constructor(
         index = index,
     )
 
+    /**
+     * Constructs an [ImageFrame] from a [BufferedImage].
+     *
+     * @param image The [BufferedImage] containing the pixel data for the frame.
+     *
+     * @param duration The duration of the frame.
+     *
+     * @param timestamp The timestamp of the frame.
+     *
+     * @param index The index of the frame.
+     */
     constructor(
         image: BufferedImage,
         duration: JavaDuration,
@@ -64,17 +120,32 @@ actual data class ImageFrame actual constructor(
         index = index,
     )
 
+    /**
+     * The duration of the frame.
+     */
     inline val javaDuration: JavaDuration
         get() = duration.toJavaDuration()
+
+    /**
+     * The timestamp of the frame.
+     */
     inline val javaTimestamp: JavaDuration
         get() = timestamp.toJavaDuration()
 
+    /**
+     * Converts this frame to a [BufferedImage].
+     *
+     * @return A [BufferedImage] representation of this frame.
+     */
     fun toBufferedImage(): BufferedImage {
         val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
         image.rgb = argb
         return image
     }
 
+    /**
+     * Compares this frame to another frame based on the [index].
+     */
     actual override fun compareTo(other: ImageFrame): Int {
         return index.compareTo(other.index)
     }
@@ -86,6 +157,11 @@ actual data class ImageFrame actual constructor(
     override fun toString(): String = toStringImpl()
 }
 
+/**
+ * Gets or sets the RGB pixel data of the [BufferedImage].
+ * Each element in the [IntArray] represents a pixel in ARGB format,
+ * going row by row from top to bottom.
+ */
 inline var BufferedImage.rgb: IntArray
     get() = getRGB(0, 0, width, height, null, 0, width)
     set(rgb) = setRGB(0, 0, width, height, rgb, 0, width)

@@ -5,6 +5,23 @@ import com.shakster.gifkt.internal.hashCodeImpl
 import com.shakster.gifkt.internal.toStringImpl
 import kotlin.time.Duration
 
+/**
+ * Stores a single frame's data.
+ *
+ * @param argb The ARGB pixel data for the frame.
+ * Each element in the array represents a pixel in ARGB format,
+ * going row by row from top to bottom.
+ *
+ * @param width The width of the frame in pixels.
+ *
+ * @param height The height of the frame in pixels.
+ *
+ * @param duration The duration of the frame.
+ *
+ * @param timestamp The timestamp of the frame.
+ *
+ * @param index The index of the frame.
+ */
 actual data class ImageFrame actual constructor(
     actual val argb: IntArray,
     actual val width: Int,
@@ -14,6 +31,9 @@ actual data class ImageFrame actual constructor(
     actual val index: Int,
 ) : Comparable<ImageFrame> {
 
+    /**
+     * Compares this frame to another frame based on the [index].
+     */
     actual override fun compareTo(other: ImageFrame): Int {
         return index.compareTo(other.index)
     }

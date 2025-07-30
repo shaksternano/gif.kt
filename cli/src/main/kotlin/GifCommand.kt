@@ -110,6 +110,16 @@ object GifCommand : CliktCommand() {
             }
         }
 
+    private val speed: Double by option("--speed")
+        .double()
+        .default(1.0)
+        .help("The speed of the GIF. A value of 1 is normal speed, 2 is twice as fast, and 0.5 is half as fast.")
+        .validate {
+            require(it > 0) {
+                "Speed must be positive."
+            }
+        }
+
     private val maxConcurrency: Int by option("--max-concurrency")
         .int()
         .default(Runtime.getRuntime().availableProcessors())
@@ -153,17 +163,25 @@ object GifCommand : CliktCommand() {
                 val progress = framesWritten.toDouble() / imageReader.frameCount
                 print("\r${renderProgressBar(progress)} Processed $framesWritten/${imageReader.frameCount} frames, $fpsFormatted FPS")
             }
-            runBlocking {
-                if (maxConcurrency == 1) {
-                    builder.build(onFrameWrittenCallback).use { encoder ->
-                        imageReader.readFrames().forEach { imageFrame ->
-                            encoder.writeFrame(imageFrame)
-                        }
+            if (maxConcurrency == 1) {
+                builder.build(onFrameWrittenCallback).use { encoder ->
+                    imageReader.readFrames().forEach { imageFrame ->
+                        encoder.writeFrame(
+                            imageFrame.copy(
+                                duration = imageFrame.duration / speed
+                            )
+                        )
                     }
-                } else {
+                }
+            } else {
+                runBlocking {
                     builder.buildParallel(onFrameWrittenCallback).use { encoder ->
                         imageReader.readFrames().forEach { imageFrame ->
-                            encoder.writeFrame(imageFrame)
+                            encoder.writeFrame(
+                                imageFrame.copy(
+                                    duration = imageFrame.duration / speed
+                                )
+                            )
                         }
                     }
                 }

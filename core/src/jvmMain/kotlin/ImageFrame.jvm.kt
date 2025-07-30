@@ -158,8 +158,8 @@ actual data class ImageFrame actual constructor(
 }
 
 /**
- * Gets or sets the RGB pixel data of the [BufferedImage].
- * Each element in the [IntArray] represents a pixel in ARGB format,
+ * The pixel data of this [BufferedImage].
+ * Each element in the array represents a pixel in ARGB format,
  * going row by row from top to bottom.
  */
 inline var BufferedImage.rgb: IntArray

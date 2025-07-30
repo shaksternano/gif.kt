@@ -30,8 +30,3 @@ actual interface RandomAccessData : AutoCloseable {
 actual fun RandomAccessData.Companion.of(path: Path): RandomAccessData {
     return of(path)
 }
-
-@Throws(IOException::class)
-actual fun Path.asRandomAccess(): RandomAccessData {
-    return RandomAccessData.of(this)
-}

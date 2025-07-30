@@ -53,11 +53,6 @@ actual fun RandomAccessData.Companion.of(path: Path): RandomAccessData {
 }
 
 @Throws(IOException::class)
-actual fun Path.asRandomAccess(): RandomAccessData {
-    return RandomAccessData.of(this)
-}
-
-@Throws(IOException::class)
 fun JavaPath.asRandomAccess(): RandomAccessData {
     return RandomAccessData.of(this)
 }

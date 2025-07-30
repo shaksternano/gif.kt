@@ -23,32 +23,6 @@ expect class GifEncoderBuilder(
     var coroutineScope: CoroutineScope
     var ioContext: CoroutineContext
 
-    fun colorDifferenceTolerance(colorTolerance: Double): GifEncoderBuilder
-
-    fun quantizedColorDifferenceTolerance(colorTolerance: Double): GifEncoderBuilder
-
-    fun loopCount(loopCount: Int): GifEncoderBuilder
-
-    fun maxColors(maxColors: Int): GifEncoderBuilder
-
-    fun colorQuantizer(colorQuantizer: ColorQuantizer): GifEncoderBuilder
-
-    fun colorSimilarityChecker(colorSimilarityChecker: ColorSimilarityChecker): GifEncoderBuilder
-
-    fun comment(comment: String): GifEncoderBuilder
-
-    fun alphaFill(alphaFill: Int): GifEncoderBuilder
-
-    fun cropTransparent(cropTransparent: Boolean): GifEncoderBuilder
-
-    fun minimumFrameDurationCentiseconds(durationCentiseconds: Int): GifEncoderBuilder
-
-    fun maxConcurrency(maxConcurrency: Int): GifEncoderBuilder
-
-    fun coroutineScope(coroutineScope: CoroutineScope): GifEncoderBuilder
-
-    fun ioContext(ioContext: CoroutineContext): GifEncoderBuilder
-
     fun build(
         onFrameWritten: (
             framesWritten: Int,

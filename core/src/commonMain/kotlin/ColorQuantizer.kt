@@ -8,7 +8,7 @@ import kotlin.jvm.JvmStatic
 /**
  * Interface for color quantization algorithms.
  *
- * This interface defines a method to quantize an array of RGB values
+ * This interface defines a function to quantize an array of RGB values
  * into a color table with a specified maximum number of colors.
  */
 fun interface ColorQuantizer {

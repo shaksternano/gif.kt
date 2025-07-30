@@ -29,7 +29,7 @@ actual data class FrameInfo actual constructor(
         get() = timestamp.toJavaDuration()
 
     /**
-     * Compares this frame to another frame based on the [timestamp].
+     * Compares this frame to another frame based on their [timestamp]s.
      */
     actual override fun compareTo(other: FrameInfo): Int {
         return timestamp.compareTo(other.timestamp)

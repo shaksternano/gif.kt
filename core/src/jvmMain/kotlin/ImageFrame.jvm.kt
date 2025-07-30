@@ -144,7 +144,7 @@ actual data class ImageFrame actual constructor(
     }
 
     /**
-     * Compares this frame to another frame based on the [index].
+     * Compares this frame to another frame based on their [indices][index].
      */
     actual override fun compareTo(other: ImageFrame): Int {
         return index.compareTo(other.index)

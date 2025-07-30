@@ -62,7 +62,7 @@ expect class ImageFrame(
     val index: Int
 
     /**
-     * Compares this frame to another frame based on the [index].
+     * Compares this frame to another frame based on their [indices][index].
      */
     override fun compareTo(other: ImageFrame): Int
 

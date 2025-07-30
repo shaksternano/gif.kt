@@ -25,7 +25,7 @@ expect class FrameInfo(
     val timestamp: Duration
 
     /**
-     * Compares this frame to another frame based on the [timestamp].
+     * Compares this frame to another frame based on their [timestamp]s.
      */
     override fun compareTo(other: FrameInfo): Int
 

@@ -18,7 +18,7 @@ fun interface OnFrameWrittenCallback {
      *
      * @param framesWritten The number of frames written so far.
      *
-     * @param writtenDuration The total duration written so far.
+     * @param writtenDuration The total duration of all frames written so far.
      */
     fun onFrameWritten(framesWritten: Int, writtenDuration: Duration)
 }

@@ -103,7 +103,7 @@ expect class GifEncoderBuilder(
      * Builds a [GifEncoder] with the specified parameters.
      *
      * @param onFrameWritten A callback that is invoked after each frame is written,
-     * providing the number of frames written and the total duration written so far.
+     * providing the number of frames written and the total duration of all the frames written so far.
      * This can be used to track progress or update a UI.
      *
      * @return The constructed [GifEncoder].

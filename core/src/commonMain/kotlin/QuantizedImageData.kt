@@ -1,7 +1,7 @@
 package com.shakster.gifkt
 
 /**
- * Represents quantized image data used in GIF encoding.
+ * Represents quantized image data that is to be encoded into a GIF frame.
  *
  * @param imageColorIndices The indices of the colors in the image.
  * Each index corresponds to a color in the [colorTable].

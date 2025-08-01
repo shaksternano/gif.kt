@@ -24,7 +24,7 @@ jobs:
                 uses: gradle/actions/setup-gradle@v4
 
             -   name: Generate Dokka documentation
-                run: ./gradlew dokkaHtml
+                run: ./gradlew dokkaHtml --stacktrace
 
             -   name: Deploy to Cloudflare
                 uses: cloudflare/wrangler-action@v3

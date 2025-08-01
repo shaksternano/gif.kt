@@ -1,0 +1,35 @@
+name: Deploy documentation
+on:
+    release:
+        types: [ released, prereleased ]
+
+jobs:
+    deploy_documentation:
+        name: Deploy documentation
+        runs-on: macOS-latest
+        permissions:
+            contents: read
+            deployments: write
+        steps:
+            -   name: Checkout sources
+                uses: actions/checkout@v4
+
+            -   name: Setup Java
+                uses: actions/setup-java@v4
+                with:
+                    distribution: "graalvm"
+                    java-version: 21
+
+            -   name: Setup Gradle
+                uses: gradle/actions/setup-gradle@v4
+
+            -   name: Generate Dokka documentation
+                run: ./gradlew dokkaHtml
+
+            -   name: Deploy to Cloudflare
+                uses: cloudflare/wrangler-action@v3
+                with:
+                    accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+                    apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+                    gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+                    command: pages deploy core/build/dokka/html --project-name=gifkt

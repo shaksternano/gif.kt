@@ -41,6 +41,8 @@ dependencies {
 </dependency>
 ```
 
+Requires JDK 8 or higher when targeting the JVM.
+
 ## Usage
 
 ### Decoding

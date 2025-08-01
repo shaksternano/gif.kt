@@ -1,5 +1,10 @@
 # gif.kt
 
+[![GitHub license](https://img.shields.io/github/license/shaksternano/gif.kt)](LICENSE)
+[![Download](https://img.shields.io/maven-central/v/com.shakster/gifkt)](https://central.sonatype.com/artifact/com.shakster/gifkt)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.2.0-blue.svg?logo=kotlin)](https://kotlinlang.org)
+[![Java](https://img.shields.io/badge/java-8-blue.svg?logo=openjdk)](https://www.java.com)
+
 A Kotlin Multiplatform GIF decoding and encoding library.
 
 ## Features

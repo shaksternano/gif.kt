@@ -148,7 +148,7 @@ mavenPublishing {
         name = rootProject.name
         description = "A Kotlin GIF encoding and decoding library"
         inceptionYear = "2024"
-        url = "https://github.com/shaksternano/gifkt"
+        url = "https://github.com/shaksternano/gif.kt"
         licenses {
             license {
                 name = "MIT"
@@ -163,9 +163,9 @@ mavenPublishing {
             }
         }
         scm {
-            url = "https://github.com/shaksternano/gifkt"
-            connection = "scm:git:git://github.com/shaksternano/gifkt.git"
-            developerConnection = "scm:git:ssh://github.com/shaksternano/gifkt.git"
+            url = "https://github.com/shaksternano/gif.kt"
+            connection = "scm:git:git://github.com/shaksternano/gif.kt.git"
+            developerConnection = "scm:git:ssh://github.com/shaksternano/gif.kt.git"
         }
     }
 }

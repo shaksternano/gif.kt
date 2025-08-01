@@ -1,11 +1,14 @@
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
+import java.net.URI
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.vanniktech.mavenPublish)
+    alias(libs.plugins.dokka)
 }
 
 if (isRunningTask("publishAllPublicationsToMavenCentralRepository")) {
@@ -170,6 +173,20 @@ mavenPublishing {
     }
 }
 
+tasks {
+    withType<DokkaTask>().configureEach {
+        dokkaSourceSets.configureEach {
+            moduleName = "gif.kt"
+            includes.from("README.md")
+            sourceLink {
+                localDirectory = file("src")
+                remoteUrl = URI("https://github.com/shaksternano/gif.kt/tree/main/core/src").toURL()
+                remoteLineSuffix = "#L"
+            }
+        }
+    }
+}
+
 fun isRunningTask(taskName: String): Boolean {
     return gradle.startParameter.taskNames.any {
         it.equals(taskName, ignoreCase = true)
@@ -178,19 +195,21 @@ fun isRunningTask(taskName: String): Boolean {
 
 fun KotlinSourceSet.registerChildSourceSets(vararg sourceSets: Any) {
     sourceSets.forEach {
-        if (it is KotlinSourceSet) {
-            it.dependsOn(this)
-        } else if (it is Provider<*>) {
-            val sourceSet = it.get()
-            if (sourceSet is KotlinSourceSet) {
-                sourceSet.dependsOn(this)
-            } else {
-                throw IllegalArgumentException(
-                    "Expected Provider<KotlinSourceSet>, got: Provider<${sourceSet::class.qualifiedName ?: "Any"}>"
-                )
+        when (it) {
+            is KotlinSourceSet -> it.dependsOn(this)
+
+            is Provider<*> -> {
+                val sourceSet = it.get()
+                when (sourceSet) {
+                    is KotlinSourceSet -> sourceSet.dependsOn(this)
+
+                    else -> throw IllegalArgumentException(
+                        "Expected Provider<KotlinSourceSet>, got: Provider<${sourceSet::class.qualifiedName ?: "Any"}>"
+                    )
+                }
             }
-        } else {
-            throw IllegalArgumentException(
+
+            else -> throw IllegalArgumentException(
                 "Expected KotlinSourceSet or Provider<KotlinSourceSet>, got: ${it::class.qualifiedName ?: "Any"}"
             )
         }

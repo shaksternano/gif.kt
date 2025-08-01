@@ -4,6 +4,7 @@
 [![Download](https://img.shields.io/maven-central/v/com.shakster/gifkt)](https://central.sonatype.com/artifact/com.shakster/gifkt)
 [![Kotlin](https://img.shields.io/badge/kotlin-2.2.0-blue.svg?logo=kotlin)](https://kotlinlang.org)
 [![Java](https://img.shields.io/badge/java-8-blue.svg?logo=openjdk)](https://www.java.com)
+[![KDoc link](https://img.shields.io/badge/API_reference-KDoc-blue)](https://gifkt.shakster.com)
 
 A Kotlin Multiplatform GIF decoding and encoding library.
 
@@ -49,6 +50,8 @@ dependencies {
 Requires JDK 8 or higher when targeting the JVM.
 
 ## Usage
+
+API documentation is available [here](https://gifkt.shakster.com).
 
 ### Decoding
 

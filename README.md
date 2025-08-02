@@ -203,5 +203,7 @@ The [core](core) module contains the main library code.
 
 ### CLI
 
-The [cli](cli) module contains a command-line interface GIF encoder
-tool that uses the library to create GIFs from images, videos, and other GIFs.
+The [cli](cli) module contains a command-line interface GIF encoder tool that uses the library to create GIFs from
+images, videos, and other GIFs.
+
+Requires JDK 21 to run.

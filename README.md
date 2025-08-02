@@ -41,7 +41,7 @@ dependencies {
 ```xml
 <dependency>
     <groupId>com.shakster</groupId>
-    <artifactId>gifkt</artifactId>
+    <artifactId>gifkt-jvm</artifactId>
     <!-- Replace $version with the latest version -->
     <version>$version</version>
 </dependency>

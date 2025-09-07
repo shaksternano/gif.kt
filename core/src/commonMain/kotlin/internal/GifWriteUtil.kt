@@ -112,6 +112,11 @@ internal fun optimizeTransparency(
         }
         val previousAlpha = previousArgb ushr 24
         val currentAlpha = currentArgb ushr 24
+        // Both are transparent
+        // Pixels are the same, even though RGB values are different
+        if (previousAlpha == 0 && currentAlpha == 0) {
+            return@IntArray 0
+        }
         // Previous is opaque, current is transparent
         if (previousAlpha != 0 && currentAlpha == 0) {
             if (safeTransparent) {
@@ -156,12 +161,7 @@ private fun areColorsSimilar(
     tolerance: Double,
     colorSimilarityChecker: ColorSimilarityChecker,
 ): Boolean {
-    val areEqual = rgb1 == rgb2
-    return if (areEqual || tolerance == 0.0) {
-        areEqual
-    } else {
-        colorSimilarityChecker.isSimilar(RGB(rgb1), RGB(rgb2), tolerance)
-    }
+    return colorSimilarityChecker.isSimilar(RGB(rgb1), RGB(rgb2), tolerance)
 }
 
 internal fun quantizeImage(

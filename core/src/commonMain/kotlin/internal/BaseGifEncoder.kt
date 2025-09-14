@@ -95,7 +95,7 @@ internal class BaseGifEncoder(
          */
         val targetWidth = this.width ?: width
         val targetHeight = this.height ?: height
-        val currentFrame = Image(argb, width, height)
+        val currentFrame = Image(argb.copyOf(), width, height)
             .cropOrPad(targetWidth, targetHeight)
             .fillPartialAlpha(alphaFill)
 

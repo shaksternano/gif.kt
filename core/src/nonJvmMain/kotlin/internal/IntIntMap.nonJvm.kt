@@ -8,7 +8,5 @@ internal actual class IntIntMap actual constructor() {
         throw NoSuchElementException("Key $key not found in map")
     }
 
-    actual fun put(key: Int, value: Int) {
-        backingMap.put(key, value)
-    }
+    actual operator fun set(key: Int, value: Int) = backingMap.set(key, value)
 }

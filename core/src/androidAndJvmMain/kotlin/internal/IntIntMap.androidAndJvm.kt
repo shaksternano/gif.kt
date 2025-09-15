@@ -9,5 +9,5 @@ internal actual class IntIntMap actual constructor() {
 
     actual operator fun get(key: Int): Int = primitiveMap[key]
 
-    actual fun put(key: Int, value: Int) = primitiveMap.put(key, value)
+    actual operator fun set(key: Int, value: Int) = primitiveMap.set(key, value)
 }

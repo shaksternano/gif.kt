@@ -1,15 +1,12 @@
 [versions]
 agp = "8.11.2"
-collection = "1.5.0"
 kotlin = "2.2.20"
 android-minSdk = "24"
 android-compileSdk = "36"
 kotlinx-coroutines = "1.10.2"
 kotlinx-io = "0.8.0"
 okio = "3.16.0"
-# Latest version compatible with JDK 8
-# noinspection NewerVersionAvailable
-eclipse-collections = "11.1.0"
+androidx-collection = "1.5.0"
 clikt = "5.0.3"
 javacv = "1.5.12"
 vanniktech-mavenPublish = "0.34.0"
@@ -18,7 +15,6 @@ graalvmNative = "0.11.0"
 dokka = "2.0.0"
 
 [libraries]
-androidx-collection = { module = "androidx.collection:collection", version.ref = "collection" }
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
@@ -26,6 +22,7 @@ kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.re
 kotlinx-io-okio = { module = "org.jetbrains.kotlinx:kotlinx-io-okio", version.ref = "kotlinx-io" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 okio-wasifilesystem = { module = "com.squareup.okio:okio-wasifilesystem", version.ref = "okio" }
+androidx-collection = { module = "androidx.collection:collection", version.ref = "androidx-collection" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 javacv = { module = "org.bytedeco:javacv-platform", version.ref = "javacv" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

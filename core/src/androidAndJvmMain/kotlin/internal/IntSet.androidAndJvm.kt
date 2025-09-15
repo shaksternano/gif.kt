@@ -1,24 +1,21 @@
 package com.shakster.gifkt.internal
 
-import org.eclipse.collections.api.factory.primitive.IntSets
-import org.eclipse.collections.api.iterator.MutableIntIterator
-import org.eclipse.collections.api.set.primitive.MutableIntSet
+import androidx.collection.MutableIntSet
+import androidx.collection.mutableIntSetOf
 
 internal actual class IntSet actual constructor() {
 
-    private val primitiveSet: MutableIntSet = IntSets.mutable.empty()
+    private val primitiveSet: MutableIntSet = mutableIntSetOf()
 
     actual val size: Int
-        get() = primitiveSet.size()
+        get() = primitiveSet.size
 
     actual fun add(value: Int): Boolean = primitiveSet.add(value)
 
-    actual operator fun iterator(): IntIterator = object : IntIterator() {
-
-        private val iterator: MutableIntIterator = primitiveSet.intIterator()
-
-        override fun nextInt(): Int = iterator.next()
-
-        override fun hasNext(): Boolean = iterator.hasNext()
+    actual fun forEachIndexed(action: (index: Int, Int) -> Unit) {
+        var index = 0
+        primitiveSet.forEach { element ->
+            action(index++, element)
+        }
     }
 }

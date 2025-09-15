@@ -9,12 +9,7 @@ internal actual class IntSet actual constructor() {
 
     actual fun add(value: Int): Boolean = backingSet.add(value)
 
-    actual operator fun iterator(): IntIterator = object : IntIterator() {
-
-        private val iterator: MutableIterator<Int> = backingSet.iterator()
-
-        override fun nextInt(): Int = iterator.next()
-
-        override fun hasNext(): Boolean = iterator.hasNext()
+    actual fun forEachIndexed(action: (index: Int, Int) -> Unit) {
+        backingSet.forEachIndexed(action)
     }
 }

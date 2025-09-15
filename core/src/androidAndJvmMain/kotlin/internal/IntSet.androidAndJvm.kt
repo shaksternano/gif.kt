@@ -12,7 +12,7 @@ internal actual class IntSet actual constructor() {
 
     actual fun add(value: Int): Boolean = primitiveSet.add(value)
 
-    actual fun forEachIndexed(action: (index: Int, Int) -> Unit) {
+    actual inline fun forEachIndexed(action: (index: Int, Int) -> Unit) {
         var index = 0
         primitiveSet.forEach { element ->
             action(index++, element)

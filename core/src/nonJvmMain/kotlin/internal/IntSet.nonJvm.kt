@@ -9,7 +9,5 @@ internal actual class IntSet actual constructor() {
 
     actual fun add(value: Int): Boolean = backingSet.add(value)
 
-    actual fun forEachIndexed(action: (index: Int, Int) -> Unit) {
-        backingSet.forEachIndexed(action)
-    }
+    actual inline fun forEachIndexed(action: (index: Int, Int) -> Unit) = backingSet.forEachIndexed(action)
 }

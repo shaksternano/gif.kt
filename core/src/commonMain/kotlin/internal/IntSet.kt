@@ -6,5 +6,5 @@ internal expect class IntSet() {
 
     fun add(value: Int): Boolean
 
-    fun forEachIndexed(action: (index: Int, Int) -> Unit)
+    inline fun forEachIndexed(action: (index: Int, Int) -> Unit)
 }

@@ -36,22 +36,6 @@ dependencies {
 }
 ```
 
-#### Android
-
-If you're developing an Android application, add the following in addition to the above:
-
-```kotlin
-android {
-    packaging {
-        resources {
-            // Part of Eclipse Collections
-            excludes += "LICENSE-EDL-1.0.txt"
-            excludes += "LICENSE-EPL-1.0.txt"
-        }
-    }
-}
-```
-
 ### Maven
 
 ```xml

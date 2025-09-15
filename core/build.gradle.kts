@@ -100,8 +100,7 @@ kotlin {
         }
         androidAndJvmMain.registerChildSourceSets(androidMain, jvmMain)
         androidAndJvmMain.dependencies {
-            implementation(libs.eclipse.collections.api)
-            runtimeOnly(libs.eclipse.collections)
+            implementation(libs.androidx.collection)
         }
 
         val parallelMain by creating {

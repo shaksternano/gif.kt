@@ -86,6 +86,14 @@ kotlin {
             implementation(libs.kotlinx.coroutines.android)
         }
 
+        nativeMain.dependencies {
+            implementation(libs.androidx.collection)
+        }
+
+        webMain.dependencies {
+            implementation(libs.androidx.collection)
+        }
+
         wasmWasiMain.dependencies {
             implementation(libs.okio.wasifilesystem)
         }
@@ -198,8 +206,7 @@ fun KotlinSourceSet.registerChildSourceSets(vararg sourceSets: Any) {
             is KotlinSourceSet -> it.dependsOn(this)
 
             is Provider<*> -> {
-                val sourceSet = it.get()
-                when (sourceSet) {
+                when (val sourceSet = it.get()) {
                     is KotlinSourceSet -> sourceSet.dependsOn(this)
 
                     else -> throw IllegalArgumentException(

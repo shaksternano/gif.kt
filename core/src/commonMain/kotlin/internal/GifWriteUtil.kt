@@ -173,7 +173,7 @@ internal fun quantizeImage(
     // Build color table
     val (argb, width, height) = image
     val rgbValues = ByteList()
-    val distinctColors = IntSet()
+    val distinctColors = intSetOf()
     var hasTransparent = forceTransparency
     argb.forEach { pixel ->
         val rgb = RGB(pixel)

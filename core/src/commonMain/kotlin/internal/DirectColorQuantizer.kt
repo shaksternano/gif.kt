@@ -14,10 +14,10 @@ internal data object DirectColorQuantizer : ColorQuantizer {
     ) : ColorTable {
 
         override val colors: ByteArray
-        private val colorIndices: IntIntMap = IntIntMap()
+        private val colorIndices: IntIntMap = intIntMapOf()
 
         init {
-            val distinctColors = IntSet()
+            val distinctColors = intSetOf()
             for (i in rgb.indices step 3) {
                 val red = rgb[i].toInt()
                 val green = rgb[i + 1].toInt()

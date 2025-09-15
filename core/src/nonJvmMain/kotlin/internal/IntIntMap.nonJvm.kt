@@ -1,6 +1,7 @@
 package com.shakster.gifkt.internal
 
-internal actual class IntIntMap actual constructor() {
+// Can't use typealias because of generics
+internal actual class IntIntMap() {
 
     private val backingMap: MutableMap<Int, Int> = hashMapOf()
 
@@ -10,3 +11,5 @@ internal actual class IntIntMap actual constructor() {
 
     actual operator fun set(key: Int, value: Int) = backingMap.set(key, value)
 }
+
+internal actual fun intIntMapOf(): IntIntMap = IntIntMap()

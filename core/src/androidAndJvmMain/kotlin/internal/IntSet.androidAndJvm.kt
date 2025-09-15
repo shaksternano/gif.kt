@@ -3,19 +3,13 @@ package com.shakster.gifkt.internal
 import androidx.collection.MutableIntSet
 import androidx.collection.mutableIntSetOf
 
-internal actual class IntSet actual constructor() {
+internal actual typealias IntSet = MutableIntSet
 
-    private val primitiveSet: MutableIntSet = mutableIntSetOf()
+internal actual fun intSetOf(): IntSet = mutableIntSetOf()
 
-    actual val size: Int
-        get() = primitiveSet.size
-
-    actual fun add(value: Int): Boolean = primitiveSet.add(value)
-
-    actual inline fun forEachIndexed(action: (index: Int, Int) -> Unit) {
-        var index = 0
-        primitiveSet.forEach { element ->
-            action(index++, element)
-        }
+internal actual inline fun IntSet.forEachIndexed(action: (index: Int, Int) -> Unit) {
+    var index = 0
+    forEach { element ->
+        action(index++, element)
     }
 }

@@ -5,9 +5,9 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 import java.net.URI
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.vanniktech.mavenPublish)
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.library)
+    alias(libs.plugins.vanniktech.maven.publish)
     alias(libs.plugins.dokka)
 }
 

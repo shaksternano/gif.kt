@@ -1,5 +1,5 @@
 [versions]
-agp = "8.11.2"
+android-gradle-plugin = "8.11.2"
 kotlin = "2.2.20"
 android-minSdk = "24"
 android-compileSdk = "36"
@@ -9,9 +9,9 @@ okio = "3.16.0"
 androidx-collection = "1.5.0"
 clikt = "5.0.3"
 javacv = "1.5.12"
-vanniktech-mavenPublish = "0.34.0"
-gradleShadow = "9.1.0"
-graalvmNative = "0.11.0"
+vanniktech-maven-publish = "0.34.0"
+gradle-shadow = "9.1.0"
+graalvm-native = "0.11.0"
 dokka = "2.0.0"
 
 [libraries]
@@ -28,9 +28,9 @@ javacv = { module = "org.bytedeco:javacv-platform", version.ref = "javacv" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
 [plugins]
-kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-androidLibrary = { id = "com.android.library", version.ref = "agp" }
-vanniktech-mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-mavenPublish" }
-gradleShadow = { id = "com.gradleup.shadow", version.ref = "gradleShadow" }
-graalvmNative = { id = "org.graalvm.buildtools.native", version.ref = "graalvmNative" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+android-library = { id = "com.android.library", version.ref = "android-gradle-plugin" }
+vanniktech-maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-maven-publish" }
+gradle-shadow = { id = "com.gradleup.shadow", version.ref = "gradle-shadow" }
+graalvm-native = { id = "org.graalvm.buildtools.native", version.ref = "graalvm-native" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

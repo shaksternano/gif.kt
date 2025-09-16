@@ -1,8 +1,8 @@
 plugins {
     kotlin("jvm")
     application
-    alias(libs.plugins.gradleShadow)
-    alias(libs.plugins.graalvmNative)
+    alias(libs.plugins.gradle.shadow)
+    alias(libs.plugins.graalvm.native)
 }
 
 base.archivesName = "gifkt-cli"

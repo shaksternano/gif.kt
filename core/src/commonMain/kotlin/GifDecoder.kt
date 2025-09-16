@@ -154,15 +154,25 @@ expect class GifDecoder(
     operator fun get(timestamp: Duration): ImageFrame
 
     /**
-     * Returns a [List] view of all frames in the GIF.
-     * The returned list's random access speed depends on the [cacheFrameInterval].
-     */
-    fun asList(): List<ImageFrame>
-
-    /**
      * Returns a [Sequence] view of all frames in the GIF.
+     *
+     * The sequence is backed by this [GifDecoder].
+     * [Closing][close] the decoder invalidates the sequence.
+     *
+     * @return A [Sequence] of [ImageFrame]s.
      */
     fun asSequence(): Sequence<ImageFrame>
+
+    /**
+     * Returns a [List] view of all frames in the GIF.
+     * The returned list's random access speed depends on the [cacheFrameInterval].
+     *
+     * The list is backed by this [GifDecoder].
+     * [Closing][close] the decoder invalidates the list.
+     *
+     * @return A [List] view of [ImageFrame]s.
+     */
+    fun asList(): List<ImageFrame>
 
     /**
      * Closes the decoder, closing the underlying [data].

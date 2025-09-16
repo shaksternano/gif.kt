@@ -254,8 +254,25 @@ actual constructor(
     }
 
     /**
+     * Returns a [Sequence] view of all frames in the GIF.
+     *
+     * The sequence is backed by this [GifDecoder].
+     * [Closing][close] the decoder invalidates the sequence.
+     *
+     * @return A [Sequence] of [ImageFrame]s.
+     */
+    actual fun asSequence(): Sequence<ImageFrame> {
+        return baseDecoder.asSequence()
+    }
+
+    /**
      * Returns a [List] view of all frames in the GIF.
      * The returned list's random access speed depends on the [cacheFrameInterval].
+     *
+     * The list is backed by this [GifDecoder].
+     * [Closing][close] the decoder invalidates the list.
+     *
+     * @return A [List] view of [ImageFrame]s.
      */
     actual fun asList(): List<ImageFrame> {
         return if (cacheFrameInterval == 1) {
@@ -263,13 +280,6 @@ actual constructor(
         } else {
             JvmGifDecoderList(this, baseDecoder)
         }
-    }
-
-    /**
-     * Returns a [Sequence] view of all frames in the GIF.
-     */
-    actual fun asSequence(): Sequence<ImageFrame> {
-        return baseDecoder.asSequence()
     }
 
     /**

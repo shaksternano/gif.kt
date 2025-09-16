@@ -16,7 +16,9 @@ expect class GifEncoderBuilder(
 
     /**
      * The tolerance for color difference used by [colorSimilarityChecker]
-     * when performing transparency optimization.
+     * when performing transparency optimization. Higher values will result in a smaller file size
+     * at the cost of visual artifacts. The default value of 0 slightly reduces file size with no visual quality loss.
+     * A value of around 0.01 provides a good tradeoff between file size and quality.
      *
      * Set to -1 to disable transparency optimization.
      */
@@ -24,7 +26,8 @@ expect class GifEncoderBuilder(
 
     /**
      * The tolerance for color difference used by [colorSimilarityChecker]
-     * when performing transparency optimization after quantization.
+     * when performing transparency optimization after quantization. Higher values will result in a smaller file size
+     * at the cost of visual artifacts. A value of around 0.02 provides a good tradeoff between file size and quality.
      *
      * Set to -1 to disable post-quantization transparency optimization.
      */

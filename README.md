@@ -189,10 +189,10 @@ int height2 = ...;
 Duration duration2 = ...;
 
 // Frames are encoded in parallel
-encoder.writeFrameFuture(argb1, width1, height1, duration1).join();
-encoder.writeFrameFuture(argb2, width2, height2, duration2).join();
-
-encoder.closeFuture().join();
+encoder.writeFrameFuture(argb1, width1, height1, duration1)
+    .thenCompose(unused -> encoder.writeFrameFuture(argb2, width2, height2, duration2))
+    .thenCompose(unused -> encoder.closeFuture())
+    .join();
 ```
 
 ## Modules

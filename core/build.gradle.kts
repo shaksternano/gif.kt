@@ -111,6 +111,11 @@ kotlin {
             implementation(libs.androidx.collection)
         }
 
+        val jsAndWasmMain by creating {
+            dependsOn(commonMain.get())
+        }
+        jsAndWasmMain.registerChildSourceSets(jsMain, wasmJsMain, wasmWasiMain)
+
         val parallelMain by creating {
             dependsOn(commonMain.get())
         }

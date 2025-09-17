@@ -1,9 +1,6 @@
 package com.shakster.gifkt
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.io.Sink
-import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 
 /**
@@ -12,7 +9,7 @@ import kotlin.time.Duration
  * @param sink The [Sink] to write the GIF data to.
  */
 actual class GifEncoderBuilder actual constructor(
-    internal val sink: Sink,
+    private val sink: Sink,
 ) {
 
     /**
@@ -93,24 +90,6 @@ actual class GifEncoderBuilder actual constructor(
      * slower than expected on some GIF viewers.
      */
     actual var minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS
-
-    /**
-     * The maximum number of frames that can be processed concurrently at the same time.
-     * Used when creating a `ParallelGifEncoder`.
-     */
-    actual var maxConcurrency: Int = 2
-
-    /**
-     * The [CoroutineScope] in which the concurrent encoding operations will run.
-     * Used when creating a `ParallelGifEncoder`.
-     */
-    actual var coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext)
-
-    /**
-     * The [CoroutineContext] to use for writing to the [sink].
-     * Used when creating a `ParallelGifEncoder`.
-     */
-    actual var ioContext: CoroutineContext = EmptyCoroutineContext
 
     /**
      * Builds a [GifEncoder] with the specified parameters.

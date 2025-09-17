@@ -1,6 +1,26 @@
 package com.shakster.gifkt
 
+import kotlinx.coroutines.CoroutineScope
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
+
+/**
+ * The maximum number of frames that can be processed concurrently at the same time.
+ * Used when creating a [ParallelGifEncoder].
+ */
+expect var GifEncoderBuilder.maxConcurrency: Int
+
+/**
+ * The [CoroutineScope] in which the concurrent encoding operations will run.
+ * Used when creating a [ParallelGifEncoder].
+ */
+expect var GifEncoderBuilder.coroutineScope: CoroutineScope
+
+/**
+ * The [CoroutineContext] to use for writing to the sink.
+ * Used when creating a [ParallelGifEncoder].
+ */
+expect var GifEncoderBuilder.ioContext: CoroutineContext
 
 /**
  * Builds a [ParallelGifEncoder] with the specified parameters.

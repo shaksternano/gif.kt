@@ -102,19 +102,19 @@ actual class GifEncoderBuilder actual constructor(
      * The maximum number of frames that can be processed concurrently at the same time.
      * Used when creating a [ParallelGifEncoder].
      */
-    actual var maxConcurrency: Int = 2
+    var maxConcurrency: Int = 2
 
     /**
      * The [CoroutineScope] in which the concurrent encoding operations will run.
      * Used when creating a [ParallelGifEncoder].
      */
-    actual var coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext)
+    var coroutineScope: CoroutineScope = CoroutineScope(EmptyCoroutineContext)
 
     /**
      * The [CoroutineContext] to use for writing to the [sink].
      * Used when creating a [ParallelGifEncoder].
      */
-    actual var ioContext: CoroutineContext = EmptyCoroutineContext
+    var ioContext: CoroutineContext = EmptyCoroutineContext
 
     /**
      * Builds a [GifEncoder] with the specified parameters.
@@ -247,6 +247,36 @@ actual class GifEncoderBuilder actual constructor(
         }
     }
 }
+
+/**
+ * The maximum number of frames that can be processed concurrently at the same time.
+ * Used when creating a [ParallelGifEncoder].
+ */
+actual var GifEncoderBuilder.maxConcurrency: Int
+    get() = maxConcurrency
+    set(maxConcurrency) {
+        this.maxConcurrency = maxConcurrency
+    }
+
+/**
+ * The [CoroutineScope] in which the concurrent encoding operations will run.
+ * Used when creating a [ParallelGifEncoder].
+ */
+actual var GifEncoderBuilder.coroutineScope: CoroutineScope
+    get() = coroutineScope
+    set(coroutineScope) {
+        this.coroutineScope = coroutineScope
+    }
+
+/**
+ * The [CoroutineContext] to use for writing to the [sink][GifEncoderBuilder.sink].
+ * Used when creating a [ParallelGifEncoder].
+ */
+actual var GifEncoderBuilder.ioContext: CoroutineContext
+    get() = ioContext
+    set(ioContext) {
+        this.ioContext = ioContext
+    }
 
 /**
  * Builds a [ParallelGifEncoder] with the specified parameters.

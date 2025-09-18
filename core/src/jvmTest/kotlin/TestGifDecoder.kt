@@ -76,4 +76,22 @@ class TestGifDecoder {
             expectedTimestamp += expectedDuration
         }
     }
+
+    @Test
+    fun testCorrectTransparency2() {
+        val gifFrames = readGifFrames("media/mona/mona.gif")
+
+        gifFrames.forEachIndexed { i, frame ->
+            println("Processing frame $i")
+
+            val expectedRgb = loadImage("media/mona/mona-$i.png").rgb
+            println("Expected: ${expectedRgb.joinToString(separator = ",").take(100)}...")
+            println("Actual:   ${frame.argb.joinToString(separator = ",").take(100)}...")
+
+            assertContentEquals(expectedRgb, frame.argb, "Frame $i")
+            assertEquals(256, frame.width)
+            assertEquals(96, frame.height)
+            assertEquals(i, frame.index)
+        }
+    }
 }

@@ -3,13 +3,23 @@ package com.shakster.gifkt.internal
 import kotlin.math.max
 
 /**
- * A mutable list of primitive [Byte]s.
- * Used for improved performance over a [MutableList] of boxed [Byte]s.
+ * A mutable list of [Byte]s. This class has several performance optimizations
+ * geared towards fast [Map] lookups when this list is used as a key while
+ * containing a large number of bytes:
+ * - Bytes are stored in a [primitive array][ByteArray], reducing the overhead of boxing
+ * on platforms that use boxing.
+ * - [Size][size] is compared first when checking for [equality][equals],
+ * avoiding comparing list contents when the sizes are different.
+ * - Native implementations are used to compare list contents when checking for
+ * [equality][equals] on platforms that have them.
+ * - [Hash code][hashCode] is calculated incrementally when elements are added, avoiding
+ * a large loop whenever the hash code is needed.
+ *
  */
 internal class ByteList private constructor(
     private var elements: ByteArray,
     size: Int,
-    private var hashCode: Int,
+    private var cachedHashCode: Int,
     private var lastHashCode: Int = 0,
 ) {
 
@@ -22,13 +32,13 @@ internal class ByteList private constructor(
     constructor() : this(
         elements = ByteArray(8),
         size = 0,
-        hashCode = 1,
+        cachedHashCode = 1,
     )
 
     constructor(element: Byte) : this(
         elements = byteArrayOf(element),
         size = 1,
-        hashCode = 31 + element,
+        cachedHashCode = 31 + element,
     )
 
     /**
@@ -45,8 +55,8 @@ internal class ByteList private constructor(
         }
         elements[size] = element
         size++
-        lastHashCode = hashCode
-        hashCode = getNewHashCode(hashCode, element)
+        lastHashCode = cachedHashCode
+        cachedHashCode = getNewHashCode(cachedHashCode, element)
     }
 
     /**
@@ -63,8 +73,8 @@ internal class ByteList private constructor(
         size = newSize
         for (i in 0..<elements.size) {
             val byte = elements[i]
-            lastHashCode = hashCode
-            hashCode = getNewHashCode(hashCode, byte)
+            lastHashCode = cachedHashCode
+            cachedHashCode = getNewHashCode(cachedHashCode, byte)
         }
     }
 
@@ -80,8 +90,8 @@ internal class ByteList private constructor(
         )
         size = newSize
         for (byte in elements) {
-            lastHashCode = hashCode
-            hashCode = getNewHashCode(hashCode, byte)
+            lastHashCode = cachedHashCode
+            cachedHashCode = getNewHashCode(cachedHashCode, byte)
         }
     }
 
@@ -90,7 +100,7 @@ internal class ByteList private constructor(
      */
     fun removeLast() {
         size--
-        hashCode = if (lastHashCode == 0) {
+        cachedHashCode = if (lastHashCode == 0) {
             calculateHashCode(elements, size)
         } else {
             lastHashCode
@@ -127,7 +137,7 @@ internal class ByteList private constructor(
      */
     fun clear() {
         size = 0
-        hashCode = 1
+        cachedHashCode = 1
         lastHashCode = 0
     }
 
@@ -138,7 +148,7 @@ internal class ByteList private constructor(
         ByteList(
             elements = elements.copyOf(size),
             size = size,
-            hashCode = hashCode,
+            cachedHashCode = cachedHashCode,
         )
 
     /**
@@ -155,8 +165,8 @@ internal class ByteList private constructor(
         return ByteList(
             elements = newElements,
             size = newSize,
-            hashCode = getNewHashCode(hashCode, element),
-            lastHashCode = hashCode,
+            cachedHashCode = getNewHashCode(cachedHashCode, element),
+            lastHashCode = cachedHashCode,
         )
     }
 
@@ -189,7 +199,7 @@ internal class ByteList private constructor(
         return true
     }
 
-    override fun hashCode(): Int = hashCode
+    override fun hashCode(): Int = cachedHashCode
 
     /**
      * An iterator over the elements in the list.

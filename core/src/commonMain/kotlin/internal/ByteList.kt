@@ -230,7 +230,7 @@ internal class ByteList private constructor(
         31 * currentHashCode + element
 }
 
-internal val ByteList.indices: IntRange
+internal inline val ByteList.indices: IntRange
     get() = 0..<size
 
 /**

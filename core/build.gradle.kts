@@ -190,10 +190,20 @@ tasks {
         dokkaSourceSets.configureEach {
             moduleName = "gif.kt"
             includes.from("README.md")
+            jdkVersion = 8
+
             sourceLink {
                 localDirectory = file("src")
                 remoteUrl = URI("https://github.com/shaksternano/gif.kt/tree/main/core/src").toURL()
                 remoteLineSuffix = "#L"
+            }
+
+            externalDocumentationLink {
+                url = URI("https://kotlinlang.org/api/kotlinx.coroutines/").toURL()
+            }
+
+            externalDocumentationLink {
+                url = URI("https://kotlinlang.org/api/kotlinx-io/").toURL()
             }
         }
     }

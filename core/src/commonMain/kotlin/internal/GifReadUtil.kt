@@ -273,6 +273,7 @@ internal fun getImageArgb(
             } else if (
                 useBackgroundColor
                 && currentColorTable === globalColorTable
+                && backgroundColorIndex != currentTransparentColorIndex
                 && backgroundColorIndex in 0..<globalColorTableColors
             ) {
                 getColor(globalColorTable, backgroundColorIndex)

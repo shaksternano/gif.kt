@@ -207,3 +207,13 @@ The [cli](cli) module contains a command-line interface GIF encoder tool that us
 images, videos, and other GIFs.
 
 Requires JDK 21 or higher to run.
+
+## Developing
+
+JDK 21 or higher is required to build the project.
+
+Run `./gradlew build` to build the project.
+
+Run `./gradlew cleanAllTests allTests` to run all tests.
+
+Run `./gradlew dokkaGenerate` to generate API documentation. The output will be in `core/build/dokka/html`.

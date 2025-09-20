@@ -257,7 +257,9 @@ actual constructor(
      * Returns a [Sequence] view of all frames in the GIF.
      *
      * The sequence is backed by this [GifDecoder]. [Closing][close] the decoder
-     * invalidates the sequence.
+     * invalidates the sequence. If you need to use the GIF frames after [closing][close]
+     * the decoder, store the sequence contents in a [list][Sequence.toList].
+     * However, be aware that this will use a large amount of memory for large GIFs.
      *
      * @return A [Sequence] of [ImageFrame]s.
      */

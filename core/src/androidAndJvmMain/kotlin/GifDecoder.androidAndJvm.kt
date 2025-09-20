@@ -118,7 +118,7 @@ actual constructor(
     ) : this(RandomAccessData.of(file), cacheFrameInterval)
 
     /**
-     * Constructs a GifDecoder, reading GIF data from a byte array.
+     * Constructs a `GifDecoder`, reading GIF data from a byte array.
      *
      * @param bytes The byte array containing the GIF data.
      *
@@ -256,8 +256,8 @@ actual constructor(
     /**
      * Returns a [Sequence] view of all frames in the GIF.
      *
-     * The sequence is backed by this [GifDecoder].
-     * [Closing][close] the decoder invalidates the sequence.
+     * The sequence is backed by this [GifDecoder]. [Closing][close] the decoder
+     * invalidates the sequence.
      *
      * @return A [Sequence] of [ImageFrame]s.
      */
@@ -266,11 +266,13 @@ actual constructor(
     }
 
     /**
-     * Returns a [List] view of all frames in the GIF.
-     * The returned list's random access speed depends on the [cacheFrameInterval].
+     * Returns a [List] view of all frames in the GIF. The returned list's random
+     * access speed depends on the [cacheFrameInterval].
      *
-     * The list is backed by this [GifDecoder].
-     * [Closing][close] the decoder invalidates the list.
+     * The list is backed by this [GifDecoder]. [Closing][close] the decoder
+     * invalidates the list. If you need to use the GIF frames after [closing][close]
+     * the decoder, make a [copy][Iterable.toList] of the list. However, be aware
+     * that this will use a large amount of memory for large GIFs.
      *
      * @return A [List] view of [ImageFrame]s.
      */

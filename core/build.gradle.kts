@@ -1,8 +1,6 @@
-import org.jetbrains.dokka.gradle.DokkaTask
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import java.net.URI
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -185,26 +183,25 @@ mavenPublishing {
     }
 }
 
-tasks {
-    withType<DokkaTask>().configureEach {
-        dokkaSourceSets.configureEach {
-            moduleName = "gif.kt"
-            includes.from("README.md")
-            jdkVersion = 8
+dokka {
+    moduleName = "gif.kt"
 
-            sourceLink {
-                localDirectory = file("src")
-                remoteUrl = URI("https://github.com/shaksternano/gif.kt/tree/main/core/src").toURL()
-                remoteLineSuffix = "#L"
-            }
+    dokkaSourceSets.configureEach {
+        includes.from("README.md")
+        jdkVersion = 8
 
-            externalDocumentationLink {
-                url = URI("https://kotlinlang.org/api/kotlinx.coroutines/").toURL()
-            }
+        sourceLink {
+            localDirectory = file("src")
+            remoteUrl("https://github.com/shaksternano/gif.kt/tree/main/core/src")
+            remoteLineSuffix = "#L"
+        }
 
-            externalDocumentationLink {
-                url = URI("https://kotlinlang.org/api/kotlinx-io/").toURL()
-            }
+        externalDocumentationLinks.register("kotlinx-coroutines") {
+            url("https://kotlinlang.org/api/kotlinx.coroutines")
+        }
+
+        externalDocumentationLinks.register("kotlinx-io") {
+            url("https://kotlinlang.org/api/kotlinx-io")
         }
     }
 }

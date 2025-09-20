@@ -12,7 +12,7 @@ javacv = "1.5.12"
 vanniktech-maven-publish = "0.34.0"
 gradle-shadow = "9.1.0"
 graalvm-native = "0.11.0"
-dokka = "2.0.0"
+dokka = "2.1.0-Beta"
 
 [libraries]
 kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }

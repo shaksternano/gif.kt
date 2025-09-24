@@ -1,3 +1,5 @@
+@file:JvmName("Main")
+
 package com.shakster.gifkt.cli
 
 import com.github.ajalt.clikt.core.main

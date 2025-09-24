@@ -33,7 +33,7 @@ dependencies {
     }
 }
 
-val mainClassFullName = "${project.group}.gifkt.cli.MainKt"
+val mainClassFullName = "${project.group}.gifkt.cli.Main"
 
 application {
     mainClass = mainClassFullName
@@ -82,7 +82,9 @@ tasks {
 /**
  * Exclude unused native libraries in order to reduce the JAR size.
  */
-fun ModuleDependency.excludeJavaCpp(vararg modules: String) = modules.forEach {
-    exclude(group = "org.bytedeco", module = it)
-    exclude(group = "org.bytedeco", module = "$it-platform")
+fun ModuleDependency.excludeJavaCpp(vararg modules: String) {
+    modules.forEach {
+        exclude(group = "org.bytedeco", module = it)
+        exclude(group = "org.bytedeco", module = "$it-platform")
+    }
 }

@@ -1,6 +1,7 @@
 [versions]
-android-gradle-plugin = "8.11.2"
 kotlin = "2.2.20"
+java = "8"
+android-gradle-plugin = "8.11.2"
 android-minSdk = "24"
 android-compileSdk = "36"
 kotlinx-coroutines = "1.10.2"
@@ -15,22 +16,26 @@ graalvm-native = "0.11.0"
 dokka = "2.1.0-Beta"
 
 [libraries]
-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
-kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
-kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
-kotlinx-io-core = { module = "org.jetbrains.kotlinx:kotlinx-io-core", version.ref = "kotlinx-io" }
-kotlinx-io-okio = { module = "org.jetbrains.kotlinx:kotlinx-io-okio", version.ref = "kotlinx-io" }
-okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
-okio-wasifilesystem = { module = "com.squareup.okio:okio-wasifilesystem", version.ref = "okio" }
-androidx-collection = { module = "androidx.collection:collection", version.ref = "androidx-collection" }
-clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
-javacv = { module = "org.bytedeco:javacv-platform", version.ref = "javacv" }
-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
+kotlinx-io-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io" }
+kotlinx-io-okio = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-okio", version.ref = "kotlinx-io" }
+okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
+okio-wasifilesystem = { group = "com.squareup.okio", name = "okio-wasifilesystem", version.ref = "okio" }
+androidx-collection = { group = "androidx.collection", name = "collection", version.ref = "androidx-collection" }
+clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "clikt" }
+javacv = { group = "org.bytedeco", name = "javacv-platform", version.ref = "javacv" }
+kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
+android-gradle-plugin = { group = "com.android.library", name = "com.android.library.gradle.plugin", version.ref = "android-gradle-plugin" }
+vanniktech-maven-publish-gradle-plugin = { group = "com.vanniktech", name = "gradle-maven-publish-plugin", version.ref = "vanniktech-maven-publish" }
+dokka-gradle-plugin = { group = "org.jetbrains.dokka", name = "dokka-gradle-plugin", version.ref = "dokka" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "android-gradle-plugin" }
 vanniktech-maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-maven-publish" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 gradle-shadow = { id = "com.gradleup.shadow", version.ref = "gradle-shadow" }
 graalvm-native = { id = "org.graalvm.buildtools.native", version.ref = "graalvm-native" }
-dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }

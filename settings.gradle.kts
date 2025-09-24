@@ -20,5 +20,7 @@ dependencyResolutionManagement {
     }
 }
 
+includeBuild("build-logic")
+
 include(":core")
 include(":cli")

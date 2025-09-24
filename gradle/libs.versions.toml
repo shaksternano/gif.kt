@@ -11,7 +11,7 @@ androidx-collection = "1.5.0"
 clikt = "5.0.3"
 javacv = "1.5.12"
 vanniktech-maven-publish = "0.34.0"
-gradle-shadow = "9.1.0"
+gradle-shadow = "9.2.1"
 graalvm-native = "0.11.0"
 dokka = "2.1.0-Beta"
 

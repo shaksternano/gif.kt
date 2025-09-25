@@ -28,18 +28,23 @@ fun KotlinMultiplatformExtension.configurePlatforms(javaVersion: String) {
     iosX64()
     iosArm64()
     iosSimulatorArm64()
+
     tvosX64()
     tvosArm64()
     tvosSimulatorArm64()
+
+    watchosX64()
     watchosArm32()
     watchosArm64()
     watchosDeviceArm64()
-    watchosX64()
     watchosSimulatorArm64()
+
     macosX64()
     macosArm64()
+
     linuxX64()
     linuxArm64()
+
     mingwX64()
 
     js {
@@ -82,7 +87,7 @@ fun LibraryExtension.configureAndroid(
     }
 }
 
-private fun getJvmTarget(javaVersion: String): JvmTarget {
+fun getJvmTarget(javaVersion: String): JvmTarget {
     val version = if (javaVersion.toInt() > 8) javaVersion else "1.$javaVersion"
     return JvmTarget.fromTarget(version)
 }

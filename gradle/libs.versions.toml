@@ -8,6 +8,7 @@ kotlinx-coroutines = "1.10.2"
 kotlinx-io = "0.8.0"
 okio = "3.16.0"
 androidx-collection = "1.5.0"
+compose-multiplatform = "1.9.0"
 clikt = "5.0.3"
 javacv = "1.5.12"
 vanniktech-maven-publish = "0.34.0"
@@ -24,6 +25,7 @@ kotlinx-io-okio = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-okio", v
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 okio-wasifilesystem = { group = "com.squareup.okio", name = "okio-wasifilesystem", version.ref = "okio" }
 androidx-collection = { group = "androidx.collection", name = "collection", version.ref = "androidx-collection" }
+compose-ui-graphics = { group = "org.jetbrains.compose.ui", name = "ui-graphics", version.ref = "compose-multiplatform" }
 clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "clikt" }
 javacv = { group = "org.bytedeco", name = "javacv-platform", version.ref = "javacv" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }

@@ -14,4 +14,5 @@ allprojects {
 
 dependencies {
     dokka(project(":core"))
+    dokka(project(":compose"))
 }

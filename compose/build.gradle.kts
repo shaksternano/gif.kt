@@ -86,7 +86,7 @@ mavenPublishing {
         project = project,
         artifactId = artifactId,
         pomName = "${rootProject.name} compose",
-        pomDescription = "Compose Multiplatform support for gif.kt"
+        pomDescription = "Compose Multiplatform integration for gif.kt"
     )
 }
 

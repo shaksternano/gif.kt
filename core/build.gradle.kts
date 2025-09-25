@@ -11,9 +11,13 @@ plugins {
 val artifactId = "gifkt"
 base.archivesName = artifactId
 
+val javaVersion = libs.versions.java.get()
+val androidCompileVersion = libs.versions.android.compileSdk.get()
+val androidMinVersion = libs.versions.android.minSdk.get()
+
 kotlin {
     configurePlatforms(
-        javaVersion = libs.versions.java.get(),
+        javaVersion = javaVersion,
     )
 
     sourceSets {
@@ -78,9 +82,9 @@ kotlin {
 
 android {
     configureAndroid(
-        androidCompileVersion = libs.versions.android.compileSdk.get(),
-        androidMinVersion = libs.versions.android.minSdk.get(),
-        javaVersion = libs.versions.java.get(),
+        androidCompileVersion = androidCompileVersion,
+        androidMinVersion = androidMinVersion,
+        javaVersion = javaVersion,
     )
 }
 
@@ -98,6 +102,6 @@ dokka {
     configureDokka(
         project = project,
         moduleName = "gifkt",
-        javaVersion = libs.versions.java.get(),
+        javaVersion = javaVersion,
     )
 }

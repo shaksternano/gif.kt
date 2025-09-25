@@ -201,6 +201,10 @@ encoder.writeFrameFuture(argb1, width1, height1, duration1)
 
 The [core](core) module contains the main library code.
 
+### Compose
+
+The [compose](compose) module contains [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform) integration.
+
 ### CLI
 
 The [cli](cli) module contains a command-line interface GIF encoder tool that uses the library to create GIFs from

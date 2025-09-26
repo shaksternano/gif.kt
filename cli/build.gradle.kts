@@ -31,6 +31,7 @@ dependencies {
             "videoinput",
         )
     }
+    implementation(libs.scrimage)
 }
 
 val mainClassFullName = "${project.group}.gifkt.cli.Main"

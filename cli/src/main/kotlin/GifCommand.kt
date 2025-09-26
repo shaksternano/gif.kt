@@ -10,10 +10,12 @@ import com.github.ajalt.clikt.parameters.types.double
 import com.github.ajalt.clikt.parameters.types.int
 import com.github.ajalt.clikt.parameters.types.path
 import com.shakster.gifkt.*
+import com.sksamuel.scrimage.ImmutableImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.io.IOException
 import java.nio.file.Path
+import java.util.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -108,8 +110,8 @@ object GifCommand : CliktCommand() {
         .help("The color similarity checker to use for determining if two frames are similar enough to merge. Available options: 'euclidean', 'euclidean-luminance-weighting', 'euclidean-<redWeight>,<greenWeight>,<blueWeight>' (where <redWeight>, <greenWeight>, and <blueWeight> are numbers representing the weights for the red, green, and blue channels), or 'cielab'.")
 
     private val comment: String by option("--comment")
-        .help("An optional comment to include in the GIF comment block metadata.")
         .default("")
+        .help("An optional comment to include in the GIF comment block metadata.")
 
     private val alphaFill: Int by option("--alpha-fill")
         .convert { option ->
@@ -132,6 +134,24 @@ object GifCommand : CliktCommand() {
         .validate {
             require(it > 0) {
                 "Minimum frame duration must be positive."
+            }
+        }
+
+    private val width: Int? by option("--width", "-w")
+        .int()
+        .help("The target width of the output GIF. If used with --height, the output will be scaled as large as possible to fit into the specified dimensions while maintaining the aspect ratio.")
+        .validate {
+            require(it > 0) {
+                "Width must be positive."
+            }
+        }
+
+    private val height: Int? by option("--height", "-h")
+        .int()
+        .help("The maximum height of the output GIF. If used with --width, the output will be scaled as large as possible to fit into the specified dimensions while maintaining the aspect ratio.")
+        .validate {
+            require(it > 0) {
+                "Height must be positive."
             }
         }
 
@@ -181,33 +201,25 @@ object GifCommand : CliktCommand() {
             builder.minimumFrameDurationCentiseconds = minimumFrameDurationCentiseconds
             builder.maxConcurrency = maxConcurrency
             builder.ioContext = Dispatchers.IO
-            val onFrameWrittenCallback = { framesWritten: Int, writtenDuration: Duration ->
+            val onFrameWrittenCallback = { framesWritten: Int, _: Duration ->
                 val time = TimeSource.Monotonic.markNow()
                 val timeTaken = time - startTime
                 val fps = framesWritten / timeTaken.toDouble(DurationUnit.SECONDS)
-                val fpsFormatted = String.format("%.2f", fps)
+                val fpsFormatted = String.format(Locale.ROOT, "%.2f", fps)
                 val progress = framesWritten.toDouble() / imageReader.frameCount
                 print("\r${renderProgressBar(progress)} Processed $framesWritten/${imageReader.frameCount} frames, $fpsFormatted FPS")
             }
             if (maxConcurrency == 1) {
                 builder.build(onFrameWrittenCallback).use { encoder ->
                     imageReader.readFrames().forEach { imageFrame ->
-                        encoder.writeFrame(
-                            imageFrame.copy(
-                                duration = imageFrame.duration / speed
-                            )
-                        )
+                        encoder.writeFrame(transformImageFrame(imageFrame))
                     }
                 }
             } else {
                 runBlocking {
                     builder.buildParallel(onFrameWrittenCallback).use { encoder ->
                         imageReader.readFrames().forEach { imageFrame ->
-                            encoder.writeFrame(
-                                imageFrame.copy(
-                                    duration = imageFrame.duration / speed
-                                )
-                            )
+                            encoder.writeFrame(transformImageFrame(imageFrame))
                         }
                     }
                 }
@@ -244,5 +256,51 @@ object GifCommand : CliktCommand() {
         }
         progressBar += "]"
         return progressBar
+    }
+
+    private fun transformImageFrame(imageFrame: ImageFrame): ImageFrame {
+        val width = width
+        val height = height
+
+        val resizeWidth = width != null && width != imageFrame.width
+        val resizeHeight = height != null && height != imageFrame.height
+
+        if (!resizeWidth && !resizeHeight && speed == 1.0) {
+            return imageFrame
+        }
+
+        val newArgb: IntArray
+        val newWidth: Int
+        val newHeight: Int
+        if (resizeWidth || resizeHeight) {
+            val image = imageFrame.toBufferedImage()
+            val resized = if (width != null && height != null) {
+                ImmutableImage.wrapAwt(image)
+                    .max(width, height)
+                    .awt()
+            } else if (width != null) {
+                ImmutableImage.wrapAwt(image)
+                    .scaleToWidth(width)
+                    .awt()
+            } else {
+                ImmutableImage.wrapAwt(image)
+                    .scaleToHeight(height!!)
+                    .awt()
+            }
+            newArgb = resized.rgb
+            newWidth = resized.width
+            newHeight = resized.height
+        } else {
+            newArgb = imageFrame.argb
+            newWidth = imageFrame.width
+            newHeight = imageFrame.height
+        }
+
+        return imageFrame.copy(
+            argb = newArgb,
+            width = newWidth,
+            height = newHeight,
+            duration = imageFrame.duration / speed,
+        )
     }
 }

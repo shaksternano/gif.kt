@@ -177,6 +177,8 @@ abstract class AsyncGifEncoder(
      *
      * @param duration The duration of the frame.
      *
+     * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
+     *
      * @throws IOException If an I/O error occurs.
      */
     suspend fun writeFrame(

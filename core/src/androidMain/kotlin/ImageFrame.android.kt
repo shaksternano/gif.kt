@@ -1,5 +1,6 @@
 package com.shakster.gifkt
 
+import com.shakster.gifkt.internal.checkDimensions
 import com.shakster.gifkt.internal.equalsImpl
 import com.shakster.gifkt.internal.hashCodeImpl
 import com.shakster.gifkt.internal.toStringImpl
@@ -24,6 +25,8 @@ import java.time.Duration as JavaDuration
  * @param timestamp The timestamp of the frame.
  *
  * @param index The index of the frame.
+ *
+ * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
  */
 actual data class ImageFrame actual constructor(
     actual val argb: IntArray,
@@ -66,6 +69,10 @@ actual data class ImageFrame actual constructor(
         timestamp = timestamp.toKotlinDuration(),
         index = index,
     )
+
+    init {
+        checkDimensions(argb, width, height)
+    }
 
     /**
      * The duration of the frame.

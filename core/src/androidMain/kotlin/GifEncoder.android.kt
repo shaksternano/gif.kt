@@ -144,6 +144,8 @@ actual constructor(
      *
      * @param duration The duration of the frame.
      *
+     * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
+     *
      * @throws IOException If an I/O error occurs.
      */
     @Throws(IOException::class)
@@ -177,6 +179,8 @@ actual constructor(
      * @param height The height of the frame in pixels.
      *
      * @param duration The duration of the frame.
+     *
+     * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
      *
      * @throws IOException If an I/O error occurs.
      */

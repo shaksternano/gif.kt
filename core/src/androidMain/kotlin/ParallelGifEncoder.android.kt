@@ -167,6 +167,8 @@ actual constructor(
      *
      * @param duration The duration of the frame.
      *
+     * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
+     *
      * @throws IOException If an I/O error occurs.
      */
     @Throws(IOException::class)
@@ -195,6 +197,8 @@ actual constructor(
      * @param height The height of the frame in pixels.
      *
      * @param duration The duration of the frame.
+     *
+     * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
      *
      * @throws IOException If an I/O error occurs.
      */
@@ -247,7 +251,7 @@ actual constructor(
      * @param duration The duration of the frame.
      *
      * @return A [CompletableFuture] that completes when the frame has been submitted for encoding.
-     * The future will complete exceptionally with an [IOException] if an I/O error occurs.
+     * The future will complete exceptionally with an [Exception] if an error occurs.
      */
     fun writeFrameFuture(
         argb: IntArray,
@@ -278,7 +282,7 @@ actual constructor(
      * @param duration The duration of the frame.
      *
      * @return A [CompletableFuture] that completes when the frame has been submitted for encoding.
-     * The future will complete exceptionally with an [IOException] if an I/O error occurs.
+     * The future will complete exceptionally with an [Exception] if an error occurs.
      */
     fun writeFrameFuture(
         argb: IntArray,
@@ -306,7 +310,7 @@ actual constructor(
      * @param frame The [ImageFrame] containing the argb data, dimensions, and duration of the frame.
      *
      * @return A [CompletableFuture] that completes when the frame has been submitted for encoding.
-     * The future will complete exceptionally with an [IOException] if an I/O error occurs.
+     * The future will complete exceptionally with an [Exception] if an error occurs.
      */
     fun writeFrameFuture(frame: ImageFrame): CompletableFuture<Void> {
         return coroutineScope.future {
@@ -330,7 +334,7 @@ actual constructor(
      * Closing the encoder also closes the underlying [sink].
      *
      * @return A [CompletableFuture] that completes when the encoder has been closed.
-     * The future will complete exceptionally with an [IOException] if an I/O error occurs.
+     * The future will complete exceptionally with an [Exception] if an error occurs.
      */
     fun closeFuture(): CompletableFuture<Void> {
         return coroutineScope.future {

@@ -1,5 +1,6 @@
 package com.shakster.gifkt
 
+import com.shakster.gifkt.internal.checkDimensions
 import com.shakster.gifkt.internal.equalsImpl
 import com.shakster.gifkt.internal.hashCodeImpl
 import com.shakster.gifkt.internal.toStringImpl
@@ -21,6 +22,8 @@ import kotlin.time.Duration
  * @param timestamp The timestamp of the frame.
  *
  * @param index The index of the frame.
+ *
+ * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
  */
 actual data class ImageFrame actual constructor(
     actual val argb: IntArray,
@@ -30,6 +33,10 @@ actual data class ImageFrame actual constructor(
     actual val timestamp: Duration,
     actual val index: Int,
 ) : Comparable<ImageFrame> {
+
+    init {
+        checkDimensions(argb, width, height)
+    }
 
     /**
      * Compares this frame to another frame based on their [indices][index].

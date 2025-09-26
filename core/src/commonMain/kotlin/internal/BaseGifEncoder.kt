@@ -78,6 +78,8 @@ internal class BaseGifEncoder(
         ) -> Unit,
         wrapIo: (() -> Unit) -> Unit = { it() },
     ): Boolean {
+        checkDimensions(argb, width, height)
+
         /*
          * Handle the minimum frame duration.
          */

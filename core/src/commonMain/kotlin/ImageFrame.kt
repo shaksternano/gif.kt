@@ -19,6 +19,8 @@ import kotlin.time.Duration.Companion.milliseconds
  * @param timestamp The timestamp of the frame.
  *
  * @param index The index of the frame.
+ *
+ * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
  */
 expect class ImageFrame(
     argb: IntArray,

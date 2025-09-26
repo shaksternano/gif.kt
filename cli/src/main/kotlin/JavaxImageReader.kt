@@ -16,6 +16,8 @@ class JavaxImageReader(
         index = 0,
     )
 
+    override val width: Int = imageFrame.width
+    override val height: Int = imageFrame.height
     override val frameCount: Int = 1
 
     override fun readFrames(): Sequence<ImageFrame> {

@@ -6,6 +6,8 @@ import java.nio.file.Path
 
 interface ImageReader : AutoCloseable {
 
+    val width: Int
+    val height: Int
     val frameCount: Int
 
     fun readFrames(): Sequence<ImageFrame>

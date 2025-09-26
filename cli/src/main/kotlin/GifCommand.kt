@@ -13,9 +13,12 @@ import com.shakster.gifkt.*
 import com.sksamuel.scrimage.ImmutableImage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
-import kotlinx.io.IOException
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.*
+import kotlin.io.path.isDirectory
+import kotlin.io.path.isRegularFile
+import kotlin.streams.asSequence
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.hours
@@ -31,11 +34,10 @@ object GifCommand : CliktCommand() {
     private val input: Path by option("--input", "-i")
         .path(
             mustExist = true,
-            canBeDir = false,
             mustBeReadable = true,
         )
         .required()
-        .help("The input file")
+        .help("The input file or directory. If a directory is specified, each file in the directory will be read in alphabetical order of filenames.")
 
     private val colorDifferenceTolerance: Double by option("--color-difference-tolerance")
         .double()
@@ -165,6 +167,16 @@ object GifCommand : CliktCommand() {
             }
         }
 
+    private val imageDuration: Double by option("--image-duration")
+        .double()
+        .default(1.0)
+        .help("If the input is a directory, this is the duration in seconds to assign to each static image in the directory.")
+        .validate {
+            require(it > 0) {
+                "Image durations must be positive."
+            }
+        }
+
     private val maxConcurrency: Int by option("--max-concurrency")
         .int()
         .default(Runtime.getRuntime().availableProcessors())
@@ -181,50 +193,105 @@ object GifCommand : CliktCommand() {
 
     override fun run() {
         val startTime = TimeSource.Monotonic.markNow()
-        try {
-            ImageReader.create(input)
-        } catch (_: IOException) {
-            println("Could not read $input")
-            return
-        }.use { imageReader ->
-            print("${renderProgressBar(0.0)} Processed 0/${imageReader.frameCount} frames, 0 FPS")
-            val builder = GifEncoder.builder(output)
-            builder.colorDifferenceTolerance = colorDifferenceTolerance
-            builder.quantizedColorDifferenceTolerance = quantizedColorDifferenceTolerance
-            builder.loopCount = loopCount
-            builder.maxColors = maxColors
-            builder.colorQuantizer = colorQuantizer
-            builder.colorSimilarityChecker = colorSimilarityChecker
-            builder.comment = comment
-            builder.alphaFill = alphaFill
-            builder.cropTransparent = cropTransparent
-            builder.minimumFrameDurationCentiseconds = minimumFrameDurationCentiseconds
-            builder.maxConcurrency = maxConcurrency
-            builder.ioContext = Dispatchers.IO
-            val onFrameWrittenCallback = { framesWritten: Int, _: Duration ->
-                val time = TimeSource.Monotonic.markNow()
-                val timeTaken = time - startTime
-                val fps = framesWritten / timeTaken.toDouble(DurationUnit.SECONDS)
-                val fpsFormatted = String.format(Locale.ROOT, "%.2f", fps)
-                val progress = framesWritten.toDouble() / imageReader.frameCount
-                print("\r${renderProgressBar(progress)} Processed $framesWritten/${imageReader.frameCount} frames, $fpsFormatted FPS")
+
+        val imageReaders = if (input.isDirectory()) {
+            Files.list(input)
+                .asSequence()
+                .filter {
+                    it.isRegularFile()
+                }
+                .sortedBy {
+                    it.fileName.toString()
+                }
+                .mapNotNull {
+                    try {
+                        ImageReader.create(it)
+                    } catch (_: Throwable) {
+                        println("Could not read $it, skipping")
+                        null
+                    }
+                }
+                .toList()
+                .ifEmpty {
+                    println("Could not read any files in directory $input")
+                    return
+                }
+        } else {
+            listOf(ImageReader.create(input))
+        }
+
+        val targetWidth = imageReaders.maxOf { it.width }
+        val targetHeight = imageReaders.maxOf { it.height }
+        val totalFrames = imageReaders.sumOf { it.frameCount }
+
+        print("${renderProgressBar(0.0)} Processed 0/$totalFrames frames, 0 FPS")
+
+        val builder = GifEncoder.builder(output)
+        builder.colorDifferenceTolerance = colorDifferenceTolerance
+        builder.quantizedColorDifferenceTolerance = quantizedColorDifferenceTolerance
+        builder.loopCount = loopCount
+        builder.maxColors = maxColors
+        builder.colorQuantizer = colorQuantizer
+        builder.colorSimilarityChecker = colorSimilarityChecker
+        builder.comment = comment
+        builder.alphaFill = alphaFill
+        builder.cropTransparent = cropTransparent
+        builder.minimumFrameDurationCentiseconds = minimumFrameDurationCentiseconds
+        builder.maxConcurrency = maxConcurrency
+        builder.ioContext = Dispatchers.IO
+
+        val onFrameWrittenCallback = { framesWritten: Int, _: Duration ->
+            val time = TimeSource.Monotonic.markNow()
+            val timeTaken = time - startTime
+            val fps = framesWritten / timeTaken.toDouble(DurationUnit.SECONDS)
+            val fpsFormatted = String.format(Locale.ROOT, "%.2f", fps)
+            val progress = framesWritten.toDouble() / totalFrames
+            print("\r${renderProgressBar(progress)} Processed $framesWritten/$totalFrames frames, $fpsFormatted FPS")
+        }
+
+        val frames = imageReaders.asSequence()
+            .flatMap { reader ->
+                sequence {
+                    reader.use {
+                        yieldAll(reader.readFrames().map {
+                            if (reader.frameCount > 1) {
+                                it
+                            } else {
+                                it.copy(
+                                    duration = imageDuration.seconds,
+                                )
+                            }
+                        })
+                    }
+                }
             }
+            .map { fitImageFrame(it, targetWidth, targetHeight) }
+            .map(::transformImageFrame)
+
+        try {
             if (maxConcurrency == 1) {
                 builder.build(onFrameWrittenCallback).use { encoder ->
-                    imageReader.readFrames().forEach { imageFrame ->
+                    frames.forEach { imageFrame ->
                         encoder.writeFrame(transformImageFrame(imageFrame))
                     }
                 }
             } else {
                 runBlocking {
                     builder.buildParallel(onFrameWrittenCallback).use { encoder ->
-                        imageReader.readFrames().forEach { imageFrame ->
+                        frames.forEach { imageFrame ->
                             encoder.writeFrame(transformImageFrame(imageFrame))
                         }
                     }
                 }
             }
+        } finally {
+            imageReaders.forEach {
+                runCatching {
+                    it.close()
+                }
+            }
         }
+
         val time = TimeSource.Monotonic.markNow()
         val timeTaken = time - startTime
         val durationUnits = listOf(
@@ -256,6 +323,21 @@ object GifCommand : CliktCommand() {
         }
         progressBar += "]"
         return progressBar
+    }
+
+    private fun fitImageFrame(imageFrame: ImageFrame, targetWidth: Int, targetHeight: Int): ImageFrame {
+        return if (imageFrame.width == targetWidth && imageFrame.height == targetHeight) {
+            imageFrame
+        } else {
+            val resized = ImmutableImage.wrapAwt(imageFrame.toBufferedImage())
+                .fit(targetWidth, targetHeight)
+            ImageFrame(
+                image = resized.awt(),
+                duration = imageFrame.duration,
+                timestamp = imageFrame.timestamp,
+                index = imageFrame.index,
+            )
+        }
     }
 
     private fun transformImageFrame(imageFrame: ImageFrame): ImageFrame {

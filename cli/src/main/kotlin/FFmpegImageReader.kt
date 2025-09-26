@@ -20,6 +20,8 @@ class FFmpegImageReader(
         it.start()
     }
 
+    override val width: Int = grabber.imageWidth
+    override val height: Int = grabber.imageHeight
     override val frameCount: Int = grabber.lengthInFrames
 
     override fun readFrames(): Sequence<ImageFrame> {

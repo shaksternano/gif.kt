@@ -12,6 +12,9 @@ class GifImageReader(
         path = input,
         cacheFrameInterval = 0,
     )
+
+    override val width: Int = decoder.width
+    override val height: Int = decoder.height
     override val frameCount: Int = decoder.frameCount
 
     override fun readFrames(): Sequence<ImageFrame> {

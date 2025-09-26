@@ -10,6 +10,7 @@ package com.shakster.gifkt
 enum class DisposalMethod(
     val id: Int,
 ) {
+
     /**
      * The decoder is not required to take
      * any action.

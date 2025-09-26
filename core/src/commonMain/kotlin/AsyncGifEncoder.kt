@@ -271,13 +271,18 @@ abstract class AsyncGifEncoder(
             return
         }
         val output = result.getOrThrow()
-        writeOrOptimizeGifImage(
-            output.quantizedImageData,
-            output.originalImage,
-            output.durationCentiseconds,
-            output.disposalMethod,
-            output.optimizedPreviousFrame,
-        )
+        try {
+            writeOrOptimizeGifImage(
+                output.quantizedImageData,
+                output.originalImage,
+                output.durationCentiseconds,
+                output.disposalMethod,
+                output.optimizedPreviousFrame,
+            )
+        } catch (t: Throwable) {
+            @OptIn(ExperimentalAtomicApi::class)
+            throwableReference.compareAndSet(null, t)
+        }
     }
 
     private suspend fun writeOrOptimizeGifImage(
@@ -335,10 +340,15 @@ abstract class AsyncGifEncoder(
             return
         }
         val output = result.getOrThrow()
-        wrapIo {
-            output.source.transferTo(sink)
+        try {
+            wrapIo {
+                output.source.transferTo(sink)
+            }
+            writtenFrameNotifications.send(output.duration)
+        } catch (t: Throwable) {
+            @OptIn(ExperimentalAtomicApi::class)
+            throwableReference.compareAndSet(null, t)
         }
-        writtenFrameNotifications.send(output.duration)
     }
 
     /**

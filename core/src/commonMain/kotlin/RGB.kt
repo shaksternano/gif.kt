@@ -5,7 +5,7 @@ import kotlin.jvm.JvmInline
 /**
  * Represents an ARGB color, with one byte per component.
  *
- * @property value An ARGB color value packed into an [Int].
+ * @param value An ARGB color value packed into an [Int].
  */
 @JvmInline
 value class RGB(val value: Int) {

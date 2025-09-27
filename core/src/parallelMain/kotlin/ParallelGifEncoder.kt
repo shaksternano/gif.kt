@@ -38,9 +38,11 @@ import kotlin.time.Duration
  * val duration2: Duration = ...
  *
  * // Frames are encoded in parallel
+ * // Suspending
  * encoder.writeFrame(argb1, width1, height1, duration1)
  * encoder.writeFrame(argb2, width2, height2, duration2)
  *
+ * // Suspending
  * encoder.close()
  * ```
  *

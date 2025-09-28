@@ -24,8 +24,14 @@ jobs:
             -   name: Upload core build artifacts
                 uses: actions/upload-artifact@v4
                 with:
-                    name: Artifacts
+                    name: Core Artifacts
                     path: core/build/libs/
+
+            -   name: Upload compose build artifacts
+                uses: actions/upload-artifact@v4
+                with:
+                    name: Compose Artifacts
+                    path: compose/build/libs/
 
             -   name: Upload cli build artifacts
                 uses: actions/upload-artifact@v4

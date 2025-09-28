@@ -253,6 +253,14 @@ The [core](core) module contains the main library code.
 
 The [compose](compose) module contains [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform) integration.
 
+#### Gradle
+
+```kotlin
+dependencies {
+    implementation("com.shakster:gifkt-compose:0.2.0")
+}
+```
+
 ### CLI
 
 The [cli](cli) module contains a command-line interface GIF encoder tool that uses the library to create GIFs from

@@ -12,11 +12,14 @@ fun MavenPublishBaseExtension.configurePublishing(
 ) {
     publishToMavenCentral()
 
-    val version = if (project.isRunningTask("publishToMavenLocal")) {
+    val version = if (project.isRunningTask("publishAllPublicationsToMavenCentralRepository")) {
         "${project.version}-SNAPSHOT"
     } else {
-        signAllPublications()
         project.version.toString()
+    }
+
+    if (!project.isRunningTask("publishToMavenLocal")) {
+        signAllPublications()
     }
 
     coordinates(project.group.toString(), artifactId, version)

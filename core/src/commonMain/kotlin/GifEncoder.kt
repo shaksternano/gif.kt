@@ -66,7 +66,9 @@ const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
  *
  * Set to -1 for no looping.
  *
- * @param maxColors The maximum number of colors in each frame, capped to [GIF_MAX_COLORS].
+ * @param maxColors The maximum number of colors in each frame.
+ *
+ * Must be between 1 and 256 inclusive.
  *
  * @param colorQuantizer The [ColorQuantizer] to use for reducing the number of colors in each frame to [maxColors].
  *
@@ -77,6 +79,7 @@ const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
  *
  * @param transparentAlphaThreshold The alpha threshold for a pixel to be considered transparent.
  * Pixels with an alpha value equal to or less than this value will be treated as fully transparent.
+ *
  * Must be between 0 and 255 inclusive.
  *
  * @param alphaFill The solid RGB color to use for filling in pixels with partial alpha transparency,
@@ -88,8 +91,10 @@ const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
  * This can reduce the size of the GIF by a small amount.
  *
  * @param minimumFrameDurationCentiseconds The minimum duration for each frame in centiseconds.
- * Setting this to a value less than [GIF_MINIMUM_FRAME_DURATION_CENTISECONDS] can result in the GIF being played
+ * Setting this to a value less than 2 can result in the GIF being played
  * slower than expected on some GIF viewers.
+ *
+ * Must be positive.
  *
  * @param onFrameWritten A callback that is invoked after each frame is written,
  * providing the number of frames written and the total duration of all the frames written so far.
@@ -133,7 +138,8 @@ expect class GifEncoder(
      *
      * @param duration The duration of the frame.
      *
-     * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
+     * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size]
+     * or [duration] is negative.
      *
      * @throws IOException If an I/O error occurs.
      */

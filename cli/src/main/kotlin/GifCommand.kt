@@ -60,7 +60,7 @@ object GifCommand : CliktCommand() {
         .help("he maximum number of colors in each frame. Must be between 1 and $GIF_MAX_COLORS.")
         .validate {
             require(it in 1..GIF_MAX_COLORS) {
-                "Max colors must be between 1 and $GIF_MAX_COLORS."
+                "Max colors must be between 1 and $GIF_MAX_COLORS inclusive."
             }
         }
 

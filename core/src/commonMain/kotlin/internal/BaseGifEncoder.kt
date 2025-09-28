@@ -13,7 +13,7 @@ internal class BaseGifEncoder(
     private val colorDifferenceTolerance: Double,
     private val quantizedColorDifferenceTolerance: Double,
     private val loopCount: Int,
-    maxColors: Int,
+    val maxColors: Int,
     private val colorQuantizer: ColorQuantizer,
     private val colorSimilarityChecker: ColorSimilarityChecker,
     private val comment: String,
@@ -24,6 +24,10 @@ internal class BaseGifEncoder(
 ) {
 
     init {
+        require(maxColors in 1..GIF_MAX_COLORS) {
+            "maxColors must be between 1 and $GIF_MAX_COLORS inclusive: $maxColors"
+        }
+
         require(transparentAlphaThreshold in 0..255) {
             "transparentAlphaThreshold must between 0 and 255 inclusive: $transparentAlphaThreshold"
         }
@@ -35,7 +39,6 @@ internal class BaseGifEncoder(
 
     private val optimizeTransparency: Boolean = colorDifferenceTolerance >= 0
     val optimizeQuantizedTransparency: Boolean = quantizedColorDifferenceTolerance >= 0
-    val maxColors: Int = maxColors.coerceIn(1, GIF_MAX_COLORS)
     private val minimumFrameDuration: Duration = minimumFrameDurationCentiseconds.centiseconds
 
     private var initialized: Boolean = false
@@ -84,6 +87,7 @@ internal class BaseGifEncoder(
         wrapIo: (() -> Unit) -> Unit = { it() },
     ): Boolean {
         checkDimensions(argb, width, height)
+        checkDurationIsNonNegative(duration)
 
         /*
          * Handle the minimum frame duration.

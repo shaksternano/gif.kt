@@ -6,6 +6,7 @@ import kotlinx.io.writeShortLe
 import kotlinx.io.writeString
 import kotlin.math.ceil
 import kotlin.math.log2
+import kotlin.time.Duration
 
 internal const val GIF_MINIMUM_COLOR_TABLE_SIZE: Int = 2
 internal const val GIF_MAX_BLOCK_SIZE: Int = 0xFF
@@ -15,6 +16,12 @@ internal fun checkDimensions(argb: IntArray, width: Int, height: Int) {
     val pixelCount = width * height
     require(pixelCount == argb.size) {
         "width * height must equal argb.size: $width * $height = $pixelCount != ${argb.size}"
+    }
+}
+
+internal fun checkDurationIsNonNegative(duration: Duration) {
+    require(!duration.isNegative()) {
+        "duration must be non-negative: $duration"
     }
 }
 

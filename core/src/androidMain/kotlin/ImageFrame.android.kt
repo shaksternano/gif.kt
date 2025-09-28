@@ -1,9 +1,6 @@
 package com.shakster.gifkt
 
-import com.shakster.gifkt.internal.checkDimensions
-import com.shakster.gifkt.internal.equalsImpl
-import com.shakster.gifkt.internal.hashCodeImpl
-import com.shakster.gifkt.internal.toStringImpl
+import com.shakster.gifkt.internal.*
 import kotlin.time.Duration
 import kotlin.time.toJavaDuration
 import kotlin.time.toKotlinDuration
@@ -26,7 +23,8 @@ import java.time.Duration as JavaDuration
  *
  * @param index The index of the frame.
  *
- * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
+ * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size]
+ * or [duration] is negative.
  */
 actual data class ImageFrame actual constructor(
     actual val argb: IntArray,
@@ -53,6 +51,9 @@ actual data class ImageFrame actual constructor(
      * @param timestamp The timestamp of the frame.
      *
      * @param index The index of the frame.
+     *
+     * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size]
+     * or [duration] is negative.
      */
     constructor(
         argb: IntArray,
@@ -72,6 +73,7 @@ actual data class ImageFrame actual constructor(
 
     init {
         checkDimensions(argb, width, height)
+        checkDurationIsNonNegative(duration)
     }
 
     /**

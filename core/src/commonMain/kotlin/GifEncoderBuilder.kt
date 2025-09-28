@@ -50,7 +50,9 @@ expect class GifEncoderBuilder(
     var loopCount: Int
 
     /**
-     * The maximum number of colors in each frame, capped to [GIF_MAX_COLORS].
+     * The maximum number of colors in each frame.
+     *
+     * Must be between 1 and 256 inclusive.
      */
     var maxColors: Int
 
@@ -73,6 +75,7 @@ expect class GifEncoderBuilder(
     /**
      * The alpha threshold for a pixel to be considered transparent.
      * Pixels with an alpha value equal to or less than this value will be treated as fully transparent.
+     *
      * Must be between 0 and 255 inclusive.
      */
     var transparentAlphaThreshold: Int
@@ -93,8 +96,10 @@ expect class GifEncoderBuilder(
 
     /**
      * The minimum duration for each frame in centiseconds.
-     * Setting this to a value less than [GIF_MINIMUM_FRAME_DURATION_CENTISECONDS] can result in the GIF being played
+     * Setting this to a value less than 2 can result in the GIF being played
      * slower than expected on some GIF viewers.
+     *
+     * Must be positive.
      */
     var minimumFrameDurationCentiseconds: Int
 

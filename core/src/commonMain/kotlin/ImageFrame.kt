@@ -20,7 +20,7 @@ import kotlin.time.Duration.Companion.milliseconds
  *
  * @param index The index of the frame.
  *
- * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
+ * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size] or [duration] is negative.
  */
 expect class ImageFrame(
     argb: IntArray,

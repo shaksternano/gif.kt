@@ -13,8 +13,8 @@ clikt = "5.0.3"
 javacv = "1.5.12"
 scrimage = "4.3.5"
 vanniktech-maven-publish = "0.34.0"
-gradle-shadow = "9.2.1"
-graalvm-native = "0.11.0"
+gradle-shadow = "9.2.2"
+graalvm-native = "0.11.1"
 dokka = "2.1.0-Beta"
 
 [libraries]

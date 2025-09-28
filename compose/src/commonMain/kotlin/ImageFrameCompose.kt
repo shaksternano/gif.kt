@@ -1,5 +1,7 @@
 package com.shakster.gifkt.compose
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import com.shakster.gifkt.ImageFrame
 
@@ -24,3 +26,13 @@ expect fun createImageBitmap(argb: IntArray, width: Int, height: Int): ImageBitm
 fun ImageFrame.toImageBitmap(): ImageBitmap {
     return createImageBitmap(argb, width, height)
 }
+
+/**
+ * Remember an [ImageBitmap] for the given [frame]. The bitmap is recreated only when the
+ * [frame] instance changes.
+ *
+ * @param frame Source image frame.
+ * @return The remembered [ImageBitmap] for this frame.
+ */
+@Composable
+fun rememberImageFrameBitmap(frame: ImageFrame): ImageBitmap = remember(frame) { frame.toImageBitmap() }

@@ -20,34 +20,80 @@ A Kotlin Multiplatform GIF decoding and encoding library.
 
 ## Installation
 
+Requires JDK 8 or higher when targeting the JVM.
+
 ### Gradle
 
 ```kotlin
 repositories {
     mavenCentral()
-
-    // Uncomment the next line to use snapshot releases
-    // maven("https://central.sonatype.com/repository/maven-snapshots")
+    google()
 }
 
 dependencies {
-    // Replace $version with the latest version
-    implementation("com.shakster:gifkt:$version")
+    implementation("com.shakster:gifkt:0.2.0")
 }
 ```
 
 ### Maven
 
 ```xml
-<dependency>
-    <groupId>com.shakster</groupId>
-    <artifactId>gifkt-jvm</artifactId>
-    <!-- Replace $version with the latest version -->
-    <version>$version</version>
-</dependency>
+<repositories>
+    <repository>
+        <id>google</id>
+        <url>https://maven.google.com</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>com.shakster</groupId>
+        <artifactId>gifkt-jvm</artifactId>
+        <version>0.2.0</version>
+    </dependency>
+</dependencies>
 ```
 
-Requires JDK 8 or higher when targeting the JVM.
+### Snapshots
+
+To use snapshot releases, add the Maven snapshot repository and append `-SNAPSHOT` to the version.
+
+#### Gradle
+
+```kotlin
+repositories {
+    mavenCentral()
+    google()
+    maven("https://central.sonatype.com/repository/maven-snapshots")
+}
+
+dependencies {
+    implementation("com.shakster:gifkt:0.2.0-SNAPSHOT")
+}
+```
+
+#### Maven
+
+```xml
+<repositories>
+    <repository>
+        <id>google</id>
+        <url>https://maven.google.com</url>
+    </repository>
+    <repository>
+        <id>maven-snapshots</id>
+        <url>https://central.sonatype.com/repository/maven-snapshots</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>com.shakster</groupId>
+        <artifactId>gifkt-jvm</artifactId>
+        <version>0.2.0-SNAPSHOT</version>
+    </dependency>
+</dependencies>
+```
 
 ## Usage
 

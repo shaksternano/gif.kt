@@ -2,10 +2,12 @@ package com.shakster.gifkt.gradle
 
 import com.android.build.api.dsl.LibraryExtension
 import org.gradle.api.JavaVersion
+import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.assign
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
 fun KotlinMultiplatformExtension.configurePlatforms(javaVersion: String) {
     jvmToolchain(javaVersion.toInt())
@@ -90,4 +92,26 @@ fun LibraryExtension.configureAndroid(
 fun getJvmTarget(javaVersion: String): JvmTarget {
     val version = if (javaVersion.toInt() > 8) javaVersion else "1.$javaVersion"
     return JvmTarget.fromTarget(version)
+}
+
+fun KotlinSourceSet.registerChildSourceSets(vararg sourceSets: Any) {
+    sourceSets.forEach {
+        when (it) {
+            is KotlinSourceSet -> it.dependsOn(this)
+
+            is Provider<*> -> {
+                when (val sourceSet = it.get()) {
+                    is KotlinSourceSet -> sourceSet.dependsOn(this)
+
+                    else -> throw IllegalArgumentException(
+                        "Expected Provider<KotlinSourceSet>, got: Provider<${sourceSet::class.qualifiedName ?: "Any"}>"
+                    )
+                }
+            }
+
+            else -> throw IllegalArgumentException(
+                "Expected KotlinSourceSet or Provider<KotlinSourceSet>, got: ${it::class.qualifiedName ?: "Any"}"
+            )
+        }
+    }
 }

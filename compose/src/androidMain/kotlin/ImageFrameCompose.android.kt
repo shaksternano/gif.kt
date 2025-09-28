@@ -14,9 +14,19 @@ import androidx.compose.ui.graphics.asImageBitmap
  * @param height The height of the image.
  *
  * @return An [ImageBitmap].
+ *
+ * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
  */
 actual fun createImageBitmap(argb: IntArray, width: Int, height: Int): ImageBitmap {
+    checkDimensions(argb, width, height)
     val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
     bitmap.setPixels(argb, 0, width, 0, 0, width, height)
     return bitmap.asImageBitmap()
+}
+
+private fun checkDimensions(argb: IntArray, width: Int, height: Int) {
+    val pixelCount = width * height
+    require(pixelCount == argb.size) {
+        "width * height must equal argb.size: $width * $height = $pixelCount != ${argb.size}"
+    }
 }

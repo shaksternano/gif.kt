@@ -11,6 +11,8 @@ import com.shakster.gifkt.ImageFrame
  * @param height The height of the image.
  *
  * @return An [ImageBitmap].
+ *
+ * @throws IllegalArgumentException If [width] x [height] is not equal to [argb].[size][IntArray.size].
  */
 expect fun createImageBitmap(argb: IntArray, width: Int, height: Int): ImageBitmap
 

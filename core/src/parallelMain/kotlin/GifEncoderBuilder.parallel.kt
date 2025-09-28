@@ -30,6 +30,8 @@ expect var GifEncoderBuilder.ioContext: CoroutineContext
  * This can be used to track progress or update a UI.
  *
  * @return The constructed [ParallelGifEncoder].
+ *
+ * @throws IllegalArgumentException If any of the builder parameters are invalid.
  */
 expect fun GifEncoderBuilder.buildParallel(
     onFrameWritten: suspend (

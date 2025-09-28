@@ -78,6 +78,13 @@ actual class GifEncoderBuilder actual constructor(
     actual var comment: String = ""
 
     /**
+     * The alpha threshold for a pixel to be considered transparent.
+     * Pixels with an alpha value equal to or less than this value will be treated as fully transparent.
+     * Must be between 0 and 255 inclusive.
+     */
+    actual var transparentAlphaThreshold: Int = 20
+
+    /**
      * The solid RGB color to use for filling in pixels with partial alpha transparency,
      * as GIFs do not support partial transparency.
      *
@@ -124,6 +131,8 @@ actual class GifEncoderBuilder actual constructor(
      * This can be used to track progress or update a UI.
      *
      * @return The constructed [GifEncoder].
+     *
+     * @throws IllegalArgumentException If any of the builder parameters are invalid.
      */
     @JvmOverloads
     actual fun build(
@@ -141,6 +150,7 @@ actual class GifEncoderBuilder actual constructor(
             colorQuantizer,
             colorSimilarityChecker,
             comment,
+            transparentAlphaThreshold,
             alphaFill,
             cropTransparent,
             minimumFrameDurationCentiseconds,
@@ -156,6 +166,8 @@ actual class GifEncoderBuilder actual constructor(
      * This can be used to track progress or update a UI.
      *
      * @return The constructed [GifEncoder].
+     *
+     * @throws IllegalArgumentException If any of the builder parameters are invalid.
      */
     fun buildJavaCallback(
         onFrameWritten: OnFrameWrittenCallback,
@@ -176,6 +188,8 @@ actual class GifEncoderBuilder actual constructor(
      * This can be used to track progress or update a UI.
      *
      * @return The constructed [ParallelGifEncoder].
+     *
+     * @throws IllegalArgumentException If any of the builder parameters are invalid.
      */
     @JvmOverloads
     fun buildParallel(
@@ -193,6 +207,7 @@ actual class GifEncoderBuilder actual constructor(
             colorQuantizer,
             colorSimilarityChecker,
             comment,
+            transparentAlphaThreshold,
             alphaFill,
             cropTransparent,
             minimumFrameDurationCentiseconds,
@@ -211,6 +226,8 @@ actual class GifEncoderBuilder actual constructor(
      * This can be used to track progress or update a UI.
      *
      * @return The constructed [ParallelGifEncoder].
+     *
+     * @throws IllegalArgumentException If any of the builder parameters are invalid.
      */
     fun buildParallelJavaCallback(
         onFrameWritten: OnFrameWrittenCallback,
@@ -232,6 +249,8 @@ actual class GifEncoderBuilder actual constructor(
      * This can be used to track progress or update a UI.
      *
      * @return The constructed [ParallelGifEncoder].
+     *
+     * @throws IllegalArgumentException If any of the builder parameters are invalid.
      */
     fun buildParallelFutureCallback(
         onFrameWritten: (
@@ -286,6 +305,8 @@ actual var GifEncoderBuilder.ioContext: CoroutineContext
  * This can be used to track progress or update a UI.
  *
  * @return The constructed [ParallelGifEncoder].
+ *
+ * @throws IllegalArgumentException If any of the builder parameters are invalid.
  */
 actual fun GifEncoderBuilder.buildParallel(
     onFrameWritten: suspend (

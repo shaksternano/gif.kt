@@ -115,6 +115,16 @@ object GifCommand : CliktCommand() {
         .default("")
         .help("An optional comment to include in the GIF comment block metadata.")
 
+    private val transparentAlphaThreshold: Int by option("--transparent-alpha-threshold")
+        .int()
+        .default(20)
+        .help("The alpha threshold for a pixel to be considered transparent. Pixels with an alpha value equal to or less than this value will be treated as fully transparent. Must be between 0 and 255 inclusive.")
+        .validate {
+            require(it in 0..255) {
+                "Transparent alpha threshold must be between 0 and 255 inclusive."
+            }
+        }
+
     private val alphaFill: Int by option("--alpha-fill")
         .convert { option ->
             option.toIntOrNull()
@@ -234,6 +244,7 @@ object GifCommand : CliktCommand() {
         builder.colorQuantizer = colorQuantizer
         builder.colorSimilarityChecker = colorSimilarityChecker
         builder.comment = comment
+        builder.transparentAlphaThreshold = transparentAlphaThreshold
         builder.alphaFill = alphaFill
         builder.cropTransparent = cropTransparent
         builder.minimumFrameDurationCentiseconds = minimumFrameDurationCentiseconds

@@ -17,12 +17,17 @@ internal class BaseGifEncoder(
     private val colorQuantizer: ColorQuantizer,
     private val colorSimilarityChecker: ColorSimilarityChecker,
     private val comment: String,
+    private val transparentAlphaThreshold: Int,
     private val alphaFill: Int,
     private val cropTransparent: Boolean,
     private val minimumFrameDurationCentiseconds: Int,
 ) {
 
     init {
+        require(transparentAlphaThreshold in 0..255) {
+            "transparentAlphaThreshold must between 0 and 255 inclusive: $transparentAlphaThreshold"
+        }
+
         require(minimumFrameDurationCentiseconds > 0) {
             "minimumFrameDurationCentiseconds must be positive: $minimumFrameDurationCentiseconds"
         }
@@ -237,6 +242,7 @@ internal class BaseGifEncoder(
         quantizeImage(
             image,
             maxColors,
+            transparentAlphaThreshold,
             colorQuantizer,
             optimizeQuantizedTransparency,
         )
@@ -471,6 +477,7 @@ internal class BaseGifEncoder(
             ", colorQuantizer=$colorQuantizer" +
             ", colorSimilarityChecker=$colorSimilarityChecker" +
             ", comment='$comment'" +
+            ", transparentAlphaThreshold=$transparentAlphaThreshold" +
             ", alphaFill=$alphaFill" +
             ", cropTransparent=$cropTransparent" +
             ", minimumFrameDurationCentiseconds=$minimumFrameDurationCentiseconds" +

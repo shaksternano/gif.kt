@@ -174,6 +174,7 @@ private fun areColorsSimilar(
 internal fun quantizeImage(
     image: Image,
     maxColors: Int,
+    transparentAlphaThreshold: Int,
     quantizer: ColorQuantizer,
     forceTransparency: Boolean,
 ): QuantizedImageData {
@@ -184,7 +185,7 @@ internal fun quantizeImage(
     var hasTransparent = forceTransparency
     argb.forEach { pixel ->
         val rgb = RGB(pixel)
-        if (rgb.alpha == 0) {
+        if (rgb.alpha <= transparentAlphaThreshold) {
             hasTransparent = true
         } else {
             rgbValues.add(rgb.red.toByte())
@@ -239,11 +240,10 @@ internal fun quantizeImage(
         val index = if (colorCount == 1) {
             0
         } else {
-            val alpha = pixel ushr 24
-            if (alpha == 0) {
+            val rgb = RGB(pixel)
+            if (rgb.alpha <= transparentAlphaThreshold) {
                 0
             } else {
-                val rgb = RGB(pixel)
                 quantizationResult.getColorIndex(rgb.red, rgb.green, rgb.blue) + indexOffset
             }
         }

@@ -75,6 +75,10 @@ const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
  *
  * @param comment An optional comment to include in the GIF comment block metadata.
  *
+ * @param transparentAlphaThreshold The alpha threshold for a pixel to be considered transparent.
+ * Pixels with an alpha value equal to or less than this value will be treated as fully transparent.
+ * Must be between 0 and 255 inclusive.
+ *
  * @param alphaFill The solid RGB color to use for filling in pixels with partial alpha transparency,
  * as GIFs do not support partial transparency.
  *
@@ -90,6 +94,8 @@ const val GIF_MINIMUM_FRAME_DURATION_CENTISECONDS: Int = 2
  * @param onFrameWritten A callback that is invoked after each frame is written,
  * providing the number of frames written and the total duration of all the frames written so far.
  * This can be used to track progress or update a UI.
+ *
+ * @throws IllegalArgumentException If any of the parameters are invalid.
  */
 expect class GifEncoder(
     sink: Sink,
@@ -100,6 +106,7 @@ expect class GifEncoder(
     colorQuantizer: ColorQuantizer = ColorQuantizer.NEU_QUANT,
     colorSimilarityChecker: ColorSimilarityChecker = ColorSimilarityChecker.EUCLIDEAN_LUMINANCE_WEIGHTING,
     comment: String = "",
+    transparentAlphaThreshold: Int = 20,
     alphaFill: Int = -1,
     cropTransparent: Boolean = true,
     minimumFrameDurationCentiseconds: Int = GIF_MINIMUM_FRAME_DURATION_CENTISECONDS,

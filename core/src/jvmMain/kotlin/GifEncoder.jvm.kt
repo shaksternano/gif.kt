@@ -77,6 +77,10 @@ import java.time.Duration as JavaDuration
  *
  * @param comment An optional comment to include in the GIF comment block metadata.
  *
+ * @param transparentAlphaThreshold The alpha threshold for a pixel to be considered transparent.
+ * Pixels with an alpha value equal to or less than this value will be treated as fully transparent.
+ * Must be between 0 and 255 inclusive.
+ *
  * @param alphaFill The solid RGB color to use for filling in pixels with partial alpha transparency,
  * as GIFs do not support partial transparency.
  *
@@ -92,6 +96,8 @@ import java.time.Duration as JavaDuration
  * @param onFrameWritten A callback that is invoked after each frame is written,
  * providing the number of frames written and the total duration of all the frames written so far.
  * This can be used to track progress or update a UI.
+ *
+ * @throws IllegalArgumentException If any of the parameters are invalid.
  */
 actual class GifEncoder
 @JvmOverloads
@@ -104,6 +110,7 @@ actual constructor(
     colorQuantizer: ColorQuantizer,
     colorSimilarityChecker: ColorSimilarityChecker,
     comment: String,
+    transparentAlphaThreshold: Int,
     alphaFill: Int,
     cropTransparent: Boolean,
     minimumFrameDurationCentiseconds: Int,
@@ -122,6 +129,7 @@ actual constructor(
         colorQuantizer,
         colorSimilarityChecker,
         comment,
+        transparentAlphaThreshold,
         alphaFill,
         cropTransparent,
         minimumFrameDurationCentiseconds,

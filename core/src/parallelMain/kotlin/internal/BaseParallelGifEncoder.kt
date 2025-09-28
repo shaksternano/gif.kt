@@ -17,6 +17,7 @@ internal class BaseParallelGifEncoder(
     private val colorQuantizer: ColorQuantizer,
     colorSimilarityChecker: ColorSimilarityChecker,
     comment: String,
+    private val transparentAlphaThreshold: Int,
     alphaFill: Int,
     cropTransparent: Boolean,
     minimumFrameDurationCentiseconds: Int,
@@ -36,6 +37,7 @@ internal class BaseParallelGifEncoder(
     colorQuantizer,
     colorSimilarityChecker,
     comment,
+    transparentAlphaThreshold,
     alphaFill,
     cropTransparent,
     minimumFrameDurationCentiseconds,
@@ -48,6 +50,7 @@ internal class BaseParallelGifEncoder(
             quantizeGifImage(
                 input.optimizedImage,
                 maxColors,
+                transparentAlphaThreshold,
                 colorQuantizer,
                 optimizeQuantizedTransparency,
             ),

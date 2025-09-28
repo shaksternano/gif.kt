@@ -60,6 +60,10 @@ import kotlin.time.Duration
  *
  * @param comment An optional comment to include in the GIF comment block metadata.
  *
+ * @param transparentAlphaThreshold The alpha threshold for a pixel to be considered transparent.
+ * Pixels with an alpha value equal to or less than this value will be treated as fully transparent.
+ * Must be between 0 and 255 inclusive.
+ *
  * @param alphaFill The solid RGB color to use for filling in pixels with partial alpha transparency,
  * as GIFs do not support partial transparency.
  *
@@ -75,6 +79,8 @@ import kotlin.time.Duration
  * @param maxConcurrency The maximum number of frames that can be processed concurrently at the same time.
  *
  * @param coroutineScope The [CoroutineScope] in which the concurrent encoding operations will run.
+ *
+ * @throws IllegalArgumentException If any of the parameters are invalid.
  */
 abstract class AsyncGifEncoder(
     private val sink: Sink,
@@ -85,6 +91,7 @@ abstract class AsyncGifEncoder(
     colorQuantizer: ColorQuantizer,
     colorSimilarityChecker: ColorSimilarityChecker,
     comment: String,
+    transparentAlphaThreshold: Int,
     alphaFill: Int,
     cropTransparent: Boolean,
     minimumFrameDurationCentiseconds: Int,
@@ -107,6 +114,7 @@ abstract class AsyncGifEncoder(
         colorQuantizer,
         colorSimilarityChecker,
         comment,
+        transparentAlphaThreshold,
         alphaFill,
         cropTransparent,
         minimumFrameDurationCentiseconds,
@@ -508,12 +516,14 @@ abstract class AsyncGifEncoder(
 fun quantizeGifImage(
     image: Image,
     maxColors: Int,
+    transparentAlphaThreshold: Int,
     quantizer: ColorQuantizer,
     forceTransparency: Boolean,
 ): QuantizedImageData {
     return quantizeImage(
         image,
         maxColors,
+        transparentAlphaThreshold,
         quantizer,
         forceTransparency,
     )

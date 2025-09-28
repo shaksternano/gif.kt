@@ -54,47 +54,6 @@ dependencies {
 </dependencies>
 ```
 
-### Snapshots
-
-To use snapshot releases, add the Maven snapshot repository and append `-SNAPSHOT` to the version.
-
-#### Gradle
-
-```kotlin
-repositories {
-    mavenCentral()
-    google()
-    maven("https://central.sonatype.com/repository/maven-snapshots")
-}
-
-dependencies {
-    implementation("com.shakster:gifkt:0.2.0-SNAPSHOT")
-}
-```
-
-#### Maven
-
-```xml
-<repositories>
-    <repository>
-        <id>google</id>
-        <url>https://maven.google.com</url>
-    </repository>
-    <repository>
-        <id>maven-snapshots</id>
-        <url>https://central.sonatype.com/repository/maven-snapshots</url>
-    </repository>
-</repositories>
-
-<dependencies>
-    <dependency>
-        <groupId>com.shakster</groupId>
-        <artifactId>gifkt-jvm</artifactId>
-        <version>0.2.0-SNAPSHOT</version>
-    </dependency>
-</dependencies>
-```
-
 ## Usage
 
 API documentation is available [here](https://gifkt.shakster.com).
@@ -277,3 +236,45 @@ Run `./gradlew build` to build the project.
 Run `./gradlew cleanAllTests allTests` to run all tests.
 
 Run `./gradlew dokkaGenerate` to generate API documentation. The output will be in `core/build/dokka/html`.
+
+## Snapshot Releases
+
+A snapshot release is published with every push to the main branch.
+To use a snapshot release, add the Maven snapshot repository and append `-SNAPSHOT` to the version.
+
+### Gradle
+
+```kotlin
+repositories {
+    mavenCentral()
+    google()
+    maven("https://central.sonatype.com/repository/maven-snapshots")
+}
+
+dependencies {
+    implementation("com.shakster:gifkt:0.2.0-SNAPSHOT")
+}
+```
+
+### Maven
+
+```xml
+<repositories>
+    <repository>
+        <id>google</id>
+        <url>https://maven.google.com</url>
+    </repository>
+    <repository>
+        <id>maven-snapshots</id>
+        <url>https://central.sonatype.com/repository/maven-snapshots</url>
+    </repository>
+</repositories>
+
+<dependencies>
+    <dependency>
+        <groupId>com.shakster</groupId>
+        <artifactId>gifkt-jvm</artifactId>
+        <version>0.2.0-SNAPSHOT</version>
+    </dependency>
+</dependencies>
+```

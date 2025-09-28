@@ -1,9 +1,12 @@
+@file:JvmName("GifEncoderFileSystem")
+
 package com.shakster.gifkt
 
 import kotlinx.io.IOException
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import kotlin.jvm.JvmName
 
 /**
  * Creates a new [GifEncoderBuilder] for configuring and building a [GifEncoder].

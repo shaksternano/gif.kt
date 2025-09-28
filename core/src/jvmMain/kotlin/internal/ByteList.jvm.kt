@@ -1,3 +1,5 @@
+@file:JvmName("ByteListJvm")
+
 package com.shakster.gifkt.internal
 
 import java.lang.invoke.MethodHandle

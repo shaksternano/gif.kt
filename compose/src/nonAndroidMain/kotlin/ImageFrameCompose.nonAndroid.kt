@@ -1,3 +1,5 @@
+@file:JvmName("ImageFrameComposeNonAndroid")
+
 package com.shakster.gifkt.compose
 
 import androidx.compose.ui.graphics.ImageBitmap
@@ -6,6 +8,7 @@ import org.jetbrains.skia.ColorAlphaType
 import org.jetbrains.skia.ColorType
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
+import kotlin.jvm.JvmName
 
 /**
  * Creates an [ImageBitmap] from [ARGB][argb] data.

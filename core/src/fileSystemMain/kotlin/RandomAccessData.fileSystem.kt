@@ -1,7 +1,10 @@
+@file:JvmName("RandomAccessDataFileSystem")
+
 package com.shakster.gifkt
 
 import kotlinx.io.IOException
 import kotlinx.io.files.Path
+import kotlin.jvm.JvmName
 import kotlin.jvm.JvmSynthetic
 
 /**

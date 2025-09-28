@@ -1,3 +1,5 @@
+@file:JvmName("IntIntMapJvm")
+
 package com.shakster.gifkt.internal
 
 import androidx.collection.MutableIntIntMap

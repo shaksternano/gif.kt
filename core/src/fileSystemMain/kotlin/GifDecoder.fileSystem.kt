@@ -1,8 +1,11 @@
+@file:JvmName("GifDecoderFileSystem")
+
 package com.shakster.gifkt
 
 import com.shakster.gifkt.internal.DEFAULT_GIF_CACHE_FRAME_INTERVAL
 import kotlinx.io.IOException
 import kotlinx.io.files.Path
+import kotlin.jvm.JvmName
 
 /**
  * Constructs a GifDecoder, reading GIF data from a file.

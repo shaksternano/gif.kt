@@ -1,3 +1,5 @@
+@file:JvmName("IntSetJvm")
+
 package com.shakster.gifkt.internal
 
 import androidx.collection.MutableIntSet

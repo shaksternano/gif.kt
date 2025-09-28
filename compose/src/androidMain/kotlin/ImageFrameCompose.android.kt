@@ -1,3 +1,5 @@
+@file:JvmName("ImageFrameComposeAndroid")
+
 package com.shakster.gifkt.compose
 
 import android.graphics.Bitmap

@@ -1,7 +1,10 @@
+@file:JvmName("GifEncoderBuilderParallel")
+
 package com.shakster.gifkt
 
 import kotlinx.coroutines.CoroutineScope
 import kotlin.coroutines.CoroutineContext
+import kotlin.jvm.JvmName
 import kotlin.time.Duration
 
 /**

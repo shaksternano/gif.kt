@@ -1,3 +1,5 @@
+@file:JvmName("GifEncoderBuilderJvm")
+
 package com.shakster.gifkt
 
 import kotlinx.coroutines.CoroutineScope

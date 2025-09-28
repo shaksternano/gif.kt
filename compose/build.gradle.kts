@@ -70,8 +70,8 @@ kotlin {
 
         commonMain.dependencies {
             api(project(":core"))
+            implementation(compose.runtime)
             api(libs.compose.ui.graphics)
-            api(compose.runtime)
         }
     }
 }

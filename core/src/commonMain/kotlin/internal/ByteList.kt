@@ -44,7 +44,9 @@ internal class ByteList private constructor(
     /**
      * Returns the element at the specified [index] in the list.
      */
-    operator fun get(index: Int): Byte = elements[index]
+    operator fun get(index: Int): Byte {
+        return elements[index]
+    }
 
     /**
      * Adds the specified [element] to the end of this list.
@@ -144,12 +146,13 @@ internal class ByteList private constructor(
     /**
      * Returns a new [ByteList] with the same elements as this list.
      */
-    fun copyOf(): ByteList =
-        ByteList(
+    fun copyOf(): ByteList {
+        return ByteList(
             elements = elements.copyOf(size),
             size = size,
             cachedHashCode = cachedHashCode,
         )
+    }
 
     /**
      * Returns a new [ByteArray] with the same elements as this list followed by the specified [element].
@@ -173,19 +176,23 @@ internal class ByteList private constructor(
     /**
      * Returns a new [ByteArray] with the same elements as this list.
      */
-    fun toByteArray(): ByteArray =
-        elements.copyOf(size)
+    fun toByteArray(): ByteArray {
+        return elements.copyOf(size)
+    }
 
     /**
      * Decodes a string from the bytes in UTF-8 encoding in this list.
      */
-    fun decodeToString(): String =
-        elements.decodeToString(endIndex = size)
+    fun decodeToString(): String {
+        return elements.decodeToString(endIndex = size)
+    }
 
     /**
      * Returns a new [Iterator] over the elements in this list.
      */
-    operator fun iterator(): ByteIterator = Iterator()
+    operator fun iterator(): ByteIterator {
+        return Iterator()
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -199,7 +206,22 @@ internal class ByteList private constructor(
         return true
     }
 
-    override fun hashCode(): Int = cachedHashCode
+    override fun hashCode(): Int {
+        return cachedHashCode
+    }
+
+    override fun toString(): String {
+        return buildString {
+            append('[')
+            for (i in 0..<size) {
+                if (i > 0) {
+                    append(", ")
+                }
+                append(elements[i])
+            }
+            append(']')
+        }
+    }
 
     /**
      * An iterator over the elements in the list.
@@ -208,7 +230,9 @@ internal class ByteList private constructor(
 
         private var index: Int = 0
 
-        override fun hasNext(): Boolean = index < size
+        override fun hasNext(): Boolean {
+            return index < size
+        }
 
         override fun nextByte(): Byte {
             if (!hasNext()) {
@@ -226,8 +250,9 @@ internal class ByteList private constructor(
         return newHashCode
     }
 
-    private fun getNewHashCode(currentHashCode: Int, element: Byte): Int =
-        31 * currentHashCode + element
+    private fun getNewHashCode(currentHashCode: Int, element: Byte): Int {
+        return 31 * currentHashCode + element
+    }
 }
 
 internal inline val ByteList.indices: IntRange
@@ -236,22 +261,30 @@ internal inline val ByteList.indices: IntRange
 /**
  * Returns the first element in the list.
  */
-internal fun ByteList.first(): Byte = get(0)
+internal fun ByteList.first(): Byte {
+    return get(0)
+}
 
 /**
  * Adds the specified [element] to the end of this list.
  */
-internal operator fun ByteList.plusAssign(element: Byte) = add(element)
+internal operator fun ByteList.plusAssign(element: Byte) {
+    return add(element)
+}
 
 /**
  * Adds all the specified [elements] to the end of this list.
  */
-internal operator fun ByteList.plusAssign(elements: ByteList) = addAll(elements)
+internal operator fun ByteList.plusAssign(elements: ByteList) {
+    return addAll(elements)
+}
 
 /**
  * Adds all the specified [elements] to the end of this list.
  */
-internal operator fun ByteList.plusAssign(elements: ByteArray) = addAll(elements)
+internal operator fun ByteList.plusAssign(elements: ByteArray) {
+    return addAll(elements)
+}
 
 /**
  * Ignores the elements after the specified [size].

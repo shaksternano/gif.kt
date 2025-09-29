@@ -28,11 +28,16 @@ fun ImageFrame.toImageBitmap(): ImageBitmap {
 }
 
 /**
- * Remember an [ImageBitmap] for the given [frame]. The bitmap is recreated only when the
- * [frame] instance changes.
+ * Remember an [ImageBitmap] for the given [frame].
+ * The bitmap is recreated only when the [frame] instance changes.
  *
- * @param frame Source image frame.
+ * @param frame The source [ImageFrame].
+ *
  * @return The remembered [ImageBitmap] for this frame.
  */
 @Composable
-fun rememberImageFrameBitmap(frame: ImageFrame): ImageBitmap = remember(frame) { frame.toImageBitmap() }
+fun rememberImageFrameBitmap(frame: ImageFrame): ImageBitmap {
+    return remember(frame) {
+        frame.toImageBitmap()
+    }
+}

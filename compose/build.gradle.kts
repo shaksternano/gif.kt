@@ -16,7 +16,7 @@ plugins {
 val artifactId = "gifkt-compose"
 base.archivesName = artifactId
 
-val javaVersion = libs.versions.java.get()
+val javaVersion = "11"
 val androidCompileVersion = libs.versions.android.compileSdk.get()
 val androidMinVersion = libs.versions.android.minSdk.get()
 

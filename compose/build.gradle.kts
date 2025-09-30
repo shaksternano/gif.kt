@@ -1,8 +1,4 @@
-import com.shakster.gifkt.gradle.configureAndroid
-import com.shakster.gifkt.gradle.configureDokka
-import com.shakster.gifkt.gradle.configurePublishing
-import com.shakster.gifkt.gradle.getJvmTarget
-import com.shakster.gifkt.gradle.registerChildSourceSets
+import com.shakster.gifkt.gradle.*
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 
 plugins {
@@ -67,6 +63,11 @@ kotlin {
             dependsOn(commonMain.get())
         }
         nonAndroidMain.registerChildSourceSets(jvmMain, nativeMain, webMain)
+
+        val parallelMain by creating {
+            dependsOn(commonMain.get())
+        }
+        parallelMain.registerChildSourceSets(jvmMain, androidMain, nativeMain)
 
         commonMain.dependencies {
             api(project(":core"))

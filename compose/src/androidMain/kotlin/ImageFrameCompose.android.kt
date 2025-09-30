@@ -5,6 +5,7 @@ package com.shakster.gifkt.compose
 import android.graphics.Bitmap
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import com.shakster.gifkt.rgb
 
 /**
  * Creates an [ImageBitmap] from [ARGB][argb] data.
@@ -20,7 +21,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 actual fun createImageBitmap(argb: IntArray, width: Int, height: Int): ImageBitmap {
     checkDimensions(argb, width, height)
     val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-    bitmap.setPixels(argb, 0, width, 0, 0, width, height)
+    bitmap.rgb = argb
     return bitmap.asImageBitmap()
 }
 

@@ -24,7 +24,7 @@ import kotlin.time.Duration
 @Throws(CancellationException::class, IOException::class)
 suspend fun ParallelGifEncoder.writeFrame(image: ImageBitmap, duration: Duration) {
     writeFrame(
-        image.rgb,
+        image.argb,
         image.width,
         image.height,
         duration,

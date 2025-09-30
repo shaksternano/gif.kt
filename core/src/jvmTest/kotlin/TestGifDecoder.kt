@@ -14,7 +14,7 @@ class TestGifDecoder {
         val gifFrames = readGifFrames("media/square/square.gif")
         assertEquals(1, gifFrames.size)
         val frame = gifFrames.first()
-        val expectedRgb = loadImage("media/square/square.png").rgb
+        val expectedRgb = loadImage("media/square/square.png").argb
         assertContentEquals(expectedRgb, frame.argb)
         assertEquals(10, frame.width)
         assertEquals(10, frame.height)
@@ -28,7 +28,7 @@ class TestGifDecoder {
         val gifFrames = readGifFrames("media/dancing/dancing.gif")
         assertEquals(1, gifFrames.size)
         val frame = gifFrames.first()
-        val expectedRgb = loadImage("media/dancing/dancing.png").rgb
+        val expectedRgb = loadImage("media/dancing/dancing.png").argb
         assertContentEquals(expectedRgb, frame.argb)
         assertEquals(2357, frame.width)
         assertEquals(2361, frame.height)
@@ -45,7 +45,7 @@ class TestGifDecoder {
         var expectedTimestamp = Duration.ZERO
         gifFrames.forEachIndexed { i, frame ->
             val frameNumber = i + 1
-            val expectedRgb = loadImage("media/trafficlight/traffic-light-frame-$frameNumber.png").rgb
+            val expectedRgb = loadImage("media/trafficlight/traffic-light-frame-$frameNumber.png").argb
             val expectedDuration = expectedFrameDurations[i]
             assertContentEquals(expectedRgb, frame.argb, "Frame $frameNumber")
             assertEquals(11, frame.width)
@@ -65,7 +65,7 @@ class TestGifDecoder {
         var expectedTimestamp = Duration.ZERO
         gifFrames.forEachIndexed { i, frame ->
             val frameNumber = i + 1
-            val expectedRgb = loadImage("media/dancecrazy/dance-crazy-frame-$frameNumber.png").rgb
+            val expectedRgb = loadImage("media/dancecrazy/dance-crazy-frame-$frameNumber.png").argb
             val expectedDuration = expectedFrameDurations[i]
             assertContentEquals(expectedRgb, frame.argb, "Frame $frameNumber")
             assertEquals(84, frame.width)
@@ -82,7 +82,7 @@ class TestGifDecoder {
         val gifFrames = readGifFrames("media/mona/mona.gif")
         assertEquals(8, gifFrames.size)
         gifFrames.forEachIndexed { i, frame ->
-            val expectedRgb = loadImage("media/mona/mona-$i.png").rgb
+            val expectedRgb = loadImage("media/mona/mona-$i.png").argb
             assertContentEquals(expectedRgb, frame.argb, "Frame $i")
             assertEquals(256, frame.width)
             assertEquals(96, frame.height)

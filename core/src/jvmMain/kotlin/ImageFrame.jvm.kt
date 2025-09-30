@@ -91,7 +91,7 @@ actual data class ImageFrame actual constructor(
         timestamp: Duration,
         index: Int,
     ) : this(
-        argb = image.rgb,
+        argb = image.argb,
         width = image.width,
         height = image.height,
         duration = duration,
@@ -118,7 +118,7 @@ actual data class ImageFrame actual constructor(
         timestamp: JavaDuration,
         index: Int,
     ) : this(
-        argb = image.rgb,
+        argb = image.argb,
         width = image.width,
         height = image.height,
         duration = duration.toKotlinDuration(),
@@ -150,7 +150,7 @@ actual data class ImageFrame actual constructor(
      */
     fun toBufferedImage(): BufferedImage {
         val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
-        image.rgb = argb
+        image.argb = argb
         return image
     }
 
@@ -173,6 +173,6 @@ actual data class ImageFrame actual constructor(
  * Each element in the array represents a pixel in ARGB format,
  * going row by row from top to bottom.
  */
-inline var BufferedImage.rgb: IntArray
+inline var BufferedImage.argb: IntArray
     get() = getRGB(0, 0, width, height, null, 0, width)
-    set(rgb) = setRGB(0, 0, width, height, rgb, 0, width)
+    set(argb) = setRGB(0, 0, width, height, argb, 0, width)

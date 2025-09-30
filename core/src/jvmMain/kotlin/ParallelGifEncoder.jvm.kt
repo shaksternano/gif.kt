@@ -253,7 +253,7 @@ actual constructor(
     @Throws(IOException::class)
     suspend fun writeFrame(image: BufferedImage, duration: Duration) {
         baseEncoder.writeFrame(
-            image.rgb,
+            image.argb,
             image.width,
             image.height,
             duration,
@@ -278,7 +278,7 @@ actual constructor(
     @Throws(IOException::class)
     suspend fun writeFrame(image: BufferedImage, duration: JavaDuration) {
         baseEncoder.writeFrame(
-            image.rgb,
+            image.argb,
             image.width,
             image.height,
             duration.toKotlinDuration(),
@@ -385,7 +385,7 @@ actual constructor(
     fun writeFrameFuture(image: BufferedImage, duration: Duration): CompletableFuture<Void> {
         return coroutineScope.future {
             baseEncoder.writeFrame(
-                image.rgb,
+                image.argb,
                 image.width,
                 image.height,
                 duration,
@@ -410,7 +410,7 @@ actual constructor(
     fun writeFrameFuture(image: BufferedImage, duration: JavaDuration): CompletableFuture<Void> {
         return coroutineScope.future {
             baseEncoder.writeFrame(
-                image.rgb,
+                image.argb,
                 image.width,
                 image.height,
                 duration.toKotlinDuration(),

@@ -23,7 +23,7 @@ import kotlin.time.Duration
 @Throws(IOException::class)
 fun GifEncoder.writeFrame(image: ImageBitmap, duration: Duration) {
     writeFrame(
-        image.rgb,
+        image.argb,
         image.width,
         image.height,
         duration,

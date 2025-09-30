@@ -12,7 +12,7 @@ fun getResource(path: String): InputStream =
 
 fun loadImage(path: String): BufferedImage {
     val image = ImageIO.read(getResource(path))
-    val argbArray = image.rgb
+    val argbArray = image.argb
     val fixedAlpha = IntArray(argbArray.size) { i ->
         val pixel = argbArray[i]
         val rgb = RGB(pixel)
@@ -27,7 +27,7 @@ fun loadImage(path: String): BufferedImage {
         image.height,
         BufferedImage.TYPE_INT_ARGB,
     )
-    fixedImage.rgb = fixedAlpha
+    fixedImage.argb = fixedAlpha
     return fixedImage
 }
 

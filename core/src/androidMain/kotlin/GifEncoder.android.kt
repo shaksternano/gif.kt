@@ -233,7 +233,7 @@ actual constructor(
     @Throws(IOException::class)
     fun writeFrame(image: Bitmap, duration: Duration) {
         baseEncoder.writeFrame(
-            image.rgb,
+            image.argb,
             image.width,
             image.height,
             duration,
@@ -258,7 +258,7 @@ actual constructor(
     @Throws(IOException::class)
     fun writeFrame(image: Bitmap, duration: JavaDuration) {
         baseEncoder.writeFrame(
-            image.rgb,
+            image.argb,
             image.width,
             image.height,
             duration.toKotlinDuration(),

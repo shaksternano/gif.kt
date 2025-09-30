@@ -380,7 +380,7 @@ object GifCommand : CliktCommand() {
                     .scaleToHeight(height!!)
                     .awt()
             }
-            newArgb = resized.rgb
+            newArgb = resized.argb
             newWidth = resized.width
             newHeight = resized.height
         } else {

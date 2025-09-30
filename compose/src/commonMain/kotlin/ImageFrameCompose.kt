@@ -47,7 +47,7 @@ fun rememberImageFrameBitmap(frame: ImageFrame): ImageBitmap {
  * Each element in the array represents a pixel in ARGB format,
  * going row by row from top to bottom.
  */
-inline val ImageBitmap.rgb: IntArray
+inline val ImageBitmap.argb: IntArray
     get() = IntArray(width * height).apply {
         readPixels(this)
     }

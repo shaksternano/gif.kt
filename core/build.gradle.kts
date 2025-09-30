@@ -62,10 +62,6 @@ kotlin {
             implementation(libs.androidx.collection)
         }
 
-        androidMain.dependencies {
-            implementation(libs.kotlinx.coroutines.android)
-        }
-
         nativeMain.dependencies {
             implementation(libs.androidx.collection)
         }

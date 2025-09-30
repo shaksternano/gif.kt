@@ -19,8 +19,6 @@ dokka = "2.1.0-Beta"
 
 [libraries]
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
-kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "kotlinx-coroutines" }
-kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-io-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io" }
 kotlinx-io-okio = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-okio", version.ref = "kotlinx-io" }
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
@@ -30,6 +28,7 @@ clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "clikt
 javacv = { group = "org.bytedeco", name = "javacv-platform", version.ref = "javacv" }
 scrimage = { group = "com.sksamuel.scrimage", name = "scrimage-core", version.ref = "scrimage" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
 android-gradle-plugin = { group = "com.android.library", name = "com.android.library.gradle.plugin", version.ref = "android-gradle-plugin" }
 vanniktech-maven-publish-gradle-plugin = { group = "com.vanniktech", name = "gradle-maven-publish-plugin", version.ref = "vanniktech-maven-publish" }

@@ -33,7 +33,7 @@ fun ImageFrame.toImageBitmap(): ImageBitmap {
  *
  * @param frame The source [ImageFrame].
  *
- * @return The remembered [ImageBitmap] for this frame.
+ * @return The remembered [ImageBitmap] for this [frame].
  */
 @Composable
 fun rememberImageFrameBitmap(frame: ImageFrame): ImageBitmap {

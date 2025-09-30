@@ -1,5 +1,6 @@
 package com.shakster.gifkt
 
+import android.graphics.Bitmap
 import com.shakster.gifkt.internal.BaseParallelGifEncoder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.future.future
@@ -236,6 +237,56 @@ actual constructor(
 
     /**
      * Writes a single frame to the GIF.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
+     *
+     * @param image The [Bitmap] containing the pixel data of the frame.
+     *
+     * @param duration The duration of the frame.
+     *
+     * @throws IllegalArgumentException If [duration] is negative.
+     *
+     * @throws IOException If an I/O error occurs.
+     */
+    @Throws(IOException::class)
+    suspend fun writeFrame(image: Bitmap, duration: Duration) {
+        baseEncoder.writeFrame(
+            image.rgb,
+            image.width,
+            image.height,
+            duration,
+        )
+    }
+
+    /**
+     * Writes a single frame to the GIF.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
+     *
+     * @param image The [Bitmap] containing the pixel data of the frame.
+     *
+     * @param duration The duration of the frame.
+     *
+     * @throws IllegalArgumentException If [duration] is negative.
+     *
+     * @throws IOException If an I/O error occurs.
+     */
+    @Throws(IOException::class)
+    suspend fun writeFrame(image: Bitmap, duration: JavaDuration) {
+        baseEncoder.writeFrame(
+            image.rgb,
+            image.width,
+            image.height,
+            duration.toKotlinDuration(),
+        )
+    }
+
+    /**
+     * Writes a single frame to the GIF.
      * The frame may be skipped if the duration is below [minimumFrameDurationCentiseconds],
      * or if the frame is the same as or similar enough to the previous frame,
      * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
@@ -312,6 +363,56 @@ actual constructor(
                 argb,
                 width,
                 height,
+                duration.toKotlinDuration(),
+            )
+        }.thenAccept { }
+    }
+
+    /**
+     * Writes a single frame to the GIF asynchronously.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
+     *
+     * @param image The [Bitmap] containing the pixel data of the frame.
+     *
+     * @param duration The duration of the frame.
+     *
+     * @return A [CompletableFuture] that completes when the frame has been submitted for encoding.
+     * The future will complete exceptionally with an [Exception] if an error occurs.
+     */
+    fun writeFrameFuture(image: Bitmap, duration: Duration): CompletableFuture<Void> {
+        return coroutineScope.future {
+            baseEncoder.writeFrame(
+                image.rgb,
+                image.width,
+                image.height,
+                duration,
+            )
+        }.thenAccept { }
+    }
+
+    /**
+     * Writes a single frame to the GIF asynchronously.
+     * The frame may be skipped if the [duration] is below [minimumFrameDurationCentiseconds],
+     * or if the frame is the same as or similar enough to the previous frame,
+     * determined by [colorDifferenceTolerance], [quantizedColorDifferenceTolerance],
+     * and [colorSimilarityChecker].
+     *
+     * @param image The [Bitmap] containing the pixel data of the frame.
+     *
+     * @param duration The duration of the frame.
+     *
+     * @return A [CompletableFuture] that completes when the frame has been submitted for encoding.
+     * The future will complete exceptionally with an [Exception] if an error occurs.
+     */
+    fun writeFrameFuture(image: Bitmap, duration: JavaDuration): CompletableFuture<Void> {
+        return coroutineScope.future {
+            baseEncoder.writeFrame(
+                image.rgb,
+                image.width,
+                image.height,
                 duration.toKotlinDuration(),
             )
         }.thenAccept { }

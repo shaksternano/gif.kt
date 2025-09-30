@@ -14,8 +14,9 @@ import kotlin.time.Duration
  *
  * Usage:
  * ```kotlin
- * // Obtain a Sink to write the GIF data to
- * val sink: Sink = ...
+ * // Obtain a Path to write the GIF data to
+ * val path: Path = ...
+ * val sink = SystemFileSystem.sink(path).buffered()
  * val encoder = GifEncoder(sink)
  *
  * val argb: IntArray = ...

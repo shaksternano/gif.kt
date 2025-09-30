@@ -26,7 +26,6 @@ kotlinx-io-okio = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-okio", v
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 okio-wasifilesystem = { group = "com.squareup.okio", name = "okio-wasifilesystem", version.ref = "okio" }
 androidx-collection = { group = "androidx.collection", name = "collection", version.ref = "androidx-collection" }
-compose-ui-graphics = { group = "org.jetbrains.compose.ui", name = "ui-graphics", version.ref = "compose-multiplatform" }
 clikt = { group = "com.github.ajalt.clikt", name = "clikt", version.ref = "clikt" }
 javacv = { group = "org.bytedeco", name = "javacv-platform", version.ref = "javacv" }
 scrimage = { group = "com.sksamuel.scrimage", name = "scrimage-core", version.ref = "scrimage" }
@@ -38,9 +37,9 @@ dokka-gradle-plugin = { group = "org.jetbrains.dokka", name = "dokka-gradle-plug
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
-compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 android-library = { id = "com.android.library", version.ref = "android-gradle-plugin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 vanniktech-maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-maven-publish" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 gradle-shadow = { id = "com.gradleup.shadow", version.ref = "gradle-shadow" }

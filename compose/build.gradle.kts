@@ -8,9 +8,9 @@ import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 plugins {
     id("com.shakster.gifkt.gradle.gifkt-plugin")
     alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.android.library)
     alias(libs.plugins.vanniktech.maven.publish)
     alias(libs.plugins.dokka)
 }
@@ -70,8 +70,8 @@ kotlin {
 
         commonMain.dependencies {
             api(project(":core"))
-            implementation(compose.runtime)
-            api(libs.compose.ui.graphics)
+            api(compose.runtime)
+            api(compose.ui)
         }
     }
 }

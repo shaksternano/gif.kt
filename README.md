@@ -109,8 +109,9 @@ decoder.close();
 #### Kotlin
 
 ```kotlin
-// Obtain a Sink to write the GIF data to
-val sink: Sink = ...
+// Obtain a Path to write the GIF data to
+val path: Path = ...
+val sink = SystemFileSystem.sink(path).buffered()
 val encoder = GifEncoder(sink)
 
 val argb: IntArray = ...
@@ -125,8 +126,9 @@ encoder.close()
 #### Java
 
 ```java
-// Obtain an OutputStream to write the GIF data to
-OutputStream outputStream = ...;
+// Obtain a Path to write the GIF data to
+Path path = ...;
+OutputStream outputStream = Files.newOutputStream(path);
 GifEncoderBuilder builder = GifEncoder.builder(outputStream);
 GifEncoder encoder = builder.build();
 
@@ -146,8 +148,9 @@ Not supported on JavaScript or Wasm.
 #### Kotlin
 
 ```kotlin
-// Obtain a Sink to write the GIF data to
-val sink: Sink = ...
+// Obtain a Path to write the GIF data to
+val path: Path = ...
+val sink = SystemFileSystem.sink(path).buffered()
 // Use all available CPU cores for maximum encoding speed
 val cpuCount: Int = ...
 val encoder = ParallelGifEncoder(
@@ -178,8 +181,9 @@ encoder.close()
 #### Java
 
 ```java
-// Obtain an OutputStream to write the GIF data to
-OutputStream outputStream = ...;
+// Obtain a Path to write the GIF data to
+Path path = ...;
+OutputStream outputStream = Files.newOutputStream(path);
 // Use all available CPU cores for maximum encoding speed
 int cpuCount = ...;
 GifEncoderBuilder builder = GifEncoder.builder(outputStream);

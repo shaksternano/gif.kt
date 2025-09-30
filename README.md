@@ -212,6 +212,8 @@ The [core](core) module contains the main library code.
 
 The [compose](compose) module contains [Compose Multiplatform](https://www.jetbrains.com/compose-multiplatform) integration.
 
+Requires JDK 11 or higher when targeting the JVM.
+
 #### Gradle
 
 ```kotlin

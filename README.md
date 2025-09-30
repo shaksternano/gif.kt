@@ -141,6 +141,8 @@ encoder.close();
 
 ### Parallel Encoding
 
+Not supported on JavaScript or Wasm.
+
 #### Kotlin
 
 ```kotlin

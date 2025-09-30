@@ -31,7 +31,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.shakster:gifkt:0.2.0")
+    implementation("com.shakster:gifkt:0.3.0")
 }
 ```
 
@@ -49,7 +49,7 @@ dependencies {
     <dependency>
         <groupId>com.shakster</groupId>
         <artifactId>gifkt-jvm</artifactId>
-        <version>0.2.0</version>
+        <version>0.3.0</version>
     </dependency>
 </dependencies>
 ```
@@ -218,7 +218,7 @@ Requires JDK 11 or higher when targeting the JVM.
 
 ```kotlin
 dependencies {
-    implementation("com.shakster:gifkt-compose:0.2.0")
+    implementation("com.shakster:gifkt-compose:0.3.0")
 }
 ```
 
@@ -254,7 +254,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.shakster:gifkt:0.2.0-SNAPSHOT")
+    implementation("com.shakster:gifkt:0.3.0-SNAPSHOT")
 }
 ```
 
@@ -276,7 +276,7 @@ dependencies {
     <dependency>
         <groupId>com.shakster</groupId>
         <artifactId>gifkt-jvm</artifactId>
-        <version>0.2.0-SNAPSHOT</version>
+        <version>0.3.0-SNAPSHOT</version>
     </dependency>
 </dependencies>
 ```

@@ -1,6 +1,7 @@
 package com.shakster.gifkt.internal
 
 import com.shakster.gifkt.*
+import kotlinx.io.EOFException
 import kotlinx.io.IOException
 import kotlinx.io.Source
 import kotlin.time.Duration
@@ -455,22 +456,24 @@ internal fun MonitoredSource.readGifGlobalColorTable(size: Int): ByteArray = rea
 internal fun MonitoredSource.readGifBlock(
     decodeImage: Boolean,
 ): GifBlock = readGifSection("content") {
-    if (exhausted()) return GifTerminator
-    val blockStart = bytesRead
-    val blockIntroducer = readByte().toInt() and 0xFF
-    when (blockIntroducer) {
-        0x21 -> readGifExtension()
-        0x2C -> readGifImage(decodeImage)
-        0x3B -> GifTerminator
-        else -> throw InvalidGifException(
-            "Unknown block introducer at byte offset $blockStart: ${blockIntroducer.toHexByteString()}"
-        )
+    try {
+        if (exhausted()) return GifTerminator
+        val blockStart = bytesRead
+        when (val blockIntroducer = readByte().toInt() and 0xFF) {
+            0x21 -> readGifExtension()
+            0x2C -> readGifImage(decodeImage)
+            0x3B -> GifTerminator
+            else -> throw InvalidGifException(
+                "Unknown block introducer at byte offset $blockStart: ${blockIntroducer.toHexByteString()}"
+            )
+        }
+    } catch (_: EOFException) {
+        GifTerminator
     }
 }
 
 private fun MonitoredSource.readGifExtension(): GifExtension = readGifSection("extension") {
-    val extensionLabel = readByte().toInt() and 0xFF
-    when (extensionLabel) {
+    when (val extensionLabel = readByte().toInt() and 0xFF) {
         0xF9 -> readGifGraphicsControlExtension()
         0xFF -> readGifApplicationExtension()
         0xFE -> readGifCommentExtension()
@@ -517,8 +520,7 @@ private fun MonitoredSource.readGifGraphicsControlExtension(): GraphicsControlEx
 private fun MonitoredSource.readGifApplicationExtension(): ApplicationExtension =
     readGifSection("application extension") {
         val identifierSize = readByte().toLong() and 0xFF
-        val identifier = readString(identifierSize)
-        when (identifier) {
+        when (val identifier = readString(identifierSize)) {
             "NETSCAPE2.0" -> readGifNetscapeApplicationExtension()
             else -> readGifUnknownApplicationExtension(identifier)
         }

@@ -21,19 +21,18 @@ val androidMinVersion = libs.versions.android.minSdk.get()
 kotlin {
     jvmToolchain(javaVersion.toInt())
 
-    val jvmTarget = getJvmTarget(javaVersion)
-
     jvm {
         compilerOptions {
-            this.jvmTarget = jvmTarget
+            this.jvmTarget = getJvmTarget(javaVersion)
         }
     }
 
-    androidTarget {
-        publishLibraryVariants("release")
-        compilerOptions {
-            this.jvmTarget = jvmTarget
-        }
+    android {
+        configureAndroid(
+            androidCompileVersion = androidCompileVersion,
+            androidMinVersion = androidMinVersion,
+            javaVersion = javaVersion,
+        )
     }
 
     iosX64()
@@ -71,18 +70,10 @@ kotlin {
 
         commonMain.dependencies {
             api(project(":core"))
-            api(compose.runtime)
-            api(compose.ui)
+            api(libs.compose.runtime)
+            api(libs.compose.ui)
         }
     }
-}
-
-android {
-    configureAndroid(
-        androidCompileVersion = androidCompileVersion,
-        androidMinVersion = androidMinVersion,
-        javaVersion = javaVersion,
-    )
 }
 
 mavenPublishing {

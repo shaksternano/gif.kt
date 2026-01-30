@@ -20,6 +20,14 @@ kotlin {
         javaVersion = javaVersion,
     )
 
+    android {
+        configureAndroid(
+            androidCompileVersion = androidCompileVersion,
+            androidMinVersion = androidMinVersion,
+            javaVersion = javaVersion,
+        )
+    }
+
     sourceSets {
         val nonJvmMain by creating {
             dependsOn(commonMain.get())
@@ -76,14 +84,6 @@ kotlin {
     }
 }
 
-android {
-    configureAndroid(
-        androidCompileVersion = androidCompileVersion,
-        androidMinVersion = androidMinVersion,
-        javaVersion = javaVersion,
-    )
-}
-
 mavenPublishing {
     configurePublishing(
         project = project,
@@ -92,7 +92,6 @@ mavenPublishing {
         pomDescription = "A Kotlin GIF encoding and decoding library",
     )
 }
-
 
 dokka {
     configureDokka(

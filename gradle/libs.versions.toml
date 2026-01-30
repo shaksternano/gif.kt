@@ -1,26 +1,28 @@
 [versions]
-kotlin = "2.2.20"
+kotlin = "2.3.0"
 java = "8"
-android-gradle-plugin = "8.11.2"
+android-gradle-plugin = "9.0.0"
 android-minSdk = "24"
 android-compileSdk = "36"
 kotlinx-coroutines = "1.10.2"
-kotlinx-io = "0.8.0"
-okio = "3.16.0"
+kotlinx-io = "0.8.2"
+okio = "3.16.4"
 androidx-collection = "1.5.0"
-compose-multiplatform = "1.9.0"
-clikt = "5.0.3"
+compose-multiplatform = "1.10.0"
+clikt = "5.1.0"
 javacv = "1.5.12"
 scrimage = "4.3.5"
-vanniktech-maven-publish = "0.34.0"
-gradle-shadow = "9.2.2"
-graalvm-native = "0.11.1"
+vanniktech-maven-publish = "0.36.0"
+gradle-shadow = "9.3.1"
+graalvm-native = "0.11.4"
 dokka = "2.1.0"
 
 [libraries]
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "kotlinx-coroutines" }
 kotlinx-io-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-core", version.ref = "kotlinx-io" }
 kotlinx-io-okio = { group = "org.jetbrains.kotlinx", name = "kotlinx-io-okio", version.ref = "kotlinx-io" }
+compose-runtime = { group = "org.jetbrains.compose.runtime", name = "runtime", version.ref = "compose-multiplatform" }
+compose-ui = { group = "org.jetbrains.compose.ui", name = "ui", version.ref = "compose-multiplatform" }
 okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
 okio-wasifilesystem = { group = "com.squareup.okio", name = "okio-wasifilesystem", version.ref = "okio" }
 androidx-collection = { group = "androidx.collection", name = "collection", version.ref = "androidx-collection" }
@@ -30,13 +32,13 @@ scrimage = { group = "com.sksamuel.scrimage", name = "scrimage-core", version.re
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test", version.ref = "kotlin" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlin-gradle-plugin = { group = "org.jetbrains.kotlin", name = "kotlin-gradle-plugin", version.ref = "kotlin" }
-android-gradle-plugin = { group = "com.android.library", name = "com.android.library.gradle.plugin", version.ref = "android-gradle-plugin" }
+android-gradle-plugin = { group = "com.android.kotlin.multiplatform.library", name = "com.android.kotlin.multiplatform.library.gradle.plugin", version.ref = "android-gradle-plugin" }
 vanniktech-maven-publish-gradle-plugin = { group = "com.vanniktech", name = "gradle-maven-publish-plugin", version.ref = "vanniktech-maven-publish" }
 dokka-gradle-plugin = { group = "org.jetbrains.dokka", name = "dokka-gradle-plugin", version.ref = "dokka" }
 
 [plugins]
 kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
-android-library = { id = "com.android.library", version.ref = "android-gradle-plugin" }
+android-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "android-gradle-plugin" }
 compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "compose-multiplatform" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 vanniktech-maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "vanniktech-maven-publish" }

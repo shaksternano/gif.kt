@@ -1,7 +1,6 @@
 package com.shakster.gifkt.gradle
 
-import com.android.build.api.dsl.LibraryExtension
-import org.gradle.api.JavaVersion
+import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import org.gradle.api.provider.Provider
 import org.gradle.kotlin.dsl.assign
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -9,21 +8,14 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
 
-fun KotlinMultiplatformExtension.configurePlatforms(javaVersion: String) {
+fun KotlinMultiplatformExtension.configurePlatforms(
+    javaVersion: String,
+) {
     jvmToolchain(javaVersion.toInt())
-
-    val jvmTarget = getJvmTarget(javaVersion)
 
     jvm {
         compilerOptions {
-            this.jvmTarget = jvmTarget
-        }
-    }
-
-    androidTarget {
-        publishLibraryVariants("release")
-        compilerOptions {
-            this.jvmTarget = jvmTarget
+            this.jvmTarget = getJvmTarget(javaVersion)
         }
     }
 
@@ -72,20 +64,23 @@ fun KotlinMultiplatformExtension.configurePlatforms(javaVersion: String) {
     }
 }
 
-fun LibraryExtension.configureAndroid(
+fun KotlinMultiplatformAndroidLibraryTarget.configureAndroid(
     androidCompileVersion: String,
     androidMinVersion: String,
     javaVersion: String,
 ) {
     namespace = "com.shakster.gifkt"
     compileSdk = androidCompileVersion.toInt()
-    defaultConfig {
-        minSdk = androidMinVersion.toInt()
+    minSdk = androidMinVersion.toInt()
+
+    withJava()
+    withHostTestBuilder {}.configure {}
+    withDeviceTestBuilder {
+        sourceSetTreeName = "test"
     }
-    compileOptions {
-        val javaVersion = JavaVersion.toVersion(javaVersion)
-        sourceCompatibility = javaVersion
-        targetCompatibility = javaVersion
+
+    compilerOptions {
+        jvmTarget = getJvmTarget(javaVersion)
     }
 }
 

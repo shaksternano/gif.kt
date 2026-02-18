@@ -65,11 +65,12 @@ fun KotlinMultiplatformExtension.configurePlatforms(
 }
 
 fun KotlinMultiplatformAndroidLibraryTarget.configureAndroid(
+    namespace: String,
     androidCompileVersion: String,
     androidMinVersion: String,
     javaVersion: String,
 ) {
-    namespace = "com.shakster.gifkt"
+    this.namespace = namespace
     compileSdk = androidCompileVersion.toInt()
     minSdk = androidMinVersion.toInt()
 

@@ -29,6 +29,7 @@ kotlin {
 
     android {
         configureAndroid(
+            namespace = "com.shakster.gifkt.compose",
             androidCompileVersion = androidCompileVersion,
             androidMinVersion = androidMinVersion,
             javaVersion = javaVersion,

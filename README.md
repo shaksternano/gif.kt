@@ -2,7 +2,7 @@
 
 [![GitHub license](https://img.shields.io/github/license/shaksternano/gif.kt)](LICENSE)
 [![Download](https://img.shields.io/maven-central/v/com.shakster/gifkt)](https://central.sonatype.com/artifact/com.shakster/gifkt)
-[![Kotlin](https://img.shields.io/badge/kotlin-2.3.0-blue.svg?logo=kotlin)](https://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-2.3.10-blue.svg?logo=kotlin)](https://kotlinlang.org)
 [![Java](https://img.shields.io/badge/java-8-blue.svg?logo=openjdk)](https://www.java.com)
 [![KDoc link](https://img.shields.io/badge/API_reference-KDoc-blue)](https://gifkt.shakster.com)
 

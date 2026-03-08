@@ -87,4 +87,18 @@ class TestGifDecoder {
             assertEquals(i, frame.index)
         }
     }
+
+    @Test
+    fun `restore to background color disposal method sets the area used by the frame to transparent instead of the background color`() {
+        val gifFrames = readGifFrames("media/trophy_celebration/trophy_celebration.gif")
+        assertEquals(129, gifFrames.size)
+        gifFrames.forEachIndexed { i, frame ->
+            val frameIndex = i.toString().padStart(3, '0')
+            val expectedRgb = loadImage("media/trophy_celebration/trophy_celebration_$frameIndex.png").argb
+            assertContentEquals(expectedRgb, frame.argb, "Frame $i")
+            assertEquals(1080, frame.width)
+            assertEquals(1350, frame.height)
+            assertEquals(i, frame.index)
+        }
+    }
 }

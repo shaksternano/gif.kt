@@ -10,7 +10,7 @@ import kotlin.time.Duration.Companion.seconds
 class TestGifDecoder {
 
     @Test
-    fun testReadStaticGif() {
+    fun `test read static gif`() {
         val gifFrames = readGifFrames("media/square/square.gif")
         assertEquals(1, gifFrames.size)
         val frame = gifFrames.first()
@@ -24,7 +24,7 @@ class TestGifDecoder {
     }
 
     @Test
-    fun testReadLargeStaticGif() {
+    fun `test read large static gif`() {
         val gifFrames = readGifFrames("media/dancing/dancing.gif")
         assertEquals(1, gifFrames.size)
         val frame = gifFrames.first()
@@ -38,7 +38,7 @@ class TestGifDecoder {
     }
 
     @Test
-    fun testReadAnimatedGif() {
+    fun `test read animated gif`() {
         val gifFrames = readGifFrames("media/trafficlight/traffic-light.gif")
         assertEquals(3, gifFrames.size)
         val expectedFrameDurations = listOf(1.seconds, 0.5.seconds, 1.seconds)
@@ -58,7 +58,7 @@ class TestGifDecoder {
     }
 
     @Test
-    fun testCorrectTransparency() {
+    fun `test correct transparency`() {
         val gifFrames = readGifFrames("media/dancecrazy/dance-crazy.gif")
         assertEquals(2, gifFrames.size)
         val expectedFrameDurations = listOf(30.milliseconds, 30.milliseconds)
@@ -78,7 +78,7 @@ class TestGifDecoder {
     }
 
     @Test
-    fun testCorrectTransparency2() {
+    fun `test correct transparency 2`() {
         val gifFrames = readGifFrames("media/mona/mona.gif")
         assertEquals(8, gifFrames.size)
         gifFrames.forEachIndexed { i, frame ->

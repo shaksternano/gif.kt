@@ -9,7 +9,7 @@ import kotlin.test.assertContentEquals
 class TestLzwEncoder {
 
     @Test
-    fun testLzwEncode() {
+    fun `test lzw encode`() {
         /*
          * Image and index stream data from:
          * https://www.matthewflickinger.com/lab/whatsinagif/lzw_image_data.asp

@@ -9,7 +9,7 @@ import kotlin.test.assertTrue
 class ByteListTest {
 
     @Test
-    fun testAdd() {
+    fun `test add`() {
         val list = ByteList()
         assertEquals(0, list.size)
 
@@ -19,7 +19,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testAddMultiple() {
+    fun `test add multiple`() {
         val list = ByteList()
         assertEquals(0, list.size)
         for (i in 0..100) {
@@ -33,7 +33,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testAddByteListToEmpty() {
+    fun `test add byte list to empty`() {
         val list1 = ByteList()
         assertEquals(0, list1.size)
 
@@ -52,7 +52,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testAddByteList() {
+    fun `test add byte List`() {
         val list1 = ByteList()
         for (i in 0..50) {
             list1.add(i.toByte())
@@ -74,7 +74,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testAddByteArrayToEmpty() {
+    fun `test add byte array to empty`() {
         val list = ByteList()
         assertEquals(0, list.size)
         val array = ByteArray(101) { it.toByte() }
@@ -86,7 +86,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testAddByteArrayToNonEmpty() {
+    fun `test add byte array to non empty`() {
         val list = ByteList()
         assertEquals(0, list.size)
         for (i in 0..50) {
@@ -107,7 +107,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testRemoveFromSingle() {
+    fun `test remove from single`() {
         val list = ByteList()
         assertEquals(0, list.size)
         list.add(1)
@@ -117,7 +117,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testRemoveFromMultiple() {
+    fun `test remove from multiple`() {
         val list = ByteList()
         assertEquals(0, list.size)
         for (i in 0..100) {
@@ -132,7 +132,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testClear() {
+    fun `test clear`() {
         val list = ByteList()
         assertEquals(0, list.size)
         for (i in 0..100) {
@@ -145,7 +145,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testCopy() {
+    fun `test copy`() {
         val list = ByteList()
         assertEquals(0, list.size)
         for (i in 0..100) {
@@ -162,7 +162,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testPlus() {
+    fun `test plus`() {
         val list1 = ByteList()
         assertEquals(0, list1.size)
 
@@ -172,7 +172,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testPlusMultiple() {
+    fun `test plus multiple`() {
         var list = ByteList()
         assertEquals(0, list.size)
 
@@ -186,7 +186,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testToByteArray() {
+    fun `test to byte array`() {
         val list = ByteList()
         assertEquals(0, list.size)
         for (i in 0..100) {
@@ -202,7 +202,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testIterator() {
+    fun `test iterator`() {
         val list = ByteList()
         assertEquals(0, list.size)
         for (i in 0..100) {
@@ -219,7 +219,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testEquals() {
+    fun `test equals`() {
         val list1 = ByteList()
         assertEquals(0, list1.size)
         for (i in 0..100) {
@@ -238,7 +238,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testNotEquals() {
+    fun `test not equals`() {
         val list1 = ByteList()
         assertEquals(0, list1.size)
         for (i in 0..100) {
@@ -257,7 +257,7 @@ class ByteListTest {
     }
 
     @Test
-    fun testHashCode() {
+    fun `test hash code`() {
         val list1 = ByteList()
         assertEquals(0, list1.size)
         for (i in 0..100) {

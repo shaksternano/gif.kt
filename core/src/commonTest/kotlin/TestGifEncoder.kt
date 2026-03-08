@@ -12,7 +12,7 @@ import kotlin.test.assertContentEquals
 class TestGifEncoder {
 
     @Test
-    fun testWriteHeader() {
+    fun `test write header`() {
         val buffer = Buffer()
         buffer.writeGifHeader()
         val bytes = buffer.readByteList()
@@ -24,7 +24,7 @@ class TestGifEncoder {
     }
 
     @Test
-    fun testWriteLogicalScreenDescriptor() {
+    fun `test write logical screen descriptor`() {
         val buffer = Buffer()
         buffer.writeGifLogicalScreenDescriptor(10, 10)
         val bytes = buffer.readByteList()
@@ -36,7 +36,7 @@ class TestGifEncoder {
     }
 
     @Test
-    fun testWriteApplicationExtension() {
+    fun `test write application extension`() {
         val buffer = Buffer()
         buffer.writeGifApplicationExtension(0)
         val bytes = buffer.readByteList()
@@ -51,7 +51,7 @@ class TestGifEncoder {
     }
 
     @Test
-    fun testWriteCommentExtension() {
+    fun `test write comment extension`() {
         val buffer = Buffer()
         buffer.writeGifCommentExtension(
             "File source: https://commons.wikimedia.org/wiki/File:Dancing.gif"
@@ -80,7 +80,7 @@ class TestGifEncoder {
     }
 
     @Test
-    fun testWriteGraphicsControl() {
+    fun `test write graphics control`() {
         val buffer = Buffer()
         buffer.writeGifGraphicsControlExtension(
             DisposalMethod.UNSPECIFIED,
@@ -96,7 +96,7 @@ class TestGifEncoder {
     }
 
     @Test
-    fun testWriteImageDescriptor() {
+    fun `test write image descriptor`() {
         val buffer = Buffer()
         buffer.writeGifImageDescriptor(
             width = 10,
@@ -115,7 +115,7 @@ class TestGifEncoder {
     }
 
     @Test
-    fun testWriteImageData() {
+    fun `test write image data`() {
         val buffer = Buffer()
         /*
          * Image data from:
@@ -152,7 +152,7 @@ class TestGifEncoder {
     }
 
     @Test
-    fun testWriteTrailer() {
+    fun `test write trailer`() {
         val buffer = Buffer()
         buffer.writeGifTrailer()
         val bytes = buffer.readByteList()

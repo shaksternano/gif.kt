@@ -9,7 +9,7 @@ import kotlin.test.assertTrue
 class TestByteArraySource {
 
     @Test
-    fun testCorrectRead() {
+    fun `test correct read`() {
         val arraySize = 100000
         val bytes = ByteArray(arraySize) { i ->
             i.toByte()
@@ -24,7 +24,7 @@ class TestByteArraySource {
     }
 
     @Test
-    fun testCorrectOffsetRead() {
+    fun `test correct offset read`() {
         val arraySize = 100000
         val bytes = ByteArray(arraySize) { i ->
             i.toByte()

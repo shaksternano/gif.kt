@@ -4,32 +4,31 @@ import com.shakster.gifkt.internal.NeuQuant
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class TestNeuQuant {
 
     @Test
-    fun test512Colors() {
+    fun `test 512 colors`() {
         testMaxColors(512)
     }
 
     @Test
-    fun test256Colors() {
+    fun `test 256 colors`() {
         testMaxColors(256)
     }
 
     @Test
-    fun test255Colors() {
+    fun `test 255 colors`() {
         testMaxColors(255)
     }
 
     @Test
-    fun test200Colors() {
+    fun `test 200 colors`() {
         testMaxColors(200)
     }
 
     @Test
-    fun test128Colors() {
+    fun `test 128 colors`() {
         testMaxColors(128)
     }
 
@@ -41,12 +40,12 @@ class TestNeuQuant {
             samplingFactor = 10,
         )
         val colorTable = neuQuant.process()
-        assertTrue(colorTable.size % 3 == 0)
+        assertEquals(colorTable.size % 3, 0)
         assertEquals(colorTable.size, maxColors * 3)
     }
 
     @Test
-    fun testQuantization() {
+    fun `test quantization`() {
         val pixels = loadRgbPixels("media/sonic/sonic.png")
         val neuQuant = NeuQuant(
             image = pixels,

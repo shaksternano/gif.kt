@@ -66,7 +66,7 @@ class TestNeuQuant {
                 val quantizedBlue = colorTable[index * 3 + 2]
                 listOf(quantizedRed, quantizedGreen, quantizedBlue)
             }
-        val expectedPixels = loadRgbPixels("media/sonic/sonic-quantized.png").asList()
+        val expectedPixels = loadRgbPixels("media/sonic/sonic_quantized.png").asList()
         assertContentEquals(expectedPixels, quantizedPixels)
     }
 

@@ -39,15 +39,14 @@ class TestGifDecoder {
 
     @Test
     fun `test read animated gif`() {
-        val gifFrames = readGifFrames("media/trafficlight/traffic-light.gif")
+        val gifFrames = readGifFrames("media/traffic_light/traffic_light.gif")
         assertEquals(3, gifFrames.size)
         val expectedFrameDurations = listOf(1.seconds, 0.5.seconds, 1.seconds)
         var expectedTimestamp = Duration.ZERO
         gifFrames.forEachIndexed { i, frame ->
-            val frameNumber = i + 1
-            val expectedRgb = loadImage("media/trafficlight/traffic-light-frame-$frameNumber.png").argb
+            val expectedRgb = loadImage("media/traffic_light/traffic_light_$i.png").argb
             val expectedDuration = expectedFrameDurations[i]
-            assertContentEquals(expectedRgb, frame.argb, "Frame $frameNumber")
+            assertContentEquals(expectedRgb, frame.argb, "Frame $i")
             assertEquals(11, frame.width)
             assertEquals(29, frame.height)
             assertEquals(expectedDuration, frame.duration)
@@ -58,16 +57,15 @@ class TestGifDecoder {
     }
 
     @Test
-    fun `test correct transparency`() {
-        val gifFrames = readGifFrames("media/dancecrazy/dance-crazy.gif")
+    fun `test don't use background color if there is a previous frame`() {
+        val gifFrames = readGifFrames("media/dance_crazy/dance_crazy.gif")
         assertEquals(2, gifFrames.size)
         val expectedFrameDurations = listOf(30.milliseconds, 30.milliseconds)
         var expectedTimestamp = Duration.ZERO
         gifFrames.forEachIndexed { i, frame ->
-            val frameNumber = i + 1
-            val expectedRgb = loadImage("media/dancecrazy/dance-crazy-frame-$frameNumber.png").argb
+            val expectedRgb = loadImage("media/dance_crazy/dance_crazy_$i.png").argb
             val expectedDuration = expectedFrameDurations[i]
-            assertContentEquals(expectedRgb, frame.argb, "Frame $frameNumber")
+            assertContentEquals(expectedRgb, frame.argb, "Frame $i")
             assertEquals(84, frame.width)
             assertEquals(128, frame.height)
             assertEquals(expectedDuration, frame.duration)
@@ -78,11 +76,11 @@ class TestGifDecoder {
     }
 
     @Test
-    fun `test correct transparency 2`() {
+    fun `test set background to transparent when set to transparent color`() {
         val gifFrames = readGifFrames("media/mona/mona.gif")
         assertEquals(8, gifFrames.size)
         gifFrames.forEachIndexed { i, frame ->
-            val expectedRgb = loadImage("media/mona/mona-$i.png").argb
+            val expectedRgb = loadImage("media/mona/mona_$i.png").argb
             assertContentEquals(expectedRgb, frame.argb, "Frame $i")
             assertEquals(256, frame.width)
             assertEquals(96, frame.height)

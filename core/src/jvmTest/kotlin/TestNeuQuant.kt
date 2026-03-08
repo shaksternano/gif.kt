@@ -40,7 +40,7 @@ class TestNeuQuant {
             samplingFactor = 10,
         )
         val colorTable = neuQuant.process()
-        assertEquals(colorTable.size % 3, 0)
+        assertEquals(0, colorTable.size % 3)
         assertEquals(colorTable.size, maxColors * 3)
     }
 

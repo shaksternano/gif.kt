@@ -24,7 +24,7 @@ enum class DisposalMethod(
 
     /**
      * The area used by the frame must be
-     * restored to the background color.
+     * cleared and be made transparent.
      */
     RESTORE_TO_BACKGROUND_COLOR(2),
 

@@ -113,10 +113,6 @@ private inline fun MonitoredSource.readGifContent(
                         imageDescriptor.top,
                         imageDescriptor.width,
                         imageDescriptor.height,
-                        usesGlobalColorTable = block.localColorTable == null,
-                        globalColorTable,
-                        globalColorTableColors,
-                        backgroundColorIndex,
                     )
                     previousImage = disposedImage
                 }
@@ -298,10 +294,6 @@ internal fun disposeImage(
     imageTop: Int,
     imageWidth: Int,
     imageHeight: Int,
-    usesGlobalColorTable: Boolean,
-    globalColorTable: ByteArray?,
-    globalColorTableColors: Int,
-    backgroundColorIndex: Int,
 ): IntArray? = when (disposalMethod) {
     DisposalMethod.UNSPECIFIED -> image
     DisposalMethod.DO_NOT_DISPOSE -> image
@@ -315,17 +307,6 @@ internal fun disposeImage(
         if (disposeAll) {
             null
         } else {
-            val backgroundColor = if (
-                usesGlobalColorTable
-                && globalColorTable != null
-                && backgroundColorIndex in 0..<globalColorTableColors
-            ) {
-                getColor(globalColorTable, backgroundColorIndex)
-            } else {
-                // Transparent
-                0
-            }
-
             val newPreviousImage = previousImage.copyOf()
             for (y in imageTop..<imageTop + imageHeight) {
                 for (x in imageLeft..<imageLeft + imageWidth) {
@@ -333,7 +314,16 @@ internal fun disposeImage(
                         continue
                     }
                     val i = y * canvasWidth + x
-                    newPreviousImage[i] = backgroundColor
+                    /*
+                     * Modern GIF decoders deviate from the original GIF89a specification
+                     * and set the area used by the frame to transparent instead of the
+                     * background color.
+                     *
+                     * See:
+                     * https://bugzilla.mozilla.org/show_bug.cgi?id=85595#c72
+                     * https://github.com/golang/go/issues/20694
+                     */
+                    newPreviousImage[i] = 0
                 }
             }
             newPreviousImage

@@ -251,10 +251,6 @@ internal class BaseGifDecoder(
                     frame.top,
                     frame.width,
                     frame.height,
-                    usesGlobalColorTable = !frame.usesLocalColorTable,
-                    globalColorTable,
-                    globalColorTableColors,
-                    backgroundColorIndex,
                 )
                 previousImageArgb = disposedImage
             }

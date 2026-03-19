@@ -13,16 +13,16 @@ jobs:
             deployments: write
         steps:
             -   name: Checkout sources
-                uses: actions/checkout@v4
+                uses: actions/checkout@v6
 
             -   name: Setup Java
-                uses: actions/setup-java@v4
+                uses: actions/setup-java@v5
                 with:
                     distribution: "graalvm"
                     java-version: 21
 
             -   name: Setup Gradle
-                uses: gradle/actions/setup-gradle@v4
+                uses: gradle/actions/setup-gradle@v5
 
             -   name: Generate Dokka documentation
                 run: ./gradlew dokkaGenerate --stacktrace
